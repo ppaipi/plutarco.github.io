@@ -4,7 +4,7 @@ let filteredProducts = [];
 let currentFilter = 'Todas';
 let currentSearch = '';
 let costoEnvioActual = 0;
-const LOCAL_ADDRESS = CONFIG.LOCAL_ADDRESS; // Cambiar por tu dirección real
+const LOCAL_ADDRESS = "Ibera 3852, Coghlan, CABA, Argentina"; // Cambiar por tu dirección real
 
 async function loadProducts() {
   const res = await fetch('productos.json');
