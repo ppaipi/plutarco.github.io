@@ -123,7 +123,10 @@ function createProductCard(prod) {
   }
 
   div.innerHTML = `
-    <img src="PRODUCTOS/${prod.Codigo}.jpeg" alt="${prod.Nombre}" onerror="this.onerror=null;this.src='PRODUCTOS/placeholder.jpeg';">
+    <img 
+    src="PRODUCTOS/${prod.Codigo}.jpeg" 
+    alt="${prod.Nombre}" 
+    onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='PRODUCTOS/placeholder.jpeg'; }">
     <h3>${prod.Nombre}</h3>
     <p>$${prod.Precio}</p>
   `;
@@ -268,7 +271,10 @@ function updateCart() {
     const li = document.createElement('li');
     li.innerHTML = `
       <div class="cart-item">
-        <img src="PRODUCTOS/${producto.Codigo}.jpeg" class="thumb" onerror="this.onerror=null;this.src='PRODUCTOS/placeholder.jpeg';">
+        <img 
+        src="PRODUCTOS/${prod.Codigo}.jpeg" 
+        alt="${prod.Nombre}" 
+        onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='PRODUCTOS/placeholder.jpeg'; }">
         <div>
           <strong>${producto.Nombre}</strong>
           <div class="quantity-controls">
