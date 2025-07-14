@@ -459,7 +459,7 @@ async function finalizeOrder() {
   
 
   try {
-    await fetch('https://script.google.com/macros/s/AKfycbzffgdmmKb5hYfyDxew1tzVb_DA7eQkW5c6pH6XO9nBklvnKNUb2jMulmF2Uj437XWV/exec', {
+    await fetch('https://script.google.com/macros/s/AKfycby12D69m4N82vz2ze_U6XdrrV6rfEr3c3M1Rkfb9iH1HAk-q9ACkM1dl1Lmb4KkAsa1/exec', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(pedido),
