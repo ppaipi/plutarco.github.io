@@ -272,9 +272,13 @@ function updateCart() {
     li.innerHTML = `
       <div class="cart-item">
         <img 
+        class="thumb"
         src="PRODUCTOS/${producto.Codigo}.jpeg" 
         alt="${producto.Nombre}" 
-        onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='PRODUCTOS/placeholder.jpeg'; }">
+        onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='PRODUCTOS/placeholder.jpeg'; }"
+        loading="lazy"
+        width="80" height="80"
+        style="object-fit: cover;">
         <div>
           <strong>${producto.Nombre}</strong>
           <div class="quantity-controls">
