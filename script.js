@@ -126,7 +126,10 @@ function createProductCard(prod) {
     <img 
     src="PRODUCTOS/${prod.Codigo}.jpeg" 
     alt="${prod.Nombre}" 
-    onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='PRODUCTOS/placeholder.jpeg'; }">
+    onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='PRODUCTOS/placeholder.jpeg'; }"
+    loading="lazy"
+    width="80" height="80"
+    style="object-fit: cover;">
     <h3>${prod.Nombre}</h3>
     <p>$${prod.Precio}</p>
   `;
