@@ -272,8 +272,8 @@ function updateCart() {
     li.innerHTML = `
       <div class="cart-item">
         <img 
-        src="PRODUCTOS/${prod.Codigo}.jpeg" 
-        alt="${prod.Nombre}" 
+        src="PRODUCTOS/${producto.Codigo}.jpeg" 
+        alt="${producto.Nombre}" 
         onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='PRODUCTOS/placeholder.jpeg'; }">
         <div>
           <strong>${producto.Nombre}</strong>
