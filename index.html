@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌵 Plutarco Delivery 🥖</title>
+  <link rel="stylesheet" href="styles.css?v=3">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <h1>🌵 Plutarco Almacén Delivery 🥖</h1>
+    <div id="cart-icon-fixed">
+      <button onclick="toggleCart()" id="cart-icon">🛒 <span id="cart-count">0</span></button>
+    </div>
+    <nav id="category-buttons"></nav>
+    <div class="search-cart-wrapper">
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Buscar producto..." onkeydown="if(event.key==='Enter') searchProduct()">
+        <button onclick="searchProduct()">🔍 Buscar</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="product-list"></div>
+
+    <section id="cart" class="cart-panel">
+      <button class="close-cart" onclick="toggleCart()">❌</button>
+      <h2>🛒 Carrito de Compras</h2>
+      <ul id="cart-items"></ul>
+
+      <label for="pickup-day">🗕️ Día de retiro:</label>
+      <input type="date" id="pickup-day" oninput="validarDia(event)">
+
+      <label for="name">👤 Nombre completo:</label>
+      <input type="text" id="name" placeholder="Tu nombre completo">
+
+      <label for="email">📧 Correo electrónico:</label>
+      <input type="email" id="email" placeholder="tuemail@ejemplo.com">
+
+      <label for="phone">☎️ Número de teléfono:</label>
+      <input type="tel" id="phone" placeholder="Ej: +54 9 11 1234-5678">
+
+      <label for="address">📍 Dirección de entrega:</label>
+      <input type="text" id="address" placeholder="Dirección completa">
+
+      <label for="comment">💬 Comentario (opcional):</label>
+      <input type="text" id="comment" placeholder="Instrucciones especiales">
+
+      <h4>Método de pago: SOLO TRANSFERENCIA</h4>
+      <p id="envio-msg"></p>
+      <p class="total">Total: $<span id="total">0</span></p>
+      <button class="finalize-btn" id="submit-btn" onclick="finalizeOrder()">Finalizar Pedido</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Plutarco Delivery</p>
+  </footer>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVozj7g2eddN7aXyE8VeAaNKdPMtYdsQ4&libraries=places&callback=initAutocomplete" async defer></script>
+  <script src="script.js?v=1.0.1"></script>
+</body>
+</html>
