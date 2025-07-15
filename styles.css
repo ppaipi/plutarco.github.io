@@ -125,7 +125,11 @@ header h1 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
+  max-width: calc(6 * 180px + 5 * 1rem); /* máximo 6 columnas y 5 espacios entre ellas */
+  margin: 0 auto;
 }
+
+
 
 .product {
   background-color: white;
@@ -171,6 +175,10 @@ header h1 {
 
 .product button:hover {
   background-color: #500c5d;
+}
+.espacio-vacio {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .quantity-controls {
@@ -414,4 +422,38 @@ footer {
   object-fit: cover;
   border-radius: 0.5rem;
 }
+.whatsapp-float {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1200;
+  width: 60px;
+  height: 60px;
+  background-color: #08e474;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
 
+.whatsapp-float:hover {
+  transform: scale(1.1);
+  background-color: #128C7E;
+}
+
+.whatsapp-icon {
+  width: 32px;
+  height: 32px;
+}
+.botonStock{
+  margin-top: 30px; 
+  background: #e2e3e5; 
+  padding: 14px; 
+  border-left: 5px solid #6c757d; 
+  border-radius: 8px;
+}
+.botonStock p{
+  margin: 0;
+}

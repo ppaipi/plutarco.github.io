@@ -11,15 +11,37 @@ let costoEnvioActual = 0;
 const LOCAL_ADDRESS = "Ibera 3852, Coghlan, CABA, Argentina";
 
 async function loadProducts() {
-  const resAll = await fetch('jsonProducts.json?cacheBust=' + Date.now());
-  const resCodes = await fetch('jsonHabilitados.json?cacheBust=' + Date.now());
-  allProducts = await resAll.json();
+  const resAll = await fetch('Productos.csv?cacheBust=' + Date.now());
+  const csvText = await resAll.text();
+  allProducts = parseCSV(csvText);
+  console.log(allProducts);
+
+  const resCodes = await fetch('Habilitados.json?cacheBust=' + Date.now());
   enabledCodes = await resCodes.json();
   products = allProducts.filter(p => enabledCodes.includes(p.Codigo));
   filteredProducts = [...products];
   renderCategoryMenu();
   renderProductsByCategory(filteredProducts);
 }
+
+function parseCSV(csvText) {
+  const lines = csvText.trim().split('\n');
+  const headers = lines[0].split(';');
+  return lines.slice(1).map(line => {
+    const values = line.split(';');
+    const obj = {};
+    headers.forEach((h, i) => {
+      const key = h.trim();
+      let val = values[i] ? values[i].trim() : '';
+      if (key === 'Codigo') val = String(val); // 👈 esto fuerza a string
+      else if (key === 'Precio' || key === 'Costo' || key === 'Stock') val = parseFloat(val) || 0;
+      obj[key] = val;
+    });
+    return obj;
+  });
+}
+
+
 
 function renderCategoryMenu() {
   const container = document.getElementById('category-buttons');
@@ -79,9 +101,16 @@ function renderProductsByCategory(productos) {
     const mostrar = currentFilter === cat ? productosCat : productosCat.slice(0, 5);
     mostrar.forEach(prod => grid.appendChild(createProductCard(prod)));
 
+
+
     if (productosCat.length > 5 && currentFilter === 'Todas') {
       const verMasBtn = createVerMasCard(cat);
       grid.appendChild(verMasBtn);
+    }
+    for (let i = productosCat.length; i < 5; i++) {
+      const vacio = document.createElement("div");
+      vacio.className = "product espacio-vacio";
+      grid.appendChild(vacio);
     }
 
     div.appendChild(grid);
@@ -124,10 +153,11 @@ function createProductCard(prod) {
 
   div.innerHTML = `
     <img 
-    src="PRODUCTOS/${prod.Codigo}.jpeg" 
+    src="media/PRODUCTOS/${prod.Codigo}.jpeg" 
     alt="${prod.Nombre}" 
-    onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='PRODUCTOS/placeholder.jpeg'; }"
+    onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='media/PRODUCTOS/placeholder.jpeg'; }"
     loading="lazy"
+    style="object-fit: cover;">
     <h3>${prod.Nombre}</h3>
     <p>$${prod.Precio}</p>
   `;
@@ -274,9 +304,9 @@ function updateCart() {
       <div class="cart-item">
         <img 
         class="thumb"
-        src="PRODUCTOS/${producto.Codigo}.jpeg" 
+        src="media/PRODUCTOS/${producto.Codigo}.jpeg" 
         alt="${producto.Nombre}" 
-        onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='PRODUCTOS/placeholder.jpeg'; }"
+        onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='media/PRODUCTOS/placeholder.jpeg'; }"
         loading="lazy"
         width="80" height="80"
         style="object-fit: cover;">

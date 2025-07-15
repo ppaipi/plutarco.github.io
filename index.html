@@ -31,7 +31,7 @@
       <h2>🛒 Carrito de Compras</h2>
       <ul id="cart-items"></ul>
 
-      <label for="pickup-day">🗕️ Día de retiro:</label>
+      <label for="pickup-day">📅 Día de retiro:</label>
       <input type="date" id="pickup-day" oninput="validarDia(event)">
 
       <label for="name">👤 Nombre completo:</label>
@@ -50,10 +50,21 @@
       <input type="text" id="comment" placeholder="Instrucciones especiales">
 
       <h4>Método de pago: SOLO TRANSFERENCIA</h4>
+      <div class="botonStock" >
+        <p>⚠️ En caso de no contar con stock de algún producto, se realizará la devolución del monto correspondiente.</p>
+      </div>
       <p id="envio-msg"></p>
       <p class="total">Total: $<span id="total">0</span></p>
       <button class="finalize-btn" id="submit-btn" onclick="finalizeOrder()">Finalizar Pedido</button>
     </section>
+    <!-- Botón flotante redondo de WhatsApp -->
+    <a href="https://wa.me/5491150168920?text=Hola!" 
+    class="whatsapp-float" 
+    target="_blank" 
+    aria-label="WhatsApp">
+    <img src="media/whatsapp.png" alt="WhatsApp" class="whatsapp-icon">
+    </a>
+
   </main>
 
   <footer>
