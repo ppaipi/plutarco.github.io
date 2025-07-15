@@ -40,6 +40,44 @@ function parseCSV(csvText) {
     return obj;
   });
 }
+function cargarDiasEntrega() {
+  const select = document.getElementById("pickup-day");
+  if (!select) return;
+
+  const diasValidos = [2, 5]; // 2: Martes, 5: Viernes
+  const opciones = [];
+
+  let hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  while (opciones.length < 2) {
+    hoy.setDate(hoy.getDate() + 1);
+    const diaSemana = hoy.getDay();
+    if (diasValidos.includes(diaSemana)) {
+      const fechaISO = hoy.toISOString().split("T")[0]; // YYYY-MM-DD
+
+      const diaNombre = hoy.toLocaleDateString('es-AR', { weekday: 'long' });
+      const diaCapitalizado = diaNombre.charAt(0).toUpperCase() + diaNombre.slice(1);
+
+      const dia = hoy.getDate();
+      const mes = hoy.getMonth() + 1;
+      const texto = `${diaCapitalizado} ${dia}/${mes}`;
+
+      opciones.push({ value: fechaISO, texto });
+    }
+  }
+
+  // Agrega nuevas opciones dejando la primera
+  select.innerHTML = '<option value="" disabled selected>Seleccionar una fecha</option>';
+  opciones.forEach(opt => {
+    const option = document.createElement("option");
+    option.value = opt.value;
+    option.textContent = opt.texto;
+    select.appendChild(option);
+  });
+}
+
+
 
 
 
@@ -528,3 +566,4 @@ async function finalizeOrder() {
 }
 
 loadProducts();
+cargarDiasEntrega();
