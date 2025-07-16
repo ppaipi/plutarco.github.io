@@ -481,28 +481,55 @@ function mostrarMensajeEnvio(texto, color) {
   }
 }
 
-async function finalizeOrder() {
-  const btn = document.getElementById('submit-btn');
+function bloquearBoton(btn) {
   if (btn) {
     btn.disabled = true;
     btn.textContent = 'Enviando...';
   }
+}
+
+function desbloquearBoton(btn) {
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Finalizar Pedido';
+  }
+}
+
+function validarCampos(btn) {
+  const dia = document.getElementById('pickup-day').value;
+  const nombre = document.getElementById('name').value.trim();
+  const mail = document.getElementById('email').value.trim();
+  const telefono = document.getElementById('phone').value.trim();
+  const direccion = document.getElementById('address').value.trim();
+
+  if (!dia || dia === "Seleccionar una fecha" || !nombre || !mail || !telefono || !direccion) {
+    alert('Completá todos los campos correctamente.');
+    desbloquearBoton(btn);
+    return false;
+  }
+
+  if (Object.keys(cart).length === 0) {
+    alert('Agregá al menos un producto al carrito.');
+    desbloquearBoton(btn);
+    return false;
+  }
+
+  if (costoEnvioActual === 0) {
+    alert('La dirección está fuera del área de reparto.');
+    desbloquearBoton(btn);
+    return false;
+  }
+
+  return true;
+}
+
+function construirPedido() {
   const dia = document.getElementById('pickup-day').value;
   const nombre = document.getElementById('name').value.trim();
   const mail = document.getElementById('email').value.trim();
   const telefono = document.getElementById('phone').value.trim();
   const direccion = document.getElementById('address').value.trim();
   const comentario = document.getElementById('comment').value.trim();
-
-  if (!dia || !nombre || !mail || !telefono || !direccion || Object.keys(cart).length === 0) {
-    alert('Completá todos los campos y asegurate de tener productos en el carrito.');
-    return;
-  }
-
-  if (costoEnvioActual === 0) {
-    alert('La dirección está fuera del área de reparto.');
-    return;
-  }
 
   const productos = Object.entries(cart).map(([codigo, cantidad]) => {
     const p = products.find(p => p.Codigo === codigo);
@@ -513,11 +540,11 @@ async function finalizeOrder() {
     const match = p.match(/\$(\d+)/);
     return sum + (match ? parseInt(match[1]) : 0);
   }, 0);
-  
+
   const envio = costoEnvioActual;
   const total = subtotal + envio;
-  
-  const pedido = {
+
+  return {
     nombre,
     mail,
     telefono,
@@ -529,41 +556,61 @@ async function finalizeOrder() {
     total,
     retiro: dia
   };
-  
+}
+
+async function enviarPedido(pedido) {
+  await fetch('https://script.google.com/macros/s/AKfycby12D69m4N82vz2ze_U6XdrrV6rfEr3c3M1Rkfb9iH1HAk-q9ACkM1dl1Lmb4KkAsa1/exec', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(pedido),
+    mode: 'no-cors'
+  });
+}
+
+function limpiarFormulario() {
+  cart = {};
+  costoEnvioActual = 0;
+  updateCart();
+
+  const campos = ['pickup-day', 'name', 'email', 'phone', 'address', 'comment'];
+  campos.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  const envioMsg = document.getElementById('envio-msg');
+  if (envioMsg) envioMsg.textContent = '';
+}
+
+
+async function finalizeOrder() {
+  const btn = document.getElementById('submit-btn');
+  bloquearBoton(btn);
+
+  if (!validarCampos(btn)){
+    desbloquearBoton(btn);
+    return;
+  } 
+
+  const pedido = construirPedido();
+  if (!pedido) {
+    desbloquearBoton(btn);
+    return;
+  }
 
   try {
-    await fetch('https://script.google.com/macros/s/AKfycby12D69m4N82vz2ze_U6XdrrV6rfEr3c3M1Rkfb9iH1HAk-q9ACkM1dl1Lmb4KkAsa1/exec', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(pedido),
-      mode: 'no-cors'
-    });
-
+    await enviarPedido(pedido);
     alert('¡Pedido enviado!');
-    cart = {};
-    costoEnvioActual = 0;
-    updateCart();
-
-    ['pickup-day', 'name', 'email', 'phone', 'address', 'comment'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-
-    const envioMsg = document.getElementById('envio-msg');
-    if (envioMsg) envioMsg.textContent = '';
-
+    limpiarFormulario();
     renderProducts(filteredProducts);
   } catch (e) {
     alert('Error al enviar el pedido');
     console.error(e);
+  } finally {
+    desbloquearBoton(btn);
   }
-  finally {
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = 'Enviar Pedido';
-    }
-  }  
 }
+
 
 loadProducts();
 cargarDiasEntrega();
