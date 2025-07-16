@@ -602,7 +602,7 @@ async function finalizeOrder() {
     await enviarPedido(pedido);
     alert('¡Pedido enviado!');
     limpiarFormulario();
-    renderProducts(filteredProducts);
+    renderProductsByCategory(filteredProducts);
   } catch (e) {
     alert('Error al enviar el pedido');
     console.error(e);
