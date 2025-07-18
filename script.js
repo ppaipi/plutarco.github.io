@@ -14,7 +14,6 @@ async function loadProducts() {
   const resAll = await fetch('Productos.csv?cacheBust=' + Date.now());
   const csvText = await resAll.text();
   allProducts = parseCSV(csvText);
-  console.log(allProducts);
 
   const resCodes = await fetch('Habilitados.json?cacheBust=' + Date.now());
   enabledCodes = await resCodes.json();
@@ -96,7 +95,15 @@ function renderCategoryMenu() {
   };
   container.appendChild(todasBtn);
 
-  const categorias = [...new Set(products.map(p => p.Categoria))];
+  let categorias = [...new Set(products.map(p => p.Categoria))];
+
+  categorias = categorias.filter(cat => cat !== 'Panaderia y Comidas') // quitarla para moverla al frente
+    .sort((a, b) => a.localeCompare(b, 'es')); // orden alfabético
+
+  if (products.some(p => p.Categoria === 'Panaderia y Comidas')) {
+    categorias.unshift('Panaderia y Comidas'); // agregarla primera si existe
+  }
+
   categorias.forEach(cat => {
     const btn = document.createElement('button');
     btn.textContent = cat;
@@ -104,6 +111,7 @@ function renderCategoryMenu() {
     container.appendChild(btn);
   });
 }
+
 
 function renderProductsByCategory(productos) {
   const container = document.getElementById('product-list');
@@ -122,7 +130,14 @@ function renderProductsByCategory(productos) {
     container.appendChild(backBtn);
   }
 
-  const categorias = [...new Set(productos.map(p => p.Categoria))];
+  let categorias = [...new Set(productos.map(p => p.Categoria))];
+
+  // Mover "Panaderia y comidas" al inicio
+  categorias = categorias.filter(c => c !== 'Panaderia y Comidas').sort((a, b) => a.localeCompare(b, 'es'));
+  if (productos.some(p => p.Categoria === 'Panaderia y Comidas')) {
+    categorias.unshift('Panaderia y Comidas');
+  }
+
   categorias.forEach(cat => {
     const div = document.createElement('div');
     div.className = 'category-section';
@@ -139,8 +154,6 @@ function renderProductsByCategory(productos) {
     const mostrar = currentFilter === cat ? productosCat : productosCat.slice(0, 5);
     mostrar.forEach(prod => grid.appendChild(createProductCard(prod)));
 
-
-
     if (productosCat.length > 5 && currentFilter === 'Todas') {
       const verMasBtn = createVerMasCard(cat);
       grid.appendChild(verMasBtn);
@@ -155,6 +168,7 @@ function renderProductsByCategory(productos) {
     container.appendChild(div);
   });
 }
+
 
 function createProductCard(prod) {
   const div = document.createElement('div');
