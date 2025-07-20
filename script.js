@@ -573,7 +573,7 @@ function construirPedido() {
 }
 
 async function enviarPedido(pedido) {
-  await fetch('https://script.google.com/macros/s/AKfycby12D69m4N82vz2ze_U6XdrrV6rfEr3c3M1Rkfb9iH1HAk-q9ACkM1dl1Lmb4KkAsa1/exec', {
+  await fetch('https://script.google.com/macros/s/AKfycbzfQMS7UEv9FV1DWdjjuU5egahGCGmU7eUm6l8hkhe_q9QhxyamvifTQy3tLn1hTeM/exec', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(pedido),
