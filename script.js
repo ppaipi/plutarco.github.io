@@ -245,9 +245,13 @@ function filterCategory(cat) {
   filteredProducts = (cat === 'Todas') ? [...products] : products.filter(p => p.Categoria === cat);
   renderCategoryMenu();
   renderProductsByCategory(filteredProducts);
+  window.scrollTo({
+    top: 0,
+    left: 0,
+    behavior: 'smooth'
+  });
 }
-
-
+    
 
 
 function searchProduct() {
@@ -516,18 +520,44 @@ function validarCampos(btn) {
   const telefono = document.getElementById('phone').value.trim();
   const direccion = document.getElementById('address').value.trim();
 
+  // Verificar campos vacíos
   if (!dia || dia === "Seleccionar una fecha" || !nombre || !mail || !telefono || !direccion) {
     alert('Completá todos los campos correctamente.');
     desbloquearBoton(btn);
     return false;
   }
 
+  // Validar formato de email (mail@algo.algo)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(mail)) {
+    alert('Ingresá un email válido en el formato mail@algo.algo.');
+    desbloquearBoton(btn);
+    return false;
+  }
+
+  // Validar teléfono: al menos 8 caracteres numéricos
+  const numerosTelefono = telefono.replace(/\D/g, ''); // quitar espacios y símbolos
+  if (numerosTelefono.length < 8) {
+    alert('El teléfono debe tener al menos 8 números.');
+    desbloquearBoton(btn);
+    return false;
+  }
+
+  // Validar nombre: al menos 2 palabras
+  if (nombre.split(/\s+/).length < 2) {
+    alert('Ingresá tu nombre completo (al menos 2 palabras).');
+    desbloquearBoton(btn);
+    return false;
+  }
+
+  // Validar carrito no vacío
   if (Object.keys(cart).length === 0) {
     alert('Agregá al menos un producto al carrito.');
     desbloquearBoton(btn);
     return false;
   }
 
+  // Validar costo de envío
   if (costoEnvioActual === 0) {
     alert('La dirección está fuera del área de reparto.');
     desbloquearBoton(btn);
@@ -536,6 +566,7 @@ function validarCampos(btn) {
 
   return true;
 }
+
 
 function construirPedido() {
   const dia = document.getElementById('pickup-day').value;
@@ -573,7 +604,7 @@ function construirPedido() {
 }
 
 async function enviarPedido(pedido) {
-  await fetch('https://script.google.com/macros/s/AKfycbzfQMS7UEv9FV1DWdjjuU5egahGCGmU7eUm6l8hkhe_q9QhxyamvifTQy3tLn1hTeM/exec', {
+  await fetch('https://script.google.com/macros/s/AKfycbwTkHayu52ejbje8V8PthTKNH21PSU116fryMuf5nmc0CHPSpz2J0DFVfS3Ilp-fhQn/exec', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(pedido),
@@ -614,7 +645,7 @@ async function finalizeOrder() {
 
   try {
     await enviarPedido(pedido);
-    alert('¡Pedido enviado!');
+    alert('¡Pedido enviado! Recibiras un mail con las intrucciones de pago.');
     limpiarFormulario();
     renderProductsByCategory(filteredProducts);
   } catch (e) {
