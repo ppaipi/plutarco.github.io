@@ -1,5 +1,3 @@
-// script.js completo con botón "Ver más" que filtra por categoría, y muestra todos los productos de esa categoría
-
 let products = [];
 let allProducts = [];
 let enabledCodes = [];
@@ -530,7 +528,7 @@ function validarCampos(btn) {
   // Validar formato de email (mail@algo.algo)
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(mail)) {
-    alert('Ingresá un email válido en el formato mail@algo.algo.');
+    alert('Ingresá un email válido.');
     desbloquearBoton(btn);
     return false;
   }
@@ -545,7 +543,7 @@ function validarCampos(btn) {
 
   // Validar nombre: al menos 2 palabras
   if (nombre.split(/\s+/).length < 2) {
-    alert('Ingresá tu nombre completo (al menos 2 palabras).');
+    alert('Ingresá tu nombre completo.');
     desbloquearBoton(btn);
     return false;
   }
@@ -604,7 +602,7 @@ function construirPedido() {
 }
 
 async function enviarPedido(pedido) {
-  await fetch('https://script.google.com/macros/s/AKfycbwTkHayu52ejbje8V8PthTKNH21PSU116fryMuf5nmc0CHPSpz2J0DFVfS3Ilp-fhQn/exec', {
+  await fetch('https://script.google.com/macros/s/AKfycbxxx7tCNZeiZk3s5R8Js-lEKw1vyyknAPO-6D2f0YCmR0UiwHw_Gmgqd_9mpnMBR4Co/exec', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(pedido),
