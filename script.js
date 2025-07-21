@@ -249,10 +249,12 @@ function filterCategory(cat) {
   renderProductsByCategory(filteredProducts);
 
   // Scroll suave al header
-  const header = document.querySelector('header');
-  if (header) {
-    header.scrollIntoView({ behavior: 'smooth' });
+  const volverbtn = document.getElementsByClassName('volver-btn')[0];
+  if (volverbtn) {
+    volverbtn.scrollIntoView({ behavior: 'smooth' });
+    console.log("Scroll");
   }
+  
 }
 
 
