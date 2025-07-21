@@ -19,6 +19,10 @@ async function loadProducts() {
   filteredProducts = [...products];
   renderCategoryMenu();
   renderProductsByCategory(filteredProducts);
+  const header = document.querySelector('header');
+  if (header) {
+    header.scrollIntoView({ behavior: 'smooth' });
+  }
 }
 
 function parseCSV(csvText) {
@@ -243,12 +247,15 @@ function filterCategory(cat) {
   filteredProducts = (cat === 'Todas') ? [...products] : products.filter(p => p.Categoria === cat);
   renderCategoryMenu();
   renderProductsByCategory(filteredProducts);
-  window.scrollTo({
-    top: 0,
-    left: 0,
-    behavior: 'smooth'
-  });
+
+  // Scroll suave al header
+  const header = document.querySelector('header');
+  if (header) {
+    header.scrollIntoView({ behavior: 'smooth' });
+  }
 }
+
+
     
 
 

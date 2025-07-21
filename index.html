@@ -46,8 +46,10 @@
     <nav id="category-buttons"></nav>
     <div class="search-cart-wrapper">
       <div class="search-bar">
-        <input type="text" id="search-input" placeholder="Buscar producto..." onkeydown="if(event.key==='Enter') searchProduct()">
-        <button onclick="searchProduct()">🔍 Buscar</button>
+        <input type="text" id="search-input" placeholder="Buscar producto..."
+        onkeydown="if(event.key==='Enter') searchProduct();"
+        oninput="searchProduct()">
+         <button onclick="searchProduct()">🔍 Buscar</button>
       </div>
     </div>
   </header>
@@ -83,7 +85,7 @@
 
       <h4>Método de pago: SOLO TRANSFERENCIA</h4>
       <div class="botonStock" >
-        <p>⚠️ En caso de no contar con stock de algún producto, se realizará la devolución del monto correspondiente.</p>
+        <p>⚠️ En caso de no contar con stock de algún producto, se te notificará y se realizará la devolución del monto correspondiente.</p>
       </div>
       <p id="envio-msg"></p>
       <p class="total">Total: $<span id="total">0</span></p>

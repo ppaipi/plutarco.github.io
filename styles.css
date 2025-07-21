@@ -7,13 +7,13 @@
 }
 
 body {
-  background-color: #f8f8fb;
+  background-color: #f0f4fa; /* azul claro */
   color: #333;
 }
 
 /* Encabezado */
 header {
-  background-color: #222;
+  background-color: #1E88E5; /* azul principal */
   color: white;
   padding: 1rem;
   text-align: center;
@@ -34,9 +34,9 @@ header h1 {
 }
 
 #cart-icon {
-  background-color: #671e75;
+  background-color: #1565C0;
   color: white;
-  border: none;
+  border: #4734342f solid 2px;
   font-size: 1.3rem;
   padding: 0.6rem 1.2rem;
   border-radius: 2rem;
@@ -52,12 +52,12 @@ header h1 {
 }
 
 #cart-icon:hover {
-  background-color: #500c5d;
+  background-color: #1565C0;
   transform: scale(1.1);
 }
 
 #cart-count {
-  background-color: red;
+  background-color: #e53935;
   color: white;
   border-radius: 50%;
   padding: 0.2rem 0.6rem;
@@ -75,19 +75,19 @@ header h1 {
   gap: 0.5rem;
   padding: 1rem;
   justify-content: center;
-  border-top: 1px solid #222;
-  border-bottom: 1px solid #222;
+  border-top: 1px solid #1E88E5;
+  border-bottom: 1px solid #1E88E5;
   position: sticky;
   top: 0;
   z-index: 100;
   backdrop-filter: blur(6px);
-  background-color: #222;
+  background-color: #1E88E5;
 }
 
 #category-buttons button {
-  background-color: #671e75;
+  background-color: #1565C0;
   color: white;
-  border: none;
+  border: #4734342f solid 2px;
   padding: 0.6rem 1rem;
   border-radius: 1.5rem;
   cursor: pointer;
@@ -96,21 +96,21 @@ header h1 {
 }
 
 #category-buttons button:hover {
-  background-color: #500c5d;
+  background-color: #0d47a1;
 }
 
 /* Categorías en el listado */
 .category-section {
   margin-bottom: 3rem;
   padding: 1rem;
-  background-color: #f8f8fb;
+  background-color: #f0f4fa;
   border-radius: 1rem;
 }
 
 .category-title {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: #671e75;
+  color: #1E88E5;
   font-weight: bold;
   text-align: center;
 }
@@ -125,11 +125,9 @@ header h1 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
-  max-width: calc(6 * 180px + 5 * 1rem); /* máximo 6 columnas y 5 espacios entre ellas */
+  max-width: calc(6 * 180px + 5 * 1rem);
   margin: 0 auto;
 }
-
-
 
 .product {
   background-color: white;
@@ -164,7 +162,7 @@ header h1 {
 
 .product button {
   padding: 0.4rem 0.8rem;
-  background-color: #671e75;
+  background-color: #1E88E5;
   color: white;
   border: none;
   border-radius: 1rem;
@@ -174,8 +172,9 @@ header h1 {
 }
 
 .product button:hover {
-  background-color: #500c5d;
+  background-color: #1565C0;
 }
+
 .espacio-vacio {
   visibility: hidden;
   pointer-events: none;
@@ -204,8 +203,8 @@ header h1 {
 
 /* Ver más */
 .ver-mas-card {
-  background-color: #f0e7f3;
-  border: 2px dashed #671e75;
+  background-color: #e3f2fd;
+  border: 2px dashed #1E88E5;
   padding: 1rem;
   border-radius: 1rem;
   display: flex;
@@ -219,21 +218,21 @@ header h1 {
 .ver-mas-icon {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #671e75;
+  color: #1E88E5;
 }
 
 .ver-mas-text {
   font-size: 1.1rem;
   font-weight: bold;
-  color: #671e75;
+  color: #1E88E5;
   margin-top: 0.3rem;
 }
 
 /* Botón Volver */
 .volver-btn {
   background-color: #fff;
-  color: #671e75;
-  border: 2px solid #671e75;
+  color: #1E88E5;
+  border: 2px solid #1E88E5;
   padding: 0.6rem 1.2rem;
   border-radius: 2rem;
   font-weight: 600;
@@ -244,7 +243,7 @@ header h1 {
 }
 
 .volver-btn:hover {
-  background-color: #671e75;
+  background-color: #1E88E5;
   color: white;
 }
 
@@ -281,7 +280,7 @@ header h1 {
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
-  background-color: #faf5fc;
+  background-color: #e3f2fd;
   padding: 0.8rem;
   border-radius: 0.75rem;
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
@@ -325,7 +324,7 @@ header h1 {
 }
 
 .finalize-btn {
-  background-color: #671e75;
+  background-color: #1E88E5;
   color: white;
   font-weight: bold;
   border: none;
@@ -338,7 +337,7 @@ header h1 {
 }
 
 .finalize-btn:hover {
-  background-color: #500c5d;
+  background-color: #1565C0;
 }
 
 .total {
@@ -382,9 +381,9 @@ footer {
 }
 
 .search-bar button {
-  background-color: #671e75;
+  background-color: #1565C0;
   color: white;
-  border: none;
+  border: #4734342f solid 2px;
   padding: 0.5rem 1rem;
   border-radius: 1rem;
   cursor: pointer;
@@ -393,13 +392,13 @@ footer {
 }
 
 .search-bar button:hover {
-  background-color: #500c5d;
+  background-color: #0d47a1;
 }
 
 /* Responsive */
 @media (max-width: 600px) {
   header h1 {
-    font-size: 1.2rem;
+    font-size: 1.8rem;
   }
   #cart-icon {
     font-size: 1.5rem;
@@ -422,6 +421,8 @@ footer {
   object-fit: cover;
   border-radius: 0.5rem;
 }
+
+/* Botón WhatsApp */
 .whatsapp-float {
   position: fixed;
   bottom: 1.5rem;
@@ -429,7 +430,7 @@ footer {
   z-index: 1200;
   width: 60px;
   height: 60px;
-  background-color: #08e474;
+  background-color: #25D366;
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -440,23 +441,26 @@ footer {
 
 .whatsapp-float:hover {
   transform: scale(1.1);
-  background-color: #128C7E;
+  border:rgba(0, 0, 0, 0.09) 1px solid;
 }
 
 .whatsapp-icon {
   width: 32px;
   height: 32px;
 }
-.botonStock{
-  margin-top: 30px; 
-  background: #e2e3e5; 
-  padding: 14px; 
-  border-left: 5px solid #6c757d; 
+
+.botonStock {
+  margin-top: 30px;
+  background: #e2e3e5;
+  padding: 14px;
+  border-left: 5px solid #6c757d;
   border-radius: 8px;
 }
-.botonStock p{
+
+.botonStock p {
   margin: 0;
 }
+
 #pickup-day {
   width: 100%;
   padding: 0.5rem;
@@ -469,13 +473,11 @@ footer {
   appearance: none;
 }
 
-
 #pickup-day:focus {
-  border-color: #671e75;
+  border-color: #1E88E5;
   outline: none;
 }
 
 #pickup-day option:disabled {
   color: #999;
 }
-
