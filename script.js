@@ -233,9 +233,9 @@ function createVerMasCard(categoria) {
   icon.className = 'ver-mas-icon';
   icon.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="#1E88E5">
-      <rect x="10" y="2" width="2" height="16" rx="2"/>
-      <rect x="2" y="10" width="16" height="2" rx="2"/>
-    </svg>
+      <rect x="11" y="4" width="2" height="16" rx="1"/>
+  <rect x="4" y="11" width="16" height="2" rx="1"/>
+</svg>
   `;
 
   const texto = document.createElement('div');
