@@ -219,6 +219,7 @@ function createProductCard(prod) {
   return div;
 }
 
+
 function createVerMasCard(categoria) {
   const div = document.createElement('div');
   div.className = 'product ver-mas-card';
@@ -230,7 +231,11 @@ function createVerMasCard(categoria) {
 
   const icon = document.createElement('div');
   icon.className = 'ver-mas-icon';
-  icon.textContent = '➕';
+  icon.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="#1E88E5" viewBox="0 0 24 24">
+      <path d="M19 13h-6v6a1 1 0 0 1-2 0v-6H5a1 1 0 0 1 0-2h6V5a1 1 0 0 1 2 0v6h6a1 1 0 0 1 0 2z"/>
+    </svg>
+  `;
 
   const texto = document.createElement('div');
   texto.className = 'ver-mas-text';
@@ -240,6 +245,7 @@ function createVerMasCard(categoria) {
   div.appendChild(texto);
   return div;
 }
+
 
 function filterCategory(cat) {
   currentFilter = cat;
