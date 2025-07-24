@@ -232,8 +232,9 @@ function createVerMasCard(categoria) {
   const icon = document.createElement('div');
   icon.className = 'ver-mas-icon';
   icon.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="#1E88E5" viewBox="0 0 24 24">
-      <path d="M19 13h-6v6a1 1 0 0 1-2 0v-6H5a1 1 0 0 1 0-2h6V5a1 1 0 0 1 2 0v6h6a1 1 0 0 1 0 2z"/>
+    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="#1E88E5">
+      <rect x="10" y="4" width="4" height="16" rx="1"/>
+      <rect x="4" y="10" width="16" height="4" rx="1"/>
     </svg>
   `;
 
@@ -245,6 +246,7 @@ function createVerMasCard(categoria) {
   div.appendChild(texto);
   return div;
 }
+
 
 
 function filterCategory(cat) {
