@@ -6,6 +6,8 @@ let filteredProducts = [];
 let currentFilter = 'Todas';
 let currentSearch = '';
 let costoEnvioActual = 0;
+let indiceCategoria = '';
+
 const LOCAL_ADDRESS = "Ibera 3852, Coghlan, CABA, Argentina";
 
 async function loadProducts() {
@@ -128,6 +130,13 @@ function renderProductsByCategory(productos) {
       filteredProducts = [...products];
       renderCategoryMenu();
       renderProductsByCategory(filteredProducts);
+      if (indiceCategoria) {
+        const el = document.querySelector(`.category-title.${indiceCategoria.replace(/\s/g, '\\ ')}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      } 
+      else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     };
     container.appendChild(backBtn);
   }
@@ -145,7 +154,7 @@ function renderProductsByCategory(productos) {
     div.className = 'category-section';
 
     const h2 = document.createElement('h2');
-    h2.className = 'category-title';
+    h2.className = 'category-title ${cat}';
     h2.innerHTML = `<a href="#" onclick="filterCategory('${cat}'); return false;">${cat}</a>`;
     div.appendChild(h2);
 
@@ -227,6 +236,7 @@ function createVerMasCard(categoria) {
 
   div.onclick = () => {
     filterCategory(categoria);
+    indiceCategoria = categoria;
   };
 
   const icon = document.createElement('div');
