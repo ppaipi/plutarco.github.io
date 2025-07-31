@@ -131,10 +131,12 @@ function renderProductsByCategory(productos) {
       renderCategoryMenu();
       renderProductsByCategory(filteredProducts);
       if (indiceCategoria) {
-        const el = document.getElementsByClassName(`${indiceCategoria})}`);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      } 
-      else {
+        const catClass = indiceCategoria.replace(/\s+/g, '-');
+        const el = document.querySelector(`.category-title.${catClass}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     };
@@ -154,7 +156,8 @@ function renderProductsByCategory(productos) {
     div.className = 'category-section';
 
     const h2 = document.createElement('h2');
-    h2.className = `category-title ${cat}`;
+    const catClass = cat.replace(/\s+/g, '-'); // Reemplaza espacios por guiones
+    h2.className = `category-title ${catClass}`;
     h2.innerHTML = `<a href="#" onclick="filterCategory('${cat}'); return false;">${cat}</a>`;
     div.appendChild(h2);
 
@@ -235,8 +238,8 @@ function createVerMasCard(categoria) {
   div.style.cursor = 'pointer';
 
   div.onclick = () => {
-    filterCategory(categoria);
     indiceCategoria = categoria;
+    filterCategory(categoria);
   };
 
   const icon = document.createElement('div');
