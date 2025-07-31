@@ -131,7 +131,7 @@ function renderProductsByCategory(productos) {
       renderCategoryMenu();
       renderProductsByCategory(filteredProducts);
       if (indiceCategoria) {
-        const el = document.querySelector(`.category-title.${indiceCategoria.replace(/\s/g, '\\ ')}`);
+        const el = document.getElementsByClassName(`${indiceCategoria})}`);
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       } 
       else {
@@ -154,7 +154,7 @@ function renderProductsByCategory(productos) {
     div.className = 'category-section';
 
     const h2 = document.createElement('h2');
-    h2.className = 'category-title ${cat}';
+    h2.className = `category-title ${cat}`;
     h2.innerHTML = `<a href="#" onclick="filterCategory('${cat}'); return false;">${cat}</a>`;
     div.appendChild(h2);
 
