@@ -131,7 +131,7 @@ function renderProductsByCategory(productos) {
       renderCategoryMenu();
       renderProductsByCategory(filteredProducts);
       if (indiceCategoria) {
-        const el = document.getElementsByClassName(indiceCategoria);
+        const el = document.querySelector(`.category-title.${catClass}`);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth' });
         }
@@ -237,7 +237,7 @@ function createVerMasCard(categoria) {
   div.style.cursor = 'pointer';
 
   div.onclick = () => {
-    indiceCategoria = categoria.replace(/\s+/g, '-');
+    indiceCategoria = catClass;
     filterCategory(categoria);
   };
 
