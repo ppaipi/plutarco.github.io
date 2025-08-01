@@ -131,7 +131,7 @@ function renderProductsByCategory(productos) {
       renderCategoryMenu();
       renderProductsByCategory(filteredProducts);
       if (indiceCategoria) {
-        const el = document.querySelector(`.category-title.${catClass}`);
+        const el = document.querySelector(`.category-title.${indiceCategoria}`);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth' });
         }
