@@ -131,10 +131,16 @@ function renderProductsByCategory(productos) {
       renderCategoryMenu();
       renderProductsByCategory(filteredProducts);
       if (indiceCategoria) {
-        const el = document.querySelector(`.ver-mas-card.${indiceCategoria}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' });
-        }
+        setTimeout(() => {
+          const el = document.querySelector(`.ver-mas-card.${indiceCategoria}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+            // Fallback: vuelve a intentar después de otro ciclo
+            setTimeout(() => {
+              el.scrollIntoView({ behavior: 'smooth' });
+            }, 200);
+          }
+        }, 150); // Puedes ajustar el delay si hace falta
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
