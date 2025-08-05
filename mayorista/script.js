@@ -325,7 +325,6 @@ function validarCampos(btn) {
 
   return true;
 }
-
 function enviarPedido() {
   const btn = document.getElementById('submit-btn');
   if (!validarCampos(btn)) return;
@@ -345,18 +344,20 @@ function enviarPedido() {
     const prod = products.find(p => p.Codigo === codigo);
     const cantidad = cart[codigo];
     if (prod && cantidad > 0) {
-      pedido.productos.push(`${prod.Nombre} x${cantidad}u ($${prod.Precio * cantidad})`);
-      totalProductos += prod.Precio * cantidad;
+      const subtotal = prod.Precio * cantidad;
+      pedido.productos.push({
+        codigo: prod.Codigo,
+        nombre: prod.Nombre,
+        unidades: cantidad,
+        total: subtotal
+      });
+      totalProductos += subtotal;
     }
   }
 
-
   pedido.total = totalProductos;
 
-  const formBody = Object.keys(pedido).map(key => {
-    const val = Array.isArray(pedido[key]) ? JSON.stringify(pedido[key]) : pedido[key];
-    return encodeURIComponent(key) + '=' + encodeURIComponent(val);
-  }).join('&');
+  const formBody = 'data=' + encodeURIComponent(JSON.stringify(pedido));
 
   fetch('https://script.google.com/macros/s/AKfycbyfsOxzheXTlGnYKwHgsUPF6toKd-fo4oeXQf8eGX4HtP6yRiPApwdTGUu5ewB1lTr0/exec', {
     method: 'POST',
@@ -377,6 +378,9 @@ function enviarPedido() {
     desbloquearBoton(btn);
   });
 }
+
+
+
 
 
 // --- Modal descripción producto ---
