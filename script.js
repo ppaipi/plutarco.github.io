@@ -154,7 +154,7 @@ function cargarDiasEntrega() {
   const select = document.getElementById("pickup-day");
   if (!select) return;
 
-  const diasValidos = [2, 5]; // 2: Martes, 5: Viernes
+  const diasValidos = [3]; // SELECTOR DE DIA: 1 = LUNES, 6 = SABADO, ej [1,3] = lunes y miercoles
   const opciones = [];
 
   let hoy = new Date();
@@ -780,3 +780,4 @@ window.onload = () => {
     searchInput.addEventListener('input', () => searchProduct());
   }
 };
+
