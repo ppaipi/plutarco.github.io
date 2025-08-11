@@ -24,6 +24,34 @@ header h1 {
   font-size: 1.6rem;
   margin-bottom: 0.5rem;
 }
+.logo-titulo {
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem; /* espacio entre logo y título */
+}
+
+.logo-titulo img {
+  height: 70px;
+  width: auto;
+}
+
+.logo-titulo h1 {
+  font-weight: 600;
+  font-size: 1.8rem;
+  letter-spacing: 1px;     /* un poco más de aire entre letras */
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1); /* sombra sutil para dar relieve */
+  margin: 0;
+}
+
+.logo-titulo span {
+  font-size: 1.1rem;
+  font-weight: 400;
+  display: block;
+  letter-spacing: 0.5px;
+}
+
+
 
 /* Icono del carrito fijo a la derecha */
 #cart-icon-fixed {
@@ -130,6 +158,7 @@ header h1 {
 }
 
 .product {
+  cursor: pointer;
   background-color: white;
   padding: 1rem;
   border-radius: 1rem;
@@ -277,6 +306,7 @@ header h1 {
 }
 
 .cart-item {
+  border: rgba(0, 0, 0, 0.241) solid 1px;
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
@@ -300,7 +330,9 @@ header h1 {
   color: red;
   cursor: pointer;
 }
-
+ul {
+    list-style-type: none;
+}
 .remove-btn:hover {
   transform: scale(1.2);
 }
@@ -414,6 +446,20 @@ footer {
   .product-grid {
     grid-template-columns: 1fr 1fr;
   }
+  .modal-content {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    max-width: 98vw;
+  }
+  .modal-img {
+    width: 100%;
+    max-width: 260px;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    margin: 0 auto 1rem auto;
+    display: block;
+  }
 }
 .cart-item img.thumb {
   width: 60px;
@@ -480,4 +526,155 @@ footer {
 
 #pickup-day option:disabled {
   color: #999;
+}
+/* Modal overlay y contenido */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 95%;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  padding: 2rem;
+  position: relative;
+}
+
+.modal-img {
+  width: 180px;
+  height: 180px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #f0f4fa;
+  flex-shrink: 0;
+  display: block;
+}
+
+.modal-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1E88E5;
+  margin-bottom: 1rem;
+}
+
+.modal-desc {
+  font-size: 1rem;
+  color: #444;
+  margin-bottom: 1.5rem;
+}
+
+.modal-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.modal-controls button {
+  padding: 0.3rem 0.7rem;
+  font-size: 1rem;
+  background-color: #e2e2e2;
+  color: #333;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.modal-controls button:hover {
+  background-color: #ccc;
+}
+
+.modal-controls .agregar-btn {
+  padding: 0.4rem 0.8rem;
+  background-color: #1E88E5;
+  color: white;
+  border: none;
+  border-radius: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modal-controls .agregar-btn:hover {
+  background-color: #1565C0;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #888;
+  cursor: pointer;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-content-anim {
+  animation: modalFadeIn 0.32s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes modalFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.92) translateY(30px);
+  }
+}
+
+.modal-content-anim-close {
+  animation: modalFadeOut 0.18s cubic-bezier(.4,0,.2,1) forwards;
+}
+
+@media (max-width: 600px) {
+  .modal-content {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    max-width: 98vw;
+  }
+  .modal-img {
+    width: 100%;
+    max-width: 260px;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    margin: 0 auto 1rem auto;
+    display: block;
+  }
 }
