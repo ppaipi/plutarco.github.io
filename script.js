@@ -220,11 +220,13 @@ function renderCategoryMenu() {
 }
 
 function scrollToElementoVerMas(clase, intentos = 10) {
-  const el = document.querySelector(`.ver-mas-card.${clase}`);
+  const el = document.querySelector(`.category-title.${clase}`);
   if (el) {
     el.scrollIntoView({ behavior: 'smooth' });
     if (intentos > 0) {
-      requestAnimationFrame(() => scrollToElementoVerMas(clase, intentos - 1));
+      setTimeout(() => {
+        requestAnimationFrame(() => scrollToElementoVerMas(clase, intentos - 1));
+      }, 50);
     }
   }
 }
@@ -262,15 +264,16 @@ function renderProductsByCategory(productos) {
     div.className = 'category-section';
 
     const h2 = document.createElement('h2');
-    h2.className = `category-title`;
+    h2.className = `category-title ${cat.replace(/\s+/g, '-')}`;
     h2.innerHTML = `<a href="#" onclick="filterCategory('${cat}'); return false;">${cat}</a>`;
     div.appendChild(h2);
 
     const grid = document.createElement('div');
     grid.className = 'product-grid';
 
-    const productosCat = productos.filter(p => p.Categoria === cat);
-    const mostrar = currentFilter === cat ? productosCat : productosCat.slice(0, 5);
+const productosCat = productos
+  .filter(p => p.Categoria === cat)
+  .sort((a, b) => a.Nombre.localeCompare(b.Nombre, 'es'));    const mostrar = currentFilter === cat ? productosCat : productosCat.slice(0, 5);
     mostrar.forEach(prod => grid.appendChild(createProductCard(prod)));
 
     if (productosCat.length > 5 && currentFilter === 'Todas') {
@@ -885,6 +888,9 @@ function toggleZoom(idImagen) {
   clone.onclick = () => closeZoom(clone);
   closeBtn.onclick = () => closeZoom(clone);
 }
+
+
+
 
 
 window.onload = () => {
