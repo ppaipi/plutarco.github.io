@@ -7,40 +7,61 @@ let currentFilter = 'Todas';
 let currentSearch = '';
 let costoEnvioActual = 0;
 let indiceCategoria = '';
-let descripcionesPorCodigo = {}; // Nuevo: para guardar las descripciones
+let descripcionesPorCodigo = {};
+const LOCAL_ADDRESS = 'Ibera 3852, Coghlan, CABA, Argentina.';
 
-// --- Cargar productos y descripciones ---
+
 async function loadProducts() {
-  const resAll = await fetch('Productos.csv?cacheBust=' + Date.now());
-  const csvText = await resAll.text();
-  allProducts = parseCSV(csvText);
+  try {
+    const res = await fetch('articulos.xlsx?cacheBust=' + Date.now());
+    const data = await res.arrayBuffer();
 
-  const resCodes = await fetch('Habilitados.json?cacheBust=' + Date.now());
-  enabledCodes = await resCodes.json();
-  products = allProducts.filter(p => enabledCodes.includes(p.Codigo));
-  filteredProducts = [...products];
+    // Leer el Excel
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
 
-  await loadDescripciones(); // Nuevo: cargar descripciones
+    // Convertir la hoja a JSON
+    const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-  renderCategoryMenu();
-  renderProductsByCategory(filteredProducts);
-  const header = document.querySelector('header');
-  if (header) {
-    header.scrollIntoView({ behavior: 'smooth' });
+    // Mapear a tu formato
+    allProducts = jsonData.map(row => ({
+      Codigo: (row["CODIGO BARRA"] || "").toString().trim(),
+      Nombre: row["DESCRIPCION LARGA"] || "",
+      Descripcion: row["DESCRIPCION ADICIONAL"] || "",
+      Categoria: row["RUBRO"] || "",
+      Precio: parsePrecio(row["PRECIO VENTA C/IVA"]),
+      Proveedor: row["PROVEEDOR"] || "",
+    }));
+
+    // Filtrar solo habilitados
+    const resCodes = await fetch('Habilitados.json?cacheBust=' + Date.now());
+    enabledCodes = await resCodes.json();
+    products = allProducts.filter(p => enabledCodes.includes(p.Codigo));
+    filteredProducts = [...products];
+
+    // Render
+    renderCategoryMenu();
+    renderProductsByCategory(filteredProducts);
+
+    const header = document.querySelector('header');
+    if (header) {
+      header.scrollIntoView({ behavior: 'smooth' });
+    }
+
+  } catch (err) {
+    console.error("Error cargando productos:", err);
   }
 }
-
-// --- Nuevo: cargar descripciones desde Descripciones.csv ---
-async function loadDescripciones() {
-  const resDesc = await fetch('Descripciones.csv?cacheBust=' + Date.now());
-  const csvText = await resDesc.text();
-  descripcionesPorCodigo = {};
-  const lines = csvText.trim().split('\n');
-  for (let i = 1; i < lines.length; i++) {
-    const [codigo, descripcion] = lines[i].split(';');
-    if (codigo) descripcionesPorCodigo[codigo.trim()] = descripcion ? descripcion.trim() : '';
-  }
+function parsePrecio(str) {
+  if (!str) return 0;
+  // Quitar puntos de miles y reemplazar coma decimal por punto
+  const limpio = str.replace(/\./g, '').replace(',', '.');
+  return parseFloat(limpio) || 0;
 }
+
+
+
 
 
 
@@ -59,11 +80,6 @@ function cerrarModalDescripcion() {
   }
 }
 
-function mostrarDescripcionProducto(prod) {
-  // Asigna la descripción desde el diccionario
-  prod.Descripcion = descripcionesPorCodigo[String(prod.Codigo).trim()] || 'Sin descripción disponible.';
-  crearModalDescripcion(prod);
-}
 
 // MODIFICAR: todo el div del producto abre el modal
 function createProductCard(prod) {
@@ -125,7 +141,7 @@ function createProductCard(prod) {
       e.target.tagName !== 'BUTTON' &&
       !(e.target.closest && e.target.closest('button'))
     ) {
-      mostrarDescripcionProducto(prod);
+      crearModalDescripcion(prod);
     }
   };
 
@@ -133,22 +149,7 @@ function createProductCard(prod) {
   return div;
 }
 
-function parseCSV(csvText) {
-  const lines = csvText.trim().split('\n');
-  const headers = lines[0].split(';');
-  return lines.slice(1).map(line => {
-    const values = line.split(';');
-    const obj = {};
-    headers.forEach((h, i) => {
-      const key = h.trim();
-      let val = values[i] ? values[i].trim() : '';
-      if (key === 'Codigo') val = String(val);
-      else if (key === 'Precio' || key === 'Costo' || key === 'Stock') val = parseFloat(val) || 0;
-      obj[key] = val;
-    });
-    return obj;
-  });
-}
+
 
 function cargarDiasEntrega() {
   const select = document.getElementById("pickup-day");
@@ -203,11 +204,11 @@ function renderCategoryMenu() {
 
   let categorias = [...new Set(products.map(p => p.Categoria))];
 
-  categorias = categorias.filter(cat => cat !== 'Panaderia y Comidas')
+  categorias = categorias.filter(cat => cat !== 'Panaderia Artesanal')
     .sort((a, b) => a.localeCompare(b, 'es'));
 
-  if (products.some(p => p.Categoria === 'Panaderia y Comidas')) {
-    categorias.unshift('Panaderia y Comidas');
+  if (products.some(p => p.Categoria === 'Panaderia Artesanal')) {
+    categorias.unshift('Panaderia Artesanal');
   }
 
   categorias.forEach(cat => {
@@ -251,9 +252,9 @@ function renderProductsByCategory(productos) {
   }
 
   let categorias = [...new Set(productos.map(p => p.Categoria))];
-  categorias = categorias.filter(c => c !== 'Panaderia y Comidas').sort((a, b) => a.localeCompare(b, 'es'));
-  if (productos.some(p => p.Categoria === 'Panaderia y Comidas')) {
-    categorias.unshift('Panaderia y Comidas');
+  categorias = categorias.filter(c => c !== 'Panaderia Artesanal').sort((a, b) => a.localeCompare(b, 'es'));
+  if (productos.some(p => p.Categoria === 'Panaderia Artesanal')) {
+    categorias.unshift('Panaderia Artesanal');
   }
 
   categorias.forEach(cat => {
@@ -301,7 +302,7 @@ function createVerMasCard(categoria) {
   const icon = document.createElement('div');
   icon.className = 'ver-mas-icon';
   icon.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="#1E88E5">
+    <svg xmlns="http://www.w3.org/2000/svg" class="boton-ver-mas" viewBox="0 0 24 24" >
       <rect x="10.75" y="4" width="2.5" height="16" rx="1.2"/>
       <rect x="4" y="10.75" width="16" height="2.5" rx="1.2"/>
     </svg>
@@ -325,7 +326,9 @@ function filterCategory(cat) {
 
   const volverbtn = document.getElementsByClassName('volver-btn')[0];
   if (volverbtn) {
-    volverbtn.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      volverbtn.scrollIntoView({ behavior: 'smooth' });
+    }, 100);    
   }
 }
 
@@ -663,12 +666,16 @@ function crearModalDescripcion(prod) {
   // Imagen grande
   const img = document.createElement('img');
   img.className = 'modal-img';
+  img.id = `modal-img-${prod.Codigo}`;
   img.src = `media/PRODUCTOS/${prod.Codigo}.jpeg`;
   img.alt = prod.Nombre;
   img.onerror = function() {
     this.onerror = null;
     this.src = this.src.replace('.jpeg', '.jpg');
     this.onerror = function() { this.src = 'media/PRODUCTOS/placeholder.jpeg'; };
+  };
+  img.onclick = () => {
+    toggleZoom(img.id);
   };
 
   // Info
@@ -682,7 +689,7 @@ function crearModalDescripcion(prod) {
   // Descripción
   const desc = document.createElement('p');
   desc.className = 'modal-desc';
-  desc.textContent = prod.Descripcion;
+  desc.innerHTML = (prod.Descripcion || 'Sin descripción disponible.').replace(/\n/g, '<br>');
 
   // Precio
   const price = document.createElement('div');
@@ -690,6 +697,8 @@ function crearModalDescripcion(prod) {
   price.style.fontSize = '1.2rem';
   price.style.marginBottom = '1.2rem';
   price.textContent = `$${prod.Precio}`;
+  desc.className = 'modal-price';
+
 
   // Controles de carrito
   const controls = document.createElement('div');
@@ -769,6 +778,117 @@ function crearModalDescripcion(prod) {
   }
   document.addEventListener('keydown', escListener);
 }
+
+
+function toggleZoom(idImagen) {
+  const original = document.getElementById(idImagen);
+  if (!original) return console.error("Imagen no encontrada:", idImagen);
+
+  const existingClone = document.querySelector('.zoom-clone');
+  if (existingClone) {
+    closeZoom(existingClone);
+    return;
+  }
+
+  let overlay = document.querySelector('.zoom-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'zoom-overlay';
+    document.body.appendChild(overlay);
+  }
+  overlay.classList.add('open');
+
+  let closeBtn = document.querySelector('.zoom-close-btn');
+  if (!closeBtn) {
+    closeBtn = document.createElement('div');
+    closeBtn.className = 'zoom-close-btn';
+    closeBtn.textContent = '×';
+    document.body.appendChild(closeBtn);
+  }
+  closeBtn.style.display = 'block';
+
+  // Clonar imagen
+  const clone = original.cloneNode(true);
+  clone.classList.add('zoom-clone');
+  document.body.appendChild(clone);
+
+  // Obtener posición original (relativa a viewport)
+  const rect = original.getBoundingClientRect();
+
+  // Obtener scroll para posicionar absoluto
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+  // Poner clone en posición absoluta (relativa a documento)
+  clone.style.position = 'absolute';
+  clone.style.top = (rect.top + scrollTop) + 'px';
+  clone.style.left = (rect.left + scrollLeft) + 'px';
+  clone.style.width = rect.width + 'px';
+  clone.style.height = rect.height + 'px';
+
+  clone.getBoundingClientRect(); // Forzar reflow
+
+  // Calcular tamaño final manteniendo proporción
+  const aspectRatio = rect.width / rect.height;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  const maxWidthPercent = vw <= 600 ? 0.9 : 0.75;
+  const maxHeightPercent = vw <= 600 ? 0.9 : 0.75;
+
+  let finalWidth = vw * maxWidthPercent;
+  let finalHeight = finalWidth / aspectRatio;
+
+  if (finalHeight > vh * maxHeightPercent) {
+    finalHeight = vh * maxHeightPercent;
+    finalWidth = finalHeight * aspectRatio;
+  }
+
+  // Posición final centrada con scroll
+  const finalTop = scrollTop + (vh - finalHeight) / 2;
+  const finalLeft = scrollLeft + (vw - finalWidth) / 2;
+
+  // Animar clon a tamaño y posición final
+  clone.style.top = finalTop + 'px';
+  clone.style.left = finalLeft + 'px';
+  clone.style.width = finalWidth + 'px';
+  clone.style.height = finalHeight + 'px';
+
+  
+
+  // Función para cerrar zoom
+  function closeZoom(cloneImg) {
+    const rect = original.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+    cloneImg.style.top = (rect.top + scrollTop) + 'px';
+    cloneImg.style.left = (rect.left + scrollLeft) + 'px';
+    cloneImg.style.width = rect.width + 'px';
+    cloneImg.style.height = rect.height + 'px';
+
+    overlay.classList.remove('open');
+    closeBtn.style.display = 'none';
+
+    cloneImg.addEventListener('transitionend', () => cloneImg.remove(), { once: true });
+  }
+  function escListener(e) {
+    if (e.key === 'Escape') {
+      closeZoom(clone);
+      document.removeEventListener('keydown', escListener);
+    }
+  }
+  document.addEventListener('keydown', escListener);
+
+  // Eventos para cerrar zoom
+  overlay.onclick = (e) => { if (e.target === overlay) closeZoom(clone); };
+  clone.onclick = () => closeZoom(clone);
+  closeBtn.onclick = () => closeZoom(clone);
+}
+
+
+
+
 
 window.onload = () => {
   loadProducts();

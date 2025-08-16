@@ -15,7 +15,7 @@ nombres = [
 ]
 
 # Guardamos en un JSON en el mismo directorio del script
-salida_json = os.path.join(base_dir, "nombres.json")
+salida_json = os.path.join(base_dir, "Habilitados.json")
 with open(salida_json, "w", encoding="utf-8") as f:
     json.dump(nombres, f, ensure_ascii=False, indent=2)
 

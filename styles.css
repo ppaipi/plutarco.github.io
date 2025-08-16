@@ -1,3 +1,24 @@
+/* ==========================
+   Variables de color
+   ========================== */
+:root {
+  --color-primario: #1E88E5;       /* azul principal */
+  --color-secundario: #fff;     /* blanco */
+  --color-acento: #FFD54F;         /* amarillo pastel */
+  --color-terceario: #1864c4;
+  --color-terceario-hover: #0c3e8a;
+  --color-rojo-alerta: #e53935;
+  --color-fondo-claro: #FEF5EA;
+  --color-gris-claro: #e2e2e2;
+  --color-gris-medio: #ccc;
+  --color-gris-oscuro: #333;
+  --color-borde-claro: #4734342f;
+  --color-borde-oscuro: #4734342f;
+  --color-footer-bg: #f1f1f1;
+  --color-footer-text: #555;
+  --color-fondo-carta: #FEF5EA; /* fondo de las cartas */
+}
+
 /* Reset y base */
 * {
   margin: 0;
@@ -7,23 +28,25 @@
 }
 
 body {
-  background-color: #f0f4fa; /* azul claro */
-  color: #333;
+  background-color: var(--color-fondo-claro);
+  color: var(--color-gris-oscuro);
 }
 
 /* Encabezado */
 header {
-  background-color: #1E88E5; /* azul principal */
-  color: white;
+  background-color: var(--color-primario);
+  color: var(--color-secundario);
   padding: 1rem;
   text-align: center;
   position: relative;
 }
-
-header h1 {
-  font-size: 1.6rem;
-  margin-bottom: 0.5rem;
+.boton-ver-mas {
+  width: 100px;
+  height: 100px;
+  fill: var(--color-primario);
 }
+
+/* Contenedor logo + título */
 .logo-titulo {
   justify-content: center;
   display: flex;
@@ -37,6 +60,8 @@ header h1 {
 }
 
 .logo-titulo h1 {
+  font-family: permanentmarker, cursive;
+  color: black;
   font-weight: 600;
   font-size: 1.8rem;
   letter-spacing: 1px;     /* un poco más de aire entre letras */
@@ -51,8 +76,6 @@ header h1 {
   letter-spacing: 0.5px;
 }
 
-
-
 /* Icono del carrito fijo a la derecha */
 #cart-icon-fixed {
   position: fixed;
@@ -62,9 +85,9 @@ header h1 {
 }
 
 #cart-icon {
-  background-color: #1565C0;
-  color: white;
-  border: #4734342f solid 2px;
+  background-color: var(--color-terceario);
+  color: var(--color-secundario);
+  border: var(--color-borde-claro) solid 2px;
   font-size: 1.3rem;
   padding: 0.6rem 1.2rem;
   border-radius: 2rem;
@@ -80,13 +103,13 @@ header h1 {
 }
 
 #cart-icon:hover {
-  background-color: #1565C0;
+  background-color: var(--color-terceario);
   transform: scale(1.1);
 }
 
 #cart-count {
-  background-color: #e53935;
-  color: white;
+  background-color: var(--color-rojo-alerta);
+  color: var(--color-secundario);
   border-radius: 50%;
   padding: 0.2rem 0.6rem;
   font-size: 0.9rem;
@@ -103,19 +126,19 @@ header h1 {
   gap: 0.5rem;
   padding: 1rem;
   justify-content: center;
-  border-top: 1px solid #1E88E5;
-  border-bottom: 1px solid #1E88E5;
+  border-top: 1px solid var(--color-primario);
+  border-bottom: 1px solid var(--color-primario);
   position: sticky;
   top: 0;
   z-index: 100;
   backdrop-filter: blur(6px);
-  background-color: #1E88E5;
+  background-color: var(--color-primario);
 }
 
 #category-buttons button {
-  background-color: #1565C0;
-  color: white;
-  border: #4734342f solid 2px;
+  background-color: var(--color-terceario);
+  color: var(--color-secundario);
+  border: var(--color-borde-oscuro) solid 2px;
   padding: 0.6rem 1rem;
   border-radius: 1.5rem;
   cursor: pointer;
@@ -124,21 +147,21 @@ header h1 {
 }
 
 #category-buttons button:hover {
-  background-color: #0d47a1;
+  background-color: var(--color-terceario-hover);
 }
 
 /* Categorías en el listado */
 .category-section {
   margin-bottom: 3rem;
   padding: 1rem;
-  background-color: #f0f4fa;
+  background-color: var(--color-fondo-claro);
   border-radius: 1rem;
 }
 
 .category-title {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: #1E88E5;
+  color: var(--color-primario);
   font-weight: bold;
   text-align: center;
 }
@@ -159,7 +182,7 @@ header h1 {
 
 .product {
   cursor: pointer;
-  background-color: white;
+  background-color: var(--color-secundario);
   padding: 1rem;
   border-radius: 1rem;
   box-shadow: 0 4px 10px rgba(0,0,0,0.06);
@@ -167,6 +190,12 @@ header h1 {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.product:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.1);
 }
 
 .product img {
@@ -177,6 +206,7 @@ header h1 {
 }
 
 .product h3 {
+  font-family: "Quicksand", sans-serif;
   font-size: 1rem;
   margin: 0.5rem 0;
   color: #222;
@@ -191,8 +221,8 @@ header h1 {
 
 .product button {
   padding: 0.4rem 0.8rem;
-  background-color: #1E88E5;
-  color: white;
+  background-color: var(--color-primario);
+  color: var(--color-secundario);
   border: none;
   border-radius: 1rem;
   font-weight: bold;
@@ -201,7 +231,7 @@ header h1 {
 }
 
 .product button:hover {
-  background-color: #1565C0;
+  background-color: var(--color-terceario);
 }
 
 .espacio-vacio {
@@ -219,21 +249,21 @@ header h1 {
 .quantity-controls button {
   padding: 0.3rem 0.7rem;
   font-size: 1rem;
-  background-color: #e2e2e2;
-  color: #333;
+  background-color: var(--color-gris-claro);
+  color: var(--color-gris-oscuro);
   border-radius: 0.5rem;
   border: none;
   cursor: pointer;
 }
 
 .quantity-controls button:hover {
-  background-color: #ccc;
+  background-color: var(--color-gris-medio);
 }
 
 /* Ver más */
 .ver-mas-card {
-  background-color: #e3f2fd;
-  border: 2px dashed #1E88E5;
+  background-color: var(color-fondo-carta);
+  border: 2px dashed var(--color-primario);
   padding: 1rem;
   border-radius: 1rem;
   display: flex;
@@ -247,21 +277,21 @@ header h1 {
 .ver-mas-icon {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #1E88E5;
+  color: var(--color-primario);
 }
 
 .ver-mas-text {
   font-size: 1.1rem;
   font-weight: bold;
-  color: #1E88E5;
+  color: var(--color-primario);
   margin-top: 0.3rem;
 }
 
 /* Botón Volver */
 .volver-btn {
-  background-color: #fff;
-  color: #1E88E5;
-  border: 2px solid #1E88E5;
+  background-color: var(--color-secundario);
+  color: var(--color-primario);
+  border: 2px solid var(--color-primario);
   padding: 0.6rem 1.2rem;
   border-radius: 2rem;
   font-weight: 600;
@@ -272,8 +302,8 @@ header h1 {
 }
 
 .volver-btn:hover {
-  background-color: #1E88E5;
-  color: white;
+  background-color: var(--color-primario);
+  color: var(--color-secundario);
 }
 
 /* Panel carrito */
@@ -283,7 +313,7 @@ header h1 {
   right: -400px;
   width: 360px;
   height: 100%;
-  background-color: white;
+  background-color: var(--color-secundario);
   border-left: 2px solid #ddd;
   box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
   transition: right 0.3s ease;
@@ -330,9 +360,11 @@ header h1 {
   color: red;
   cursor: pointer;
 }
+
 ul {
-    list-style-type: none;
+  list-style-type: none;
 }
+
 .remove-btn:hover {
   transform: scale(1.2);
 }
@@ -356,8 +388,8 @@ ul {
 }
 
 .finalize-btn {
-  background-color: #1E88E5;
-  color: white;
+  background-color: var(--color-primario);
+  color: var(--color-secundario);
   font-weight: bold;
   border: none;
   padding: 0.7rem 1.2rem;
@@ -369,7 +401,7 @@ ul {
 }
 
 .finalize-btn:hover {
-  background-color: #1565C0;
+  background-color: var(--color-terceario);
 }
 
 .total {
@@ -382,8 +414,8 @@ ul {
 footer {
   text-align: center;
   padding: 1rem;
-  background-color: #f1f1f1;
-  color: #555;
+  background-color: var(--color-footer-bg);
+  color: var(--color-footer-text);
   margin-top: 2rem;
 }
 
@@ -407,15 +439,15 @@ footer {
 .search-bar input[type="text"] {
   padding: 0.5rem 1rem;
   border-radius: 1rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-gris-medio);
   font-size: 1rem;
   min-width: 220px;
 }
 
 .search-bar button {
-  background-color: #1565C0;
-  color: white;
-  border: #4734342f solid 2px;
+  background-color: var(--color-terceario);
+  color: var(--color-secundario);
+  border: var(--color-borde-oscuro) solid 2px;
   padding: 0.5rem 1rem;
   border-radius: 1rem;
   cursor: pointer;
@@ -424,7 +456,7 @@ footer {
 }
 
 .search-bar button:hover {
-  background-color: #0d47a1;
+  background-color: var(--color-terceario-hover);
 }
 
 /* Responsive */
@@ -461,12 +493,6 @@ footer {
     display: block;
   }
 }
-.cart-item img.thumb {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 0.5rem;
-}
 
 /* Botón WhatsApp */
 .whatsapp-float {
@@ -487,7 +513,7 @@ footer {
 
 .whatsapp-float:hover {
   transform: scale(1.1);
-  border:rgba(0, 0, 0, 0.09) 1px solid;
+  border: rgba(0, 0, 0, 0.09) 1px solid;
 }
 
 .whatsapp-icon {
@@ -497,7 +523,7 @@ footer {
 
 .botonStock {
   margin-top: 30px;
-  background: #e2e3e5;
+  background: var(--color-gris-claro);
   padding: 14px;
   border-left: 5px solid #6c757d;
   border-radius: 8px;
@@ -512,21 +538,22 @@ footer {
   padding: 0.5rem;
   margin: 0.3rem 0 1rem;
   border-radius: 0.5rem;
-  border: 1px solid #ccc;
-  background-color: white;
+  border: 1px solid var(--color-gris-medio);
+  background-color: var(--color-secundario);
   font-size: 1rem;
-  color: #333;
+  color: var(--color-gris-oscuro);
   appearance: none;
 }
 
 #pickup-day:focus {
-  border-color: #1E88E5;
+  border-color: var(--color-primario);
   outline: none;
 }
 
 #pickup-day option:disabled {
   color: #999;
 }
+
 /* Modal overlay y contenido */
 .modal-overlay {
   position: fixed;
@@ -536,11 +563,11 @@ footer {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10000;
+  z-index: 8000;
 }
 
 .modal-content {
-  background: #fff;
+  background: var(--color-secundario);
   border-radius: 12px;
   max-width: 600px;
   width: 95%;
@@ -553,16 +580,111 @@ footer {
   position: relative;
 }
 
+
 .modal-img {
   width: 180px;
   height: 180px;
   aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 10px;
-  background: #f0f4fa;
+  background: var(--color-fondo-claro);
   flex-shrink: 0;
   display: block;
+  cursor: zoom-in;
+  z-index: 15100;
+  transition: transform 0.3s ease; /* animación suave */
 }
+
+/* Fondo oscuro fullscreen para el zoom */
+/* Fondo oscuro fullscreen */
+.zoom-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 15000;
+  cursor: zoom-out;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.zoom-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Imagen clonada animada */
+.zoom-clone {
+  position: fixed;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  cursor: zoom-out;
+  z-index: 15001;
+
+  transition:
+    top 0.3s ease,
+    left 0.3s ease,
+    width 0.3s ease,
+    height 0.3s ease,
+    border-radius 0.3s ease;
+}
+
+/* Botón cerrar */
+.zoom-close-btn {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  font-size: 30px;
+  color: white;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  z-index: 15002;
+  transition: background-color 0.2s ease;
+}
+
+
+
+@media (max-width: 600px) {
+  .zoom-close-btn {
+    top: 12px;
+    right: 12px;
+    font-size: 26px;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+  }
+
+  .zoom-clone {
+    max-width: 95vw !important;
+    max-height: 95vh !important;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  }
+}
+
+@media (max-width: 400px) {
+  .zoom-close-btn {
+    top: 8px;
+    right: 8px;
+    font-size: 22px;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+  }
+
+  .zoom-clone {
+    max-width: 98vw !important;
+    max-height: 98vh !important;
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+}
+
 
 .modal-info {
   flex: 1;
@@ -573,15 +695,16 @@ footer {
 
 .modal-title {
   font-size: 1.5rem;
-  font-weight: bold;
-  color: #1E88E5;
+  color: var(--color-primario);
   margin-bottom: 1rem;
+  font-family: "Quicksand", cursive;
 }
 
 .modal-desc {
   font-size: 1rem;
   color: #444;
   margin-bottom: 1.5rem;
+  font-family: "Quicksand", sans-serif;
 }
 
 .modal-controls {
@@ -593,8 +716,8 @@ footer {
 .modal-controls button {
   padding: 0.3rem 0.7rem;
   font-size: 1rem;
-  background-color: #e2e2e2;
-  color: #333;
+  background-color: var(--color-gris-claro);
+  color: var(--color-gris-oscuro);
   border-radius: 0.5rem;
   border: none;
   cursor: pointer;
@@ -603,13 +726,13 @@ footer {
 }
 
 .modal-controls button:hover {
-  background-color: #ccc;
+  background-color: var(--color-gris-medio);
 }
 
 .modal-controls .agregar-btn {
   padding: 0.4rem 0.8rem;
-  background-color: #1E88E5;
-  color: white;
+  background-color: var(--color-primario);
+  color: var(--color-secundario);
   border: none;
   border-radius: 1rem;
   font-weight: bold;
@@ -618,7 +741,7 @@ footer {
 }
 
 .modal-controls .agregar-btn:hover {
-  background-color: #1565C0;
+  background-color: var(--color-terceario);
 }
 
 .modal-close-btn {
@@ -661,6 +784,7 @@ footer {
 .modal-content-anim-close {
   animation: modalFadeOut 0.18s cubic-bezier(.4,0,.2,1) forwards;
 }
+
 
 @media (max-width: 600px) {
   .modal-content {
