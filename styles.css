@@ -60,7 +60,7 @@ header {
 }
 
 .logo-titulo h1 {
-  font-family: 'Comic Neue', 'Comic Sans MS', cursive;
+  font-family: 'Comic Neue', 'Comic Sans MS';
   color: black;
   font-weight: 600;
   font-size: 1.8rem;
