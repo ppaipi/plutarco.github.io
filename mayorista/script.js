@@ -398,13 +398,18 @@ function crearModalDescripcion(prod) {
   // Imagen grande
   const img = document.createElement('img');
   img.className = 'modal-img';
-  img.src = `../media/PRODUCTOS/${prod.Codigo}.jpeg`;
+  img.id = `modal-img-${prod.Codigo}`;
+  img.src = `media/PRODUCTOS/${prod.Codigo}.jpeg`;
   img.alt = prod.Nombre;
   img.onerror = function() {
     this.onerror = null;
     this.src = this.src.replace('.jpeg', '.jpg');
-    this.onerror = function() { this.src = '../media/PRODUCTOS/placeholder.jpeg'; };
+    this.onerror = function() { this.src = 'media/PRODUCTOS/placeholder.jpeg'; };
   };
+  img.onclick = () => {
+    toggleZoom(img.id);
+  };
+  
 
   // Info
   const infoDiv = document.createElement('div');
@@ -502,6 +507,113 @@ function crearModalDescripcion(prod) {
   }
   document.addEventListener('keydown', escListener);
 }
+
+function toggleZoom(idImagen) {
+  const original = document.getElementById(idImagen);
+  if (!original) return console.error("Imagen no encontrada:", idImagen);
+
+  const existingClone = document.querySelector('.zoom-clone');
+  if (existingClone) {
+    closeZoom(existingClone);
+    return;
+  }
+
+  let overlay = document.querySelector('.zoom-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'zoom-overlay';
+    document.body.appendChild(overlay);
+  }
+  overlay.classList.add('open');
+
+  let closeBtn = document.querySelector('.zoom-close-btn');
+  if (!closeBtn) {
+    closeBtn = document.createElement('div');
+    closeBtn.className = 'zoom-close-btn';
+    closeBtn.textContent = '×';
+    document.body.appendChild(closeBtn);
+  }
+  closeBtn.style.display = 'block';
+
+  // Clonar imagen
+  const clone = original.cloneNode(true);
+  clone.classList.add('zoom-clone');
+  document.body.appendChild(clone);
+
+  // Obtener posición original (relativa a viewport)
+  const rect = original.getBoundingClientRect();
+
+  // Obtener scroll para posicionar absoluto
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+  // Poner clone en posición absoluta (relativa a documento)
+  clone.style.position = 'absolute';
+  clone.style.top = (rect.top + scrollTop) + 'px';
+  clone.style.left = (rect.left + scrollLeft) + 'px';
+  clone.style.width = rect.width + 'px';
+  clone.style.height = rect.height + 'px';
+
+  clone.getBoundingClientRect(); // Forzar reflow
+
+  // Calcular tamaño final manteniendo proporción
+  const aspectRatio = rect.width / rect.height;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  const maxWidthPercent = vw <= 600 ? 0.9 : 0.75;
+  const maxHeightPercent = vw <= 600 ? 0.9 : 0.75;
+
+  let finalWidth = vw * maxWidthPercent;
+  let finalHeight = finalWidth / aspectRatio;
+
+  if (finalHeight > vh * maxHeightPercent) {
+    finalHeight = vh * maxHeightPercent;
+    finalWidth = finalHeight * aspectRatio;
+  }
+
+  // Posición final centrada con scroll
+  const finalTop = scrollTop + (vh - finalHeight) / 2;
+  const finalLeft = scrollLeft + (vw - finalWidth) / 2;
+
+  // Animar clon a tamaño y posición final
+  clone.style.top = finalTop + 'px';
+  clone.style.left = finalLeft + 'px';
+  clone.style.width = finalWidth + 'px';
+  clone.style.height = finalHeight + 'px';
+
+  
+
+  // Función para cerrar zoom
+  function closeZoom(cloneImg) {
+    const rect = original.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+    cloneImg.style.top = (rect.top + scrollTop) + 'px';
+    cloneImg.style.left = (rect.left + scrollLeft) + 'px';
+    cloneImg.style.width = rect.width + 'px';
+    cloneImg.style.height = rect.height + 'px';
+
+    overlay.classList.remove('open');
+    closeBtn.style.display = 'none';
+
+    cloneImg.addEventListener('transitionend', () => cloneImg.remove(), { once: true });
+  }
+  function escListener(e) {
+    if (e.key === 'Escape') {
+      closeZoom(clone);
+      document.removeEventListener('keydown', escListener);
+    }
+  }
+  document.addEventListener('keydown', escListener);
+
+  // Eventos para cerrar zoom
+  overlay.onclick = (e) => { if (e.target === overlay) closeZoom(clone); };
+  clone.onclick = () => closeZoom(clone);
+  closeBtn.onclick = () => closeZoom(clone);
+}
+
 
 window.onload = () => {
   loadProducts();

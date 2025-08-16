@@ -887,9 +887,6 @@ function toggleZoom(idImagen) {
 }
 
 
-
-
-
 window.onload = () => {
   loadProducts();
   cargarDiasEntrega();
