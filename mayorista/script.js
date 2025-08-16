@@ -399,12 +399,12 @@ function crearModalDescripcion(prod) {
   const img = document.createElement('img');
   img.className = 'modal-img';
   img.id = `modal-img-${prod.Codigo}`;
-  img.src = `media/PRODUCTOS/${prod.Codigo}.jpeg`;
+  img.src = `../media/PRODUCTOS/${prod.Codigo}.jpeg`;
   img.alt = prod.Nombre;
   img.onerror = function() {
     this.onerror = null;
     this.src = this.src.replace('.jpeg', '.jpg');
-    this.onerror = function() { this.src = 'media/PRODUCTOS/placeholder.jpeg'; };
+    this.onerror = function() { this.src = '../media/PRODUCTOS/placeholder.jpeg'; };
   };
   img.onclick = () => {
     toggleZoom(img.id);
