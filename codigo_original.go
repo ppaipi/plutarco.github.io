@@ -84,9 +84,14 @@ function doPost(e) {
     });
 
     output.setContent(JSON.stringify({ status: 'ok' }));
+    output.setHeader("Access-Control-Allow-Origin", "*"); // Permite cualquier dominio
+    output.setHeader("Access-Control-Allow-Methods", "POST");
+    output.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
     return output;
   } catch (err) {
     output.setContent(JSON.stringify({ status: 'error', message: err.message }));
+    output.setHeader("Access-Control-Allow-Origin", "*");
     return output;
   }
 }

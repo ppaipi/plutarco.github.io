@@ -636,7 +636,7 @@ function enviarPedido() {
     total: totalProductos + costoEnvioActual
   };
 
-  fetch('https://script.google.com/macros/s/AKfycbxxx7tCNZeiZk3s5R8Js-lEKw1vyyknAPO-6D2f0YCmR0UiwHw_Gmgqd_9mpnMBR4Co/exec', {
+  fetch('https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(pedido)
