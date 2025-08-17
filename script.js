@@ -636,26 +636,32 @@ function enviarPedido() {
     total: totalProductos + costoEnvioActual
   };
 
-  fetch('https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(pedido)
-  }).then(response => {
-    if (response.ok) {
-      alert('Pedido enviado con éxito!');
-      cart = {};
-      renderProductsByCategory(filteredProducts);
-      updateCart();
-      desbloquearBoton(btn);
-    } else {
-      alert('Error al enviar pedido.');
-      desbloquearBoton(btn);
-    }
-  }).catch(() => {
-    alert('Error de red.');
+const formData = new URLSearchParams();
+formData.append('data', JSON.stringify(pedido));
+
+fetch('https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec', {
+  method: 'POST',
+  body: formData
+})
+.then(response => response.json())
+.then(data => {
+  if (data.status === 'ok') {
+    alert('Pedido enviado con éxito!');
+    cart = {};
+    renderProductsByCategory(filteredProducts);
+    updateCart();
     desbloquearBoton(btn);
-  });
+  } else {
+    alert('Error al enviar pedido: ' + (data.message || ''));
+    desbloquearBoton(btn);
+  }
+})
+.catch(() => {
+  alert('Error de red.');
+  desbloquearBoton(btn);
+});
 }
+
 
 // --- Funcionalidad modal descripción producto ---
 function crearModalDescripcion(prod) {
