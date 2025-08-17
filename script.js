@@ -155,7 +155,7 @@ function cargarDiasEntrega() {
   const select = document.getElementById("pickup-day");
   if (!select) return;
 
-  const diasValidos = [2, 5]; // 2: Martes, 5: Viernes
+  const diasValidos = [3]; // 2: Martes, 5: Viernes
   const opciones = [];
 
   let hoy = new Date();
