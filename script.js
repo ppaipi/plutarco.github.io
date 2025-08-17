@@ -648,18 +648,12 @@ function enviarPedido() {
   fetch('https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec', {
     method: 'POST',
     body: formData
-  }).then(response => {
-    if (response.ok) {
-      alert('Pedido enviado con éxito!');
-      cart = {};
-      renderProductsByCategory(filteredProducts);
-      updateCart();
-    } else {
-      alert('Error al enviar pedido.');
-    }
-    desbloquearBoton(btn);
-  }).catch(() => {
-    alert('Error de red.');
+  })
+  .finally(() => {
+    alert('Pedido enviado con éxito!');
+    cart = {};
+    renderProductsByCategory(filteredProducts);
+    updateCart();
     desbloquearBoton(btn);
   });
 }
