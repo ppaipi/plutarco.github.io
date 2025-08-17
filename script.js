@@ -651,9 +651,20 @@ function enviarPedido() {
   })
   .finally(() => {
     alert('Pedido enviado con éxito!');
-    cart = {};
+
+    // --- VACIAR TODO EL CARRITO ---
+    cart = {};                      // borra los productos seleccionados
+    filteredProducts = [...allProducts]; // resetear listado de productos
     renderProductsByCategory(filteredProducts);
     updateCart();
+
+    // Limpiar campos del formulario
+    document.getElementById('name').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('phone').value = '';
+    document.getElementById('address').value = '';
+    document.getElementById('pickup-day').value = '';
+
     desbloquearBoton(btn);
   });
 }
