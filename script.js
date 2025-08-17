@@ -612,32 +612,29 @@ function enviarPedido() {
 
   bloquearBoton(btn);
 
-const pedido = {
-  nombre: document.getElementById('name').value.trim(),
-  mail: document.getElementById('email').value.trim(),
-  telefono: document.getElementById('phone').value.trim(),
-  direccion: document.getElementById('address').value.trim(),
-  retiro: document.getElementById('pickup-day').value, // cambiar clave
-  comentario: "", // si querés agregar después
-  productos: Object.entries(cart).map(([codigo, cantidad]) => {
-    const prod = products.find(p => p.Codigo === codigo);
-    return `${prod.Nombre} x${cantidad} ($${prod.Precio * cantidad})`;
-  }),
-  subtotal: totalProductos,
-  envio: costoEnvioActual,
-  total: totalProductos + costoEnvioActual
-};
-
-
   let totalProductos = 0;
+  const productos = [];
+
+  // Calcular productos y subtotal
   for (const codigo in cart) {
     const prod = products.find(p => p.Codigo === codigo);
     const cantidad = cart[codigo];
-    pedido.productos.push({ ...prod, cantidad });
     totalProductos += prod.Precio * cantidad;
+    productos.push(`${prod.Nombre} x${cantidad} ($${prod.Precio * cantidad})`);
   }
 
-  pedido.total = totalProductos + costoEnvioActual;
+  const pedido = {
+    nombre: document.getElementById('name').value.trim(),
+    mail: document.getElementById('email').value.trim(),
+    telefono: document.getElementById('phone').value.trim(),
+    direccion: document.getElementById('address').value.trim(),
+    retiro: document.getElementById('pickup-day').value, // clave consistente
+    comentario: "", // opcional
+    productos: productos, // ahora es un array de strings
+    subtotal: totalProductos,
+    envio: costoEnvioActual,
+    total: totalProductos + costoEnvioActual
+  };
 
   fetch('https://script.google.com/macros/s/AKfycbxxx7tCNZeiZk3s5R8Js-lEKw1vyyknAPO-6D2f0YCmR0UiwHw_Gmgqd_9mpnMBR4Co/exec', {
     method: 'POST',
