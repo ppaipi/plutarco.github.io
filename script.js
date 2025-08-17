@@ -612,16 +612,22 @@ function enviarPedido() {
 
   bloquearBoton(btn);
 
-  const pedido = {
-    nombre: document.getElementById('name').value.trim(),
-    mail: document.getElementById('email').value.trim(),
-    telefono: document.getElementById('phone').value.trim(),
-    direccion: document.getElementById('address').value.trim(),
-    dia_retiro: document.getElementById('pickup-day').value,
-    productos: [],
-    costo_envio: costoEnvioActual,
-    total: 0
-  };
+const pedido = {
+  nombre: document.getElementById('name').value.trim(),
+  mail: document.getElementById('email').value.trim(),
+  telefono: document.getElementById('phone').value.trim(),
+  direccion: document.getElementById('address').value.trim(),
+  retiro: document.getElementById('pickup-day').value, // cambiar clave
+  comentario: "", // si querés agregar después
+  productos: Object.entries(cart).map(([codigo, cantidad]) => {
+    const prod = products.find(p => p.Codigo === codigo);
+    return `${prod.Nombre} x${cantidad} ($${prod.Precio * cantidad})`;
+  }),
+  subtotal: totalProductos,
+  envio: costoEnvioActual,
+  total: totalProductos + costoEnvioActual
+};
+
 
   let totalProductos = 0;
   for (const codigo in cart) {
