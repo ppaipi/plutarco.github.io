@@ -607,6 +607,11 @@ function validarCampos(btn) {
 }
 
 async function enviarPedido() {
+  const nombre = document.getElementById("nombre").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const telefono = document.getElementById("telefono").value.trim();
+  const direccion = document.getElementById("direccion").value.trim();
+  const diaRetiro = document.getElementById("dia-retiro").value;
   const btn = document.getElementById('submit-btn');
   if (!validarCampos(btn)) return;
 
