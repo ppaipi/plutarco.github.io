@@ -615,14 +615,13 @@ function enviarPedido() {
   let totalProductos = 0;
   const productos = [];
 
-  // Calcular productos y subtotal
   for (const codigo in cart) {
     const prod = products.find(p => p.Codigo === codigo);
-    if (!prod) continue; // ignorar códigos inválidos
+    if (!prod) continue;
     const cantidad = cart[codigo];
     totalProductos += prod.Precio * cantidad;
     productos.push(`${prod.Nombre} x${cantidad} ($${prod.Precio * cantidad})`);
-}
+  }
 
   const pedido = {
     nombre: document.getElementById('name')?.value?.trim() || '',
@@ -630,8 +629,8 @@ function enviarPedido() {
     telefono: document.getElementById('phone')?.value?.trim() || '',
     direccion: document.getElementById('address')?.value?.trim() || '',
     retiro: document.getElementById('pickup-day')?.value || '',
-    comentario: "", 
-    productos: productos, // array de strings seguro
+    comentario: "",
+    productos: productos,
     subtotal: totalProductos,
     envio: costoEnvioActual,
     total: totalProductos + costoEnvioActual
@@ -641,19 +640,21 @@ function enviarPedido() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(pedido)
-  }).then(response => {
-    if (response.ok) {
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'ok') {
       alert('Pedido enviado con éxito!');
       cart = {};
       renderProductsByCategory(filteredProducts);
       updateCart();
-      desbloquearBoton(btn);
     } else {
-      alert('Error al enviar pedido.');
-      desbloquearBoton(btn);
+      alert('Error al enviar pedido: ' + (data.message || ''));
     }
-  }).catch(() => {
-    alert('Error de red.');
+    desbloquearBoton(btn);
+  })
+  .catch(err => {
+    alert('Error de red: ' + err.message);
     desbloquearBoton(btn);
   });
 }
