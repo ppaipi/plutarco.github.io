@@ -640,7 +640,7 @@ function enviarPedido() {
     subtotal: totalProductos,
     envio: costoEnvioActual,
     total: totalProductos + costoEnvioActual
-  };
+  }; 
 
   // Form-data para evitar CORS
   const formData = new URLSearchParams();
