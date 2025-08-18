@@ -627,10 +627,7 @@ function enviarPedido() {
       total: prod.Precio * cantidad
     });
   }
-  const productosStr = data.productos ? data.productos.map(p => {
-  // Si p es un string, devuélvelo, si es objeto, toma su nombre o formato deseado
-  return typeof p === 'string' ? p : `${p.Nombre} x${p.Cantidad} ($${p.Precio})`;
-}).join(', ') : '';
+  
 
   const pedido = {
     nombre: document.getElementById('name').value.trim(),
@@ -639,7 +636,7 @@ function enviarPedido() {
     direccion: document.getElementById('address').value.trim(),
     retiro: document.getElementById('pickup-day').value,
     comentario: "", // opcional
-    productos: productosStr,
+    productos: productos,
     subtotal: totalProductos,
     envio: costoEnvioActual,
     total: totalProductos + costoEnvioActual
