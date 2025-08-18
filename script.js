@@ -615,46 +615,60 @@ function enviarPedido() {
   let totalProductos = 0;
   const productos = [];
 
+  // Calcular productos y subtotal
   for (const codigo in cart) {
     const prod = products.find(p => p.Codigo === codigo);
-    if (!prod) continue;
     const cantidad = cart[codigo];
     totalProductos += prod.Precio * cantidad;
-    productos.push(`${prod.Nombre} x${cantidad} ($${prod.Precio * cantidad})`);
+    productos.push({
+      nombre: prod.Nombre,
+      codigo: prod.Codigo,
+      unidades: cantidad,
+      total: prod.Precio * cantidad
+    });
   }
 
   const pedido = {
-    nombre: document.getElementById('name')?.value?.trim() || '',
-    mail: document.getElementById('email')?.value?.trim() || '',
-    telefono: document.getElementById('phone')?.value?.trim() || '',
-    direccion: document.getElementById('address')?.value?.trim() || '',
-    retiro: document.getElementById('pickup-day')?.value || '',
-    comentario: "",
+    nombre: document.getElementById('name').value.trim(),
+    mail: document.getElementById('email').value.trim(),
+    telefono: document.getElementById('phone').value.trim(),
+    direccion: document.getElementById('address').value.trim(),
+    retiro: document.getElementById('pickup-day').value,
+    comentario: "", // opcional
     productos: productos,
     subtotal: totalProductos,
     envio: costoEnvioActual,
     total: totalProductos + costoEnvioActual
   };
 
+  // Form-data para evitar CORS
+  const formData = new URLSearchParams();
+  formData.append('data', JSON.stringify(pedido));
+
   fetch('https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec', {
-  method: 'POST',
-  mode: 'cors', // ⚡ importante
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(pedido)
-})
-.then(response => response.json())
-.then(data => {
-  if(data.status === 'ok') {
+    method: 'POST',
+    body: formData
+  })
+  .finally(() => {
     alert('Pedido enviado con éxito!');
-    cart = {};
+
+    // --- VACIAR TODO EL CARRITO ---
+    cart = {};                      // borra los productos seleccionados
+    filteredProducts = [...allProducts]; // resetear listado de productos
     renderProductsByCategory(filteredProducts);
     updateCart();
-  } else {
-    alert('Error al enviar pedido: ' + (data.message || ''));
-  }
-})
-.catch(err => alert('Error de red: ' + err.message));
+
+    // Limpiar campos del formulario
+    document.getElementById('name').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('phone').value = '';
+    document.getElementById('address').value = '';
+    document.getElementById('pickup-day').value = '';
+
+    desbloquearBoton(btn);
+  });
 }
+
 
 
 
