@@ -613,8 +613,8 @@ async function enviarPedido() {
   const direccion = document.getElementById("direccion").value.trim();
   const diaRetiro = document.getElementById("dia-retiro").value;
   const btn = document.getElementById('submit-btn');
-  if (!validarCampos(btn)) return;
 
+  if (!validarCampos(btn)) return;
   bloquearBoton(btn);
 
   let totalProductos = 0;
@@ -624,19 +624,11 @@ async function enviarPedido() {
   for (const codigo in cart) {
     const prod = products.find(p => p.Codigo === codigo);
     const cantidad = cart[codigo];
-    totalProductos += prod.Precio * cantidad;
-    productos.push({
-      nombre: prod.Nombre,
-      codigo: prod.Codigo,
-      unidades: cantidad,
-      total: prod.Precio * cantidad
-    });
+    const total = prod.Precio * cantidad;
+
+    totalProductos += total;
+    productos.push(`${prod.Nombre} (x${cantidad}) - $${total}`);
   }
-
-  const carritoLegible = Object.values(cart).map(item => {
-    return `${item.nombre} (x${item.cantidad}) - $${item.precio * item.cantidad}`;
-  }).join("\n");
-
 
   const pedido = {
     nombre,
@@ -644,18 +636,17 @@ async function enviarPedido() {
     telefono,
     direccion,
     diaRetiro,
-    productos: carritoLegible,
-    subtotal,
+    productos: productos.join("\n"), // string legible
+    subtotal: totalProductos,
     envio: costoEnvioActual,
-    total
+    total: totalProductos + costoEnvioActual
   };
 
   try {
     const res = await fetch(
-      "https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec", // 🔹 tu URL real
+      "https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec",
       {
         method: "POST",
-        mode: "cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pedido)
       }
@@ -664,8 +655,9 @@ async function enviarPedido() {
     const data = await res.json();
     if (data.success) {
       alert("✅ Pedido enviado con éxito. Te llegará un correo de confirmación.");
-      cart = {}; // vaciar carrito
-      updateCart(); // refrescar vista
+      cart = {};               // vaciar carrito
+      renderProductsByCategory(filteredProducts); // refrescar catálogo
+      updateCart();            // refrescar vista carrito
     } else {
       alert("❌ Error al enviar pedido. Intenta nuevamente.");
     }
@@ -673,6 +665,7 @@ async function enviarPedido() {
     console.error("Error en la red:", error);
     alert("❌ Error de conexión al enviar pedido.");
   }
+
   desbloquearBoton(btn);
 }
 
