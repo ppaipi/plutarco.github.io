@@ -195,6 +195,7 @@ function renderCategoryMenu() {
   const todasBtn = document.createElement('button');
   todasBtn.textContent = 'Todas';
   todasBtn.onclick = () => {
+    indiceCategoria = '';
     currentFilter = 'Todas';
     filteredProducts = [...products];
     renderCategoryMenu();
@@ -214,7 +215,10 @@ function renderCategoryMenu() {
   categorias.forEach(cat => {
     const btn = document.createElement('button');
     btn.textContent = cat;
-    btn.onclick = () => filterCategory(cat);
+    btn.onclick = () => {
+      indiceCategoria = '';
+      filterCategory(cat);
+    }
     container.appendChild(btn);
   });
 }
@@ -266,6 +270,9 @@ function renderProductsByCategory(productos) {
     const h2 = document.createElement('h2');
     h2.className = `category-title ${cat.replace(/\s+/g, '-')}`;
     h2.innerHTML = `<a href="#" onclick="filterCategory('${cat}'); return false;">${cat}</a>`;
+    h2.onclick = () => {
+      indiceCategoria = cat.replace(/\s+/g, '-');
+    }
     div.appendChild(h2);
 
     const grid = document.createElement('div');
