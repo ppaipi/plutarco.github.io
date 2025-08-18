@@ -618,19 +618,20 @@ function enviarPedido() {
   // Calcular productos y subtotal
   for (const codigo in cart) {
     const prod = products.find(p => p.Codigo === codigo);
+    if (!prod) continue; // ignorar códigos inválidos
     const cantidad = cart[codigo];
     totalProductos += prod.Precio * cantidad;
     productos.push(`${prod.Nombre} x${cantidad} ($${prod.Precio * cantidad})`);
-  }
+}
 
   const pedido = {
-    nombre: document.getElementById('name').value.trim(),
-    mail: document.getElementById('email').value.trim(),
-    telefono: document.getElementById('phone').value.trim(),
-    direccion: document.getElementById('address').value.trim(),
-    retiro: document.getElementById('pickup-day').value, // clave consistente
-    comentario: "", // opcional
-    productos: productos, // ahora es un array de strings
+    nombre: document.getElementById('name')?.value?.trim() || '',
+    mail: document.getElementById('email')?.value?.trim() || '',
+    telefono: document.getElementById('phone')?.value?.trim() || '',
+    direccion: document.getElementById('address')?.value?.trim() || '',
+    retiro: document.getElementById('pickup-day')?.value || '',
+    comentario: "", 
+    productos: productos, // array de strings seguro
     subtotal: totalProductos,
     envio: costoEnvioActual,
     total: totalProductos + costoEnvioActual
