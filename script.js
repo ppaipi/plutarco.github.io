@@ -609,97 +609,54 @@ function validarCampos(btn) {
 function enviarPedido() {
   const btn = document.getElementById('submit-btn');
   if (!validarCampos(btn)) return;
+
   bloquearBoton(btn);
 
-  // Tomar datos del form (IDs reales de tu HTML)
-  const nombre    = document.getElementById("name").value.trim();
-  const mail      = document.getElementById("email").value.trim();
-  const telefono  = document.getElementById("phone").value.trim();
-  const direccion = document.getElementById("address").value.trim();
-  const retiro    = document.getElementById("pickup-day").value;
-  const comentario= (document.getElementById("comment")?.value || "").trim();
-
-  // Armar productos y subtotal (array de strings, como espera tu Apps Script)
-  let subtotal = 0;
+  let totalProductos = 0;
   const productos = [];
+
+  // Calcular productos y subtotal
   for (const codigo in cart) {
     const prod = products.find(p => p.Codigo === codigo);
     const cantidad = cart[codigo];
-    const totalLinea = (prod.Precio || 0) * cantidad;
-    subtotal += totalLinea;
-    productos.push(`${prod?.Nombre || codigo} x${cantidad} ($${totalLinea})`);
+    totalProductos += prod.Precio * cantidad;
+    productos.push(`${prod.Nombre} x${cantidad} ($${prod.Precio * cantidad})`);
   }
 
   const pedido = {
-    nombre, mail, telefono, direccion, retiro, comentario,
-    productos,                 // <- array de strings
-    subtotal,                  // número
-    envio: costoEnvioActual,   // número
-    total: subtotal + costoEnvioActual
+    nombre: document.getElementById('name').value.trim(),
+    mail: document.getElementById('email').value.trim(),
+    telefono: document.getElementById('phone').value.trim(),
+    direccion: document.getElementById('address').value.trim(),
+    retiro: document.getElementById('pickup-day').value, // clave consistente
+    comentario: "", // opcional
+    productos: productos, // ahora es un array de strings
+    subtotal: totalProductos,
+    envio: costoEnvioActual,
+    total: totalProductos + costoEnvioActual
   };
 
-  // --- Submit por FORM a iframe oculto (sin CORS) ---
-  // 1) iframe oculto
-  let iframe = document.getElementById('gsheet_iframe_sink');
-  if (!iframe) {
-    iframe = document.createElement('iframe');
-    iframe.name = 'gsheet_iframe_sink';
-    iframe.id = 'gsheet_iframe_sink';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-  }
-
-  // 2) form oculto
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = 'https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec';
-  form.target = 'gsheet_iframe_sink';
-
-  // campo "data" con el JSON (lo que tu doPost lee con e.parameter.data)
-  const input = document.createElement('input');
-  input.type = 'hidden';
-  input.name = 'data';
-  input.value = JSON.stringify(pedido);
-  form.appendChild(input);
-
-  document.body.appendChild(form);
-
-  // 3) manejar "fin" cuando el iframe carga la respuesta
-  const onDone = () => {
-    // éxito (el servidor ya mandó mail y escribió en la hoja)
-    alert('✅ Pedido enviado con éxito.');
-    // limpiar UI
-    cart = {};
-    updateCart?.();
-    renderProductsByCategory?.(filteredProducts);
-    document.getElementById("total").textContent = "0";
-
-    // limpiar DOM
-    form.remove();
-    // quitar listener (Safari dispara múltiples onload a veces)
-    iframe.removeEventListener('load', onDone);
-    desbloquearBoton(btn);
-  };
-
-  iframe.addEventListener('load', onDone, { once: true });
-
-  // 4) enviar
-  try {
-    form.submit();
-    // No hay catch posible aquí porque es un submit nativo sin fetch.
-    // Si necesitás un timeout por si el GAS no responde:
-    setTimeout(() => {
-      // fallback: desbloquear botón si algo raro pasa
-      try { form.remove(); } catch {}
+  fetch('https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(pedido)
+  }).then(response => {
+    if (response.ok) {
+      alert('Pedido enviado con éxito!');
+      cart = {};
+      renderProductsByCategory(filteredProducts);
+      updateCart();
       desbloquearBoton(btn);
-    }, 15000);
-  } catch (e) {
-    console.error(e);
-    try { form.remove(); } catch {}
+    } else {
+      alert('Error al enviar pedido.');
+      desbloquearBoton(btn);
+    }
+  }).catch(() => {
+    alert('Error de red.');
     desbloquearBoton(btn);
-    alert('❌ No se pudo enviar el pedido.');
-  }
+  });
 }
+
 
 
 
