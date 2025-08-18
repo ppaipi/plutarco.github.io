@@ -638,27 +638,22 @@ function enviarPedido() {
 
   fetch('https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec', {
   method: 'POST',
+  mode: 'cors', // ⚡ importante
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(pedido)
-  })
+})
 .then(response => response.json())
 .then(data => {
-  if (data.status === 'ok') alert('Pedido enviado con éxito!');
-  else alert('Error al enviar pedido: ' + (data.message || ''));
-})
-.catch(err => alert('Error de red: ' + err.message))
-.finally(() => {
-    desbloquearBoton(btn);
+  if(data.status === 'ok') {
+    alert('Pedido enviado con éxito!');
     cart = {};
+    renderProductsByCategory(filteredProducts);
     updateCart();
-    document.getElementById('cart-items').innerHTML = '';
-    document.getElementById('pickup-day').value = '';
-    document.getElementById('name').value = '';
-    document.getElementById('email').value = '';
-    document.getElementById('phone').value = '';
-    document.getElementById('address').value = '';
-    mostrarMensajeEnvio('', 'black');
-  });
+  } else {
+    alert('Error al enviar pedido: ' + (data.message || ''));
+  }
+})
+.catch(err => alert('Error de red: ' + err.message));
 }
 
 
