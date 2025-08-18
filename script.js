@@ -606,7 +606,7 @@ function validarCampos(btn) {
   return true;
 }
 
-function enviarPedido() {
+async function enviarPedido() {
   const btn = document.getElementById('submit-btn');
   if (!validarCampos(btn)) return;
 
@@ -628,46 +628,49 @@ function enviarPedido() {
     });
   }
 
+  const carritoLegible = Object.values(cart).map(item => {
+    return `${item.nombre} (x${item.cantidad}) - $${item.precio * item.cantidad}`;
+  }).join("\n");
+
+
   const pedido = {
-    nombre: document.getElementById('name').value.trim(),
-    mail: document.getElementById('email').value.trim(),
-    telefono: document.getElementById('phone').value.trim(),
-    direccion: document.getElementById('address').value.trim(),
-    retiro: document.getElementById('pickup-day').value,
-    comentario: "", // opcional
-    productos: productos, 
-    subtotal: totalProductos,
+    nombre,
+    email,
+    telefono,
+    direccion,
+    diaRetiro,
+    productos: carritoLegible,
+    subtotal,
     envio: costoEnvioActual,
-    total: totalProductos + costoEnvioActual
+    total
   };
 
-  // Enviamos como form-urlencoded para evitar problemas CORS
-  const formData = new URLSearchParams();
-  formData.append('data', JSON.stringify(pedido));
+  try {
+    const res = await fetch(
+      "https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec", // 🔹 tu URL real
+      {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pedido)
+      }
+    );
 
-  fetch('https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec', {
-    method: 'POST',
-    body: formData
-  })
-  .finally(() => {
-    alert('Pedido enviado con éxito!');
-
-    // --- VACIAR TODO EL CARRITO ---
-    cart = {};                      // borra los productos seleccionados
-    filteredProducts = [...allProducts]; // resetear listado de productos
-    renderProductsByCategory(filteredProducts);
-    updateCart();
-
-    // Limpiar campos del formulario
-    document.getElementById('name').value = '';
-    document.getElementById('email').value = '';
-    document.getElementById('phone').value = '';
-    document.getElementById('address').value = '';
-    document.getElementById('pickup-day').value = '';
-
-    desbloquearBoton(btn);
-  });
+    const data = await res.json();
+    if (data.success) {
+      alert("✅ Pedido enviado con éxito. Te llegará un correo de confirmación.");
+      cart = {}; // vaciar carrito
+      updateCart(); // refrescar vista
+    } else {
+      alert("❌ Error al enviar pedido. Intenta nuevamente.");
+    }
+  } catch (error) {
+    console.error("Error en la red:", error);
+    alert("❌ Error de conexión al enviar pedido.");
+  }
+  desbloquearBoton(btn);
 }
+
 
 
 
