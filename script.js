@@ -607,27 +607,27 @@ function validarCampos(btn) {
 }
 
 async function enviarPedido() {
-  const nombre = document.getElementById("nombre").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const telefono = document.getElementById("telefono").value.trim();
-  const direccion = document.getElementById("direccion").value.trim();
-  const diaRetiro = document.getElementById("dia-retiro").value;
   const btn = document.getElementById('submit-btn');
-
   if (!validarCampos(btn)) return;
   bloquearBoton(btn);
 
-  let totalProductos = 0;
+  // Capturar datos del formulario
+  const nombre = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const telefono = document.getElementById("phone").value.trim();
+  const direccion = document.getElementById("address").value.trim();
+  const diaRetiro = document.getElementById("pickup-day").value;
+  const comentario = document.getElementById("comment").value.trim();
+
+  let subtotal = 0;
   const productos = [];
 
   // Calcular productos y subtotal
   for (const codigo in cart) {
     const prod = products.find(p => p.Codigo === codigo);
     const cantidad = cart[codigo];
-    const total = prod.Precio * cantidad;
-
-    totalProductos += total;
-    productos.push(`${prod.Nombre} (x${cantidad}) - $${total}`);
+    subtotal += prod.Precio * cantidad;
+    productos.push(`${prod.Nombre} x${cantidad}u ($${prod.Precio * cantidad})`);
   }
 
   const pedido = {
@@ -636,10 +636,11 @@ async function enviarPedido() {
     telefono,
     direccion,
     diaRetiro,
-    productos: productos.join("\n"), // string legible
-    subtotal: totalProductos,
+    comentario,
+    productos, // array de strings
+    subtotal,
     envio: costoEnvioActual,
-    total: totalProductos + costoEnvioActual
+    total: subtotal + costoEnvioActual
   };
 
   try {
@@ -653,11 +654,13 @@ async function enviarPedido() {
     );
 
     const data = await res.json();
-    if (data.success) {
+
+    if (res.ok && data.status === "ok") {
       alert("✅ Pedido enviado con éxito. Te llegará un correo de confirmación.");
-      cart = {};               // vaciar carrito
-      renderProductsByCategory(filteredProducts); // refrescar catálogo
-      updateCart();            // refrescar vista carrito
+      cart = {}; // vaciar carrito
+      renderProductsByCategory(filteredProducts);
+      updateCart(); // refrescar vista
+      document.getElementById("total").innerText = "0";
     } else {
       alert("❌ Error al enviar pedido. Intenta nuevamente.");
     }
