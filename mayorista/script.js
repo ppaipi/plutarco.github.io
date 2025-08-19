@@ -5,7 +5,7 @@ let currentSearch = '';
 
 // --- Cargar productos ---
 async function loadProducts() {
-  const resAll = await fetch('Productos.csv?cacheBust=' + Date.now());
+  const resAll = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vQYR7RFTwXoTMLKy7-jq3D0RUrNpqrMfFBmGh-UmSYhEnVnvxkcZKCB4VLeRg58jw/pubhtml?cacheBust=' + Date.now());
   const csvText = await resAll.text();
   products = parseCSV(csvText);
   filteredProducts = [...products];
