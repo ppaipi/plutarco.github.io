@@ -113,20 +113,33 @@ function createProductCard(prod) {
 
 function parseCSV(csvText) {
   const lines = csvText.trim().split('\n');
-  const headers = lines[0].split(';');
+  
+  // detecto separador: tabulación o punto y coma
+  const delimiter = lines[0].includes('\t') ? '\t' : ';';
+  
+  const headers = lines[0].split(delimiter);
+  
   return lines.slice(1).map(line => {
-    const values = line.split(';');
+    const values = line.split(delimiter);
     const obj = {};
+    
     headers.forEach((h, i) => {
       const key = h.trim();
       let val = values[i] ? values[i].trim() : '';
-      if (key === 'Codigo') val = String(val);
-      else if (key === 'Precio' || key === 'Costo' || key === 'Stock') val = parseFloat(val) || 0;
+      
+      if (key === 'Codigo') {
+        val = String(val);
+      } else if (['Precio', 'Costo', 'Stock'].includes(key)) {
+        val = parseFloat(val) || 0;
+      }
+      
       obj[key] = val;
     });
+    
     return obj;
   });
 }
+
 
 // Renderiza todos los productos (sin categorías ni paginación)
 function renderProducts(productos) {
