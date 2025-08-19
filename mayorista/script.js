@@ -5,16 +5,24 @@ let currentSearch = '';
 
 // --- Cargar productos ---
 async function loadProducts() {
-  const resAll = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vQYR7RFTwXoTMLKy7-jq3D0RUrNpqrMfFBmGh-UmSYhEnVnvxkcZKCB4VLeRg58jw/pubhtml?cacheBust=' + Date.now());
+  // URL del Google Sheets publicado como CSV
+  const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYR7RFTwXoTMLKy7-jq3D0RUrNpqrMfFBmGh-UmSYhEnVnvxkcZKCB4VLeRg58jw/pub?output=csv";
+
+  const resAll = await fetch(SHEET_URL + "&cacheBust=" + Date.now()); 
   const csvText = await resAll.text();
+  
+  // Parsear CSV a objetos
   products = parseCSV(csvText);
+
   filteredProducts = [...products];
   renderProducts(filteredProducts);
+
   const header = document.querySelector('header');
   if (header) {
     header.scrollIntoView({ behavior: 'smooth' });
   }
 }
+
 
 function cerrarModalDescripcion() {
   const modal = document.getElementById('modal-descripcion');
