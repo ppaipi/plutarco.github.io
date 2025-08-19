@@ -1,6 +1,7 @@
 let products = [];
 let allProducts = [];
 let enabledCodes = [];
+let rankingMap = {};
 let cart = {};
 let filteredProducts = [];
 let currentFilter = 'Todas';
@@ -30,6 +31,7 @@ async function loadProducts() {
       Nombre: row["DESCRIPCION LARGA"] || "",
       Descripcion: row["DESCRIPCION ADICIONAL"] || "",
       Categoria: row["RUBRO"] || "",
+      SubCategoria: row["SUBRUBRO"] || "",
       Precio: parsePrecio(row["PRECIO VENTA C/IVA"]),
       Proveedor: row["PROVEEDOR"] || "",
     }));
@@ -60,6 +62,23 @@ function parsePrecio(str) {
   return parseFloat(limpio) || 0;
 }
 
+async function loadRanking() {
+  const res = await fetch('Ranking.csv?cacheBust=' + Date.now());
+  const csvText = await res.text();
+  const rows = csvText.trim().split('\n').slice(1); // saco encabezado
+
+  rows.forEach(row => {
+    const cols = row.split(';'); // <-- separador correcto
+    if (cols.length < 2) return;
+
+    const rank = parseInt(cols[0]?.trim(), 10); // columna 1 = Ranking
+    const producto = cols[1]?.trim();           // columna 2 = Producto
+
+    if (producto && !isNaN(rank)) {
+      rankingMap[producto] = rank;
+    }
+  });
+}
 
 
 
@@ -258,7 +277,8 @@ function renderProductsByCategory(productos) {
   }
 
   let categorias = [...new Set(productos.map(p => p.Categoria))];
-  categorias = categorias.filter(c => c !== 'Panaderia Artesanal').sort((a, b) => a.localeCompare(b, 'es'));
+  categorias = categorias.filter(c => c !== 'Panaderia Artesanal')
+    .sort((a, b) => a.localeCompare(b, 'es'));
   if (productos.some(p => p.Categoria === 'Panaderia Artesanal')) {
     categorias.unshift('Panaderia Artesanal');
   }
@@ -275,28 +295,68 @@ function renderProductsByCategory(productos) {
     }
     div.appendChild(h2);
 
-    const grid = document.createElement('div');
-    grid.className = 'product-grid';
+    // productos de esa categoría
+    const productosCat = productos
+      .filter(p => p.Categoria === cat)
+      .sort(sortByRanking)
+    // si estoy viendo una categoría filtrada => agrupar por SubCategoria
+    if (currentFilter === cat) {
+      let subcategorias = [...new Set(productosCat.map(p => p.SubCategoria || 'Otros'))]
+        .sort((a, b) => a.localeCompare(b, 'es'));
 
-const productosCat = productos
-  .filter(p => p.Categoria === cat)
-  .sort((a, b) => a.Nombre.localeCompare(b.Nombre, 'es'));    const mostrar = currentFilter === cat ? productosCat : productosCat.slice(0, 5);
-    mostrar.forEach(prod => grid.appendChild(createProductCard(prod)));
+      subcategorias.forEach(sub => {
+        const subDiv = document.createElement('div');
+        subDiv.className = 'subcategory-section';
 
-    if (productosCat.length > 5 && currentFilter === 'Todas') {
-      const verMasBtn = createVerMasCard(cat);
-      grid.appendChild(verMasBtn);
+        const h3 = document.createElement('h3');
+        h3.className = `subcategory-title ${sub.replace(/\s+/g, '-')}`;
+        h3.textContent = sub;
+        subDiv.appendChild(h3);
+
+        const grid = document.createElement('div');
+        grid.className = 'product-grid';
+
+        const productosSub = productosCat.filter(p => (p.SubCategoria || 'Otros') === sub);
+        productosSub.forEach(prod => grid.appendChild(createProductCard(prod)));
+
+        subDiv.appendChild(grid);
+        div.appendChild(subDiv);
+      });
+
+    } else {
+      // modo inicio (Todas): muestro primeros 5 + botón ver más
+      const grid = document.createElement('div');
+      grid.className = 'product-grid';
+
+      const mostrar = productosCat.slice(0, 5);
+      mostrar.forEach(prod => grid.appendChild(createProductCard(prod)));
+
+      if (productosCat.length > 5) {
+        const verMasBtn = createVerMasCard(cat);
+        grid.appendChild(verMasBtn);
+      }
+
+      for (let i = mostrar.length; i < 5; i++) {
+        const vacio = document.createElement("div");
+        vacio.className = "product espacio-vacio";
+        grid.appendChild(vacio);
+      }
+
+      div.appendChild(grid);
     }
-    for (let i = productosCat.length; i < 5; i++) {
-      const vacio = document.createElement("div");
-      vacio.className = "product espacio-vacio";
-      grid.appendChild(vacio);
-    }
 
-    div.appendChild(grid);
     container.appendChild(div);
   });
 }
+
+function sortByRanking(a, b) {
+  const rankA = rankingMap[a.Nombre] ?? Infinity; 
+  const rankB = rankingMap[b.Nombre] ?? Infinity;
+
+  if (rankA !== rankB) return rankA - rankB;  
+  return a.Nombre.localeCompare(b.Nombre, 'es'); 
+}
+
 
 function createVerMasCard(categoria) {
   const div = document.createElement('div');
@@ -557,7 +617,7 @@ function initAutocomplete() {
       else if (km <= 6) costo = 5000;
       else if (km <= 7) costo = 6000;
       else {
-        msg = '🛑 Fuera del rango de entrega';
+        msg = `🛑 Fuera del rango de entrega (distancia ${km}km)`;
         color = 'red';
         costo = 0;
       }
@@ -923,6 +983,7 @@ function toggleZoom(idImagen) {
 
 
 window.onload = () => {
+  loadRanking();
   loadProducts();
   cargarDiasEntrega();
   initAutocomplete();
