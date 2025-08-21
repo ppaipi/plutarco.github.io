@@ -5,16 +5,24 @@ let currentSearch = '';
 
 // --- Cargar productos ---
 async function loadProducts() {
-  const resAll = await fetch('Productos.csv?cacheBust=' + Date.now());
+  // URL del Google Sheets publicado como CSV
+  const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYR7RFTwXoTMLKy7-jq3D0RUrNpqrMfFBmGh-UmSYhEnVnvxkcZKCB4VLeRg58jw/pub?output=csv";
+
+  const resAll = await fetch(SHEET_URL + "&cacheBust=" + Date.now()); 
   const csvText = await resAll.text();
+  
+  // Parsear CSV a objetos
   products = parseCSV(csvText);
+
   filteredProducts = [...products];
   renderProducts(filteredProducts);
+
   const header = document.querySelector('header');
   if (header) {
     header.scrollIntoView({ behavior: 'smooth' });
   }
 }
+
 
 function cerrarModalDescripcion() {
   const modal = document.getElementById('modal-descripcion');
@@ -104,14 +112,38 @@ function createProductCard(prod) {
 }
 
 function parseCSV(csvText) {
-  const lines = csvText.trim().split('\n');
-  const headers = lines[0].split(';');
+  const lines = csvText.trim().split(/\r?\n/);
+
+  // Usar coma como separador y respetar valores entre comillas
+  const parseLine = (line) => {
+    const regex = /(".*?"|[^",]+)(?=\s*,|\s*$)/g;
+    const result = [];
+    let match;
+    while ((match = regex.exec(line)) !== null) {
+      let val = match[1].trim();
+
+      // Quitar comillas alrededor si existen
+      if (val.startsWith('"') && val.endsWith('"')) {
+        val = val.slice(1, -1);
+      }
+
+      // Reemplazar coma decimal por punto (para parseFloat)
+      if (/^\d+,\d+$/.test(val)) {
+        val = val.replace(',', '.');
+      }
+
+      result.push(val);
+    }
+    return result;
+  };
+
+  const headers = parseLine(lines[0]);
   return lines.slice(1).map(line => {
-    const values = line.split(';');
+    const values = parseLine(line);
     const obj = {};
     headers.forEach((h, i) => {
       const key = h.trim();
-      let val = values[i] ? values[i].trim() : '';
+      let val = values[i] || '';
       if (key === 'Codigo') val = String(val);
       else if (key === 'Precio' || key === 'Costo' || key === 'Stock') val = parseFloat(val) || 0;
       obj[key] = val;
@@ -119,6 +151,7 @@ function parseCSV(csvText) {
     return obj;
   });
 }
+
 
 // Renderiza todos los productos (sin categorías ni paginación)
 function renderProducts(productos) {
