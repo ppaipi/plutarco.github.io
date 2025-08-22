@@ -52,8 +52,18 @@
     </div>    <div id="cart-icon-fixed">
       <button onclick="toggleCart()" id="cart-icon">🛒 <span id="cart-count">0</span></button>
     </div>
-    <div class="header-bottom">
-    <nav id="category-buttons"></nav>
+    <nav id="category-buttons">
+      <div class="dropdown">
+        <button class="dropdown-btn">
+          Categorías <span class="arrow">▼</span>
+        </button>
+        <div class="dropdown-content" id="dropdown-categories"></div>
+      </div>
+      <button class="nav-btn">Sobre nosotros</button>
+      <button class="nav-btn">Contacto</button>
+    </nav>
+
+
     <div class="search-cart-wrapper">
       <div class="search-bar">
         <input type="text" id="search-input" placeholder="Buscar producto..."

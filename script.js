@@ -207,23 +207,23 @@ function cargarDiasEntrega() {
 }
 
 function renderCategoryMenu() {
-  const container = document.getElementById('category-buttons');
+  const container = document.getElementById('dropdown-categories');
   if (!container) return;
   container.innerHTML = '';
 
   const todasBtn = document.createElement('button');
   todasBtn.textContent = 'Todas';
+  todasBtn.classList.add('cat-btn');
   todasBtn.onclick = () => {
     indiceCategoria = '';
     currentFilter = 'Todas';
     filteredProducts = [...products];
-    renderCategoryMenu();
+    highlightSelected(todasBtn);
     renderProductsByCategory(filteredProducts);
   };
   container.appendChild(todasBtn);
 
   let categorias = [...new Set(products.map(p => p.Categoria))];
-
   categorias = categorias.filter(cat => cat !== 'Panaderia Artesanal')
     .sort((a, b) => a.localeCompare(b, 'es'));
 
@@ -234,13 +234,24 @@ function renderCategoryMenu() {
   categorias.forEach(cat => {
     const btn = document.createElement('button');
     btn.textContent = cat;
+    btn.classList.add('cat-btn');
     btn.onclick = () => {
       indiceCategoria = '';
       filterCategory(cat);
-    }
+      highlightSelected(btn);
+    };
     container.appendChild(btn);
   });
 }
+
+function highlightSelected(selectedBtn) {
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.classList.remove('active-cat');
+  });
+  selectedBtn.classList.add('active-cat');
+}
+
+
 
 function scrollToElementoVerMas(clase, intentos = 10) {
   const el = document.querySelector(`.category-title.${clase}`);
@@ -301,7 +312,7 @@ function renderProductsByCategory(productos) {
       .sort(sortByRanking)
     // si estoy viendo una categoría filtrada => agrupar por SubCategoria
     if (currentFilter === cat) {
-      let subcategorias = [...new Set(productosCat.map(p => p.SubCategoria || 'Otros'))]
+      let subcategorias = [...new Set(productosCat.map(p => p.SubCategoria || ''))]
         .sort((a, b) => a.localeCompare(b, 'es'));
 
       subcategorias.forEach(sub => {
@@ -316,9 +327,18 @@ function renderProductsByCategory(productos) {
         const grid = document.createElement('div');
         grid.className = 'product-grid';
 
-        const productosSub = productosCat.filter(p => (p.SubCategoria || 'Otros') === sub);
+        const productosSub = productosCat.filter(p => (p.SubCategoria || '') === sub);
         productosSub.forEach(prod => grid.appendChild(createProductCard(prod)));
 
+        // agregar vacíos para que el grid no se deforme
+        const resto = productosSub.length % 5;
+        if (resto !== 0) {
+          for (let i = resto; i < 5; i++) {
+            const vacio = document.createElement("div");
+            vacio.className = "product espacio-vacio";
+            grid.appendChild(vacio);
+          }
+        }
         subDiv.appendChild(grid);
         div.appendChild(subDiv);
       });
