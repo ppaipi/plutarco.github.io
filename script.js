@@ -205,25 +205,55 @@ function cargarDiasEntrega() {
     select.appendChild(option);
   });
 }
+// Detectar si es pantalla táctil
+const isTouchDevice = () => {
+  return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  const dropdownBtn = document.querySelector(".dropdown-btn");
+  const dropdownContent = document.querySelector(".dropdown-content");
+  const arrow = document.querySelector(".dropdown-btn .arrow");
+
+  if (isTouchDevice()) {
+    // 👉 En móviles: abrir/cerrar con click
+    dropdownBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      dropdownContent.classList.toggle("show");
+      arrow.classList.toggle("rotate");
+    });
+
+    // 👉 Cerrar al hacer click fuera
+    document.addEventListener("click", (e) => {
+      if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+        dropdownContent.classList.remove("show");
+        arrow.classList.remove("rotate");
+      }
+    });
+  }
+  // 👉 En desktop no hacemos nada: se controla con :hover en CSS
+});
+
 
 function renderCategoryMenu() {
-  const container = document.getElementById('category-buttons');
+  const container = document.getElementById('dropdown-categories');
   if (!container) return;
   container.innerHTML = '';
 
   const todasBtn = document.createElement('button');
   todasBtn.textContent = 'Todas';
+  todasBtn.classList.add('cat-btn');
+  todasBtn.id = 'cat-btn-Todas';
   todasBtn.onclick = () => {
     indiceCategoria = '';
     currentFilter = 'Todas';
     filteredProducts = [...products];
-    renderCategoryMenu();
     renderProductsByCategory(filteredProducts);
   };
   container.appendChild(todasBtn);
+  highlightSelected("Todas");
 
   let categorias = [...new Set(products.map(p => p.Categoria))];
-
   categorias = categorias.filter(cat => cat !== 'Panaderia Artesanal')
     .sort((a, b) => a.localeCompare(b, 'es'));
 
@@ -232,15 +262,30 @@ function renderCategoryMenu() {
   }
 
   categorias.forEach(cat => {
+    const catFiltered = cat.replace(/\s+/g, '-');
     const btn = document.createElement('button');
     btn.textContent = cat;
+    btn.classList.add(`cat-btn`);
+    btn.id = `cat-btn-${catFiltered}`;
     btn.onclick = () => {
       indiceCategoria = '';
       filterCategory(cat);
-    }
+    };
     container.appendChild(btn);
   });
 }
+
+function highlightSelected(selectedBtn) {
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.classList.remove('active-cat');
+  });
+  let activeBtn = document.getElementById(`cat-btn-${selectedBtn}`);
+  activeBtn.classList.add('active-cat');
+}
+
+
+
+
 
 function scrollToElementoVerMas(clase, intentos = 10) {
   const el = document.querySelector(`.category-title.${clase}`);
@@ -259,6 +304,8 @@ function renderProductsByCategory(productos) {
   container.innerHTML = '';
 
   if (currentFilter !== 'Todas') {
+    const catFiltered = currentFilter.replace(/\s+/g, '-');
+    highlightSelected(catFiltered);
     const backBtn = document.createElement('button');
     backBtn.textContent = '⬅ Volver al inicio';
     backBtn.className = 'volver-btn';
@@ -289,11 +336,20 @@ function renderProductsByCategory(productos) {
 
     const h2 = document.createElement('h2');
     h2.className = `category-title ${cat.replace(/\s+/g, '-')}`;
+
+    // Título principal con link
     h2.innerHTML = `<a href="#" onclick="filterCategory('${cat}'); return false;">${cat}</a>`;
-    h2.onclick = () => {
-      indiceCategoria = cat.replace(/\s+/g, '-');
+
+    // Subtítulo opcional
+    if (cat === "Panaderia Artesanal") {
+      const subTitle = document.createElement('span');
+      subTitle.className = 'category-subtitle';
+      subTitle.textContent = "Toda nuestra panaderia está elaborada con harinas integrales organicas, sin aditivos, conservantes, ni harinas blancas.";
+      h2.appendChild(subTitle);
     }
+
     div.appendChild(h2);
+
 
     // productos de esa categoría
     const productosCat = productos
@@ -301,7 +357,7 @@ function renderProductsByCategory(productos) {
       .sort(sortByRanking)
     // si estoy viendo una categoría filtrada => agrupar por SubCategoria
     if (currentFilter === cat) {
-      let subcategorias = [...new Set(productosCat.map(p => p.SubCategoria || 'Otros'))]
+      let subcategorias = [...new Set(productosCat.map(p => p.SubCategoria || ''))]
         .sort((a, b) => a.localeCompare(b, 'es'));
 
       subcategorias.forEach(sub => {
@@ -316,9 +372,18 @@ function renderProductsByCategory(productos) {
         const grid = document.createElement('div');
         grid.className = 'product-grid';
 
-        const productosSub = productosCat.filter(p => (p.SubCategoria || 'Otros') === sub);
+        const productosSub = productosCat.filter(p => (p.SubCategoria || '') === sub);
         productosSub.forEach(prod => grid.appendChild(createProductCard(prod)));
 
+        // agregar vacíos para que el grid no se deforme
+        const resto = productosSub.length % 5;
+        if (resto !== 0) {
+          for (let i = resto; i < 5; i++) {
+            const vacio = document.createElement("div");
+            vacio.className = "product espacio-vacio";
+            grid.appendChild(vacio);
+          }
+        }
         subDiv.appendChild(grid);
         div.appendChild(subDiv);
       });

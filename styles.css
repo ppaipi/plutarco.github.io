@@ -119,23 +119,30 @@ header {
   right: -10px;
 }
 
-/* Categorías */
+/* ==========================
+   Categorías / Navegación
+   ========================== */
+/* ==========================
+   Categorías / Navegación (corregido)
+   ========================== */
 #category-buttons {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 1rem;
+  align-items: center;
   justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
   border-top: 1px solid var(--color-primario);
   border-bottom: 1px solid var(--color-primario);
+  background-color: var(--color-primario);
   position: sticky;
   top: 0;
   z-index: 100;
   backdrop-filter: blur(6px);
-  background-color: var(--color-primario);
 }
 
-#category-buttons button {
+/* Botones principales del nav */
+#category-buttons .nav-btn,
+#category-buttons .dropdown-btn {
   background-color: var(--color-terceario);
   color: var(--color-secundario);
   border: var(--color-borde-oscuro) solid 2px;
@@ -143,12 +150,136 @@ header {
   border-radius: 1.5rem;
   cursor: pointer;
   font-weight: bold;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+#category-buttons .nav-btn:hover,
+#category-buttons .dropdown-btn:hover {
+  background-color: var(--color-terceario-hover);
+  /* Evitar saltos que generan el gap */
+  /* transform: scale(1.05); */ /* eliminado */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* ====== Dropdown ====== */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Flechita normal */
+.dropdown .arrow {
+  font-size: 0.8rem;
+  margin-left: 0.4rem;
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+/* Contenedor del menú desplegable (sin gap) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;            /* antes 110%: causaba el hueco */
+  left: 0;
+  margin-top: 0;        /* asegurar que no haya separación */
+  background-color: var(--color-fondo-claro);
+  min-width: 200px;
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.15);
+  border-radius: 0.8rem;
+  overflow: hidden;
+  z-index: 200;
+}
+
+/* Botones de las categorías dentro del dropdown */
+.dropdown-content button {
+  display: block;
+  width: 100%;
+  background-color: transparent;
+  color: var(--color-gris-oscuro);
+  border: none;
+  padding: 0.8rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  font-weight: 500;
   transition: background-color 0.2s;
 }
 
-#category-buttons button:hover {
-  background-color: var(--color-terceario-hover);
+.dropdown-content button:hover {
+  background-color: var(--color-gris-claro);
 }
+
+/* Mostrar menú en desktop (hover del contenedor padre) */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Mostrar menú en mobile (clase agregada por JS) */
+.dropdown-content.show {
+  display: block !important;
+}
+
+/* ====== Flechita rotación */
+.dropdown .arrow.rotate {           /* mobile (JS) */
+  transform: rotate(180deg);
+}
+.dropdown:hover .arrow {            /* desktop (hover) */
+  transform: rotate(180deg);
+}
+
+/* ====== Categoría activa */
+.cat-btn.active-cat {
+  background-color: var(--color-acento) !important;
+  color: black !important;
+  font-weight: bold;
+}
+
+/* ====== Responsive (móviles) */
+@media (max-width: 768px) {
+  .dropdown-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+  .dropdown .arrow {
+    margin-left: 0; /* que no se baje al renglón siguiente */
+  }
+}
+
+
+
+
+/* Tarjeta individual */
+.category-card {
+  background: var(--color-secundario);
+  border: 2px solid var(--color-primario);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1rem;
+  color: var(--color-primario);
+  cursor: pointer;
+  transition: all 0.25s ease-in-out;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* Hover */
+.category-card:hover {
+  background: var(--color-primario);
+  color: var(--color-secundario);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* Activa */
+.category-card.active {
+  background: var(--color-primario);
+  color: var(--color-secundario);
+  border-color: var(--color-primario);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
 
 /* Categorías en el listado */
 .category-section {
@@ -171,7 +302,23 @@ header {
   text-decoration: none;
 }
 
-/* Productos */
+.category-subtitle {
+  display: block;         /* va en una línea nueva */
+  font-size: 1.5rem;      /* más pequeño que el título */
+  font-weight: 400;
+  color: #0028ff;
+  margin-top: 0.2rem;
+}
+
+@media (max-width: 600px) {
+  .category-title {
+    font-size: 1.5rem;
+  }
+  .category-subtitle {
+    font-size: 1.2rem;
+  }
+}
+  /* Productos */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
