@@ -997,13 +997,12 @@ function toggleZoom(idImagen) {
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
   const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
 
-  // Poner clone en posición absoluta (relativa a documento)
-  clone.style.position = 'absolute';
-  clone.style.top = (rect.top + scrollTop) + 'px';
-  clone.style.left = (rect.left + scrollLeft) + 'px';
+  clone.style.position = 'fixed';
+  clone.style.top = rect.top + 'px';
+  clone.style.left = rect.left + 'px';
   clone.style.width = rect.width + 'px';
   clone.style.height = rect.height + 'px';
-
+  clone.style.margin = 0;
   clone.getBoundingClientRect(); // Forzar reflow
 
   // Calcular tamaño final manteniendo proporción
@@ -1023,16 +1022,18 @@ function toggleZoom(idImagen) {
   }
 
   // Posición final centrada con scroll
-  const finalTop = scrollTop + (vh - finalHeight) / 2;
-  const finalLeft = scrollLeft + (vw - finalWidth) / 2;
+  const finalTop = (vh - finalHeight) / 2;
+  const finalLeft = (vw - finalWidth) / 2;
+
 
   // Animar clon a tamaño y posición final
 
   setTimeout(() => {
-    clone.style.top = finalTop + 'px';
-    clone.style.left = finalLeft + 'px';
-    clone.style.width = finalWidth + 'px';
-    clone.style.height = finalHeight + 'px';
+    cloneImg.style.top = rect.top + 'px';
+    cloneImg.style.left = rect.left + 'px';
+    cloneImg.style.width = rect.width + 'px';
+    cloneImg.style.height = rect.height + 'px';
+
   }, 10); // pequeño delay para transición suave
 
   
