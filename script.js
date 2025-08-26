@@ -249,7 +249,6 @@ function renderCategoryMenu() {
     currentFilter = 'Todas';
     filteredProducts = [...products];
     renderProductsByCategory(filteredProducts);
-    highlightSelected("Todas");
   };
   container.appendChild(todasBtn);
   highlightSelected("Todas");
@@ -405,6 +404,7 @@ function renderProductsByCategory(productos) {
 
     } else {
       // modo inicio (Todas): muestro primeros 5 + botón ver más
+      highlightSelected("Todas")
       const grid = document.createElement('div');
       grid.className = 'product-grid';
 
