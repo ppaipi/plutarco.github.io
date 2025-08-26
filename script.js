@@ -360,17 +360,19 @@ function renderProductsByCategory(productos) {
     if (currentFilter === cat) {
       const ordenDeseado = ["Oliva", "Girasol", "Conservas", "Yerba Mate", "Yuyos", "Cafe", "Veganos", "Lacteos", "Sales", "Condimentos"];
 
-      let subcategorias = [...new Set(productosCat.map(p => p.SubCategoria || 'Otros'))];
+      let subcategorias = [...new Set(productosCat.map(p => p.SubCategoria || ''))];
 
       subcategorias.sort((a, b) => {
         const indexA = ordenDeseado.indexOf(a);
         const indexB = ordenDeseado.indexOf(b);
 
-        // si está en la lista, ordena por posición; si no, va después en orden alfabético
-        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-        if (indexA !== -1) return -1;
-        if (indexB !== -1) return 1;
-        return a.localeCompare(b, 'es');
+        const posA = indexA !== -1 ? indexA : Infinity;
+        const posB = indexB !== -1 ? indexB : Infinity;
+
+        if (posA !== posB) {
+          return posA - posB; // primero según ordenDeseado
+        }
+        return a.localeCompare(b, 'es'); // luego alfabético
       });
 
       subcategorias.forEach(sub => {
