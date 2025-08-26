@@ -146,7 +146,7 @@ function createProductCard(prod) {
     <img 
       src="media/PRODUCTOS/${prod.Codigo}.jpeg" 
       alt="${prod.Nombre}" 
-      loading="lazy"
+      
       style="object-fit: cover;"
       onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='media/PRODUCTOS/placeholder.jpeg'; }"
     >
@@ -583,7 +583,7 @@ function updateCart() {
           src="media/PRODUCTOS/${producto.Codigo}.jpeg" 
           alt="${producto.Nombre}" 
           onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='media/PRODUCTOS/placeholder.jpeg'; }"
-          loading="lazy"
+          
           width="80" height="80"
           style="object-fit: cover;">
         <div>
