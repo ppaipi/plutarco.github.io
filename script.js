@@ -174,7 +174,7 @@ function cargarDiasEntrega() {
   const select = document.getElementById("pickup-day");
   if (!select) return;
 
-  const diasValidos = [3]; // 2: Martes, 5: Viernes
+  const diasValidos = [3,6]; // 1: Lunes, 2: Martes,3: Miercoles,4: Jueves 5: Viernes,6: Sabado
   const opciones = [];
 
   let hoy = new Date();
@@ -249,6 +249,7 @@ function renderCategoryMenu() {
     currentFilter = 'Todas';
     filteredProducts = [...products];
     renderProductsByCategory(filteredProducts);
+    highlightSelected("Todas");
   };
   container.appendChild(todasBtn);
   highlightSelected("Todas");
@@ -357,8 +358,20 @@ function renderProductsByCategory(productos) {
       .sort(sortByRanking)
     // si estoy viendo una categoría filtrada => agrupar por SubCategoria
     if (currentFilter === cat) {
-      let subcategorias = [...new Set(productosCat.map(p => p.SubCategoria || ''))]
-        .sort((a, b) => a.localeCompare(b, 'es'));
+      const ordenDeseado = ["Oliva", "Girasol", "Conservas", "Yerba Mate", "Yuyos", "Cafe", "Veganos", "Lacteos", "Sales", "Condimentos"];
+
+      let subcategorias = [...new Set(productosCat.map(p => p.SubCategoria || 'Otros'))];
+
+      subcategorias.sort((a, b) => {
+        const indexA = ordenDeseado.indexOf(a);
+        const indexB = ordenDeseado.indexOf(b);
+
+        // si está en la lista, ordena por posición; si no, va después en orden alfabético
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+        return a.localeCompare(b, 'es');
+      });
 
       subcategorias.forEach(sub => {
         const subDiv = document.createElement('div');
@@ -638,6 +651,12 @@ function initAutocomplete() {
   autocomplete.setFields(['formatted_address']);
 
   autocomplete.addListener('place_changed', () => {
+    if(input.value === 'A ACORDAR') {
+      mostrarMensajeEnvio('Dirección A ACORDAR. El costo de envío se definirá al confirmar el pedido.', 'orange');
+      costoEnvioActual = 0;
+      updateCart();
+      return;
+    }
     const place = autocomplete.getPlace();
     if (!place.formatted_address) {
       mostrarMensajeEnvio('Dirección inválida.', 'red');
@@ -1006,10 +1025,13 @@ function toggleZoom(idImagen) {
   const finalLeft = scrollLeft + (vw - finalWidth) / 2;
 
   // Animar clon a tamaño y posición final
-  clone.style.top = finalTop + 'px';
-  clone.style.left = finalLeft + 'px';
-  clone.style.width = finalWidth + 'px';
-  clone.style.height = finalHeight + 'px';
+
+  setTimeout(() => {
+    clone.style.top = finalTop + 'px';
+    clone.style.left = finalLeft + 'px';
+    clone.style.width = finalWidth + 'px';
+    clone.style.height = finalHeight + 'px';
+  }, 10); // pequeño delay para transición suave
 
   
 

@@ -135,24 +135,60 @@ function createProductCard(prod) {
 }
 
 function parseCSV(csvText) {
-  const lines = csvText.trim().split(/\r?\n/);
+  // quitar BOM si viene
+  const text = csvText.replace(/^\uFEFF/, "");
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length === 0) return [];
 
-  // Detectar separador (coma o punto y coma)
-  const firstLine = lines[0];
-  const separator = firstLine.includes(";") ? ";" : ",";
+  // detectar separador por la primera línea
+  const first = lines[0];
+  const countSemi = (first.match(/;/g) || []).length;
+  const countComma = (first.match(/,/g) || []).length;
+  const sep = countSemi > countComma ? ";" : ",";
 
-  const headers = lines[0].split(separator).map(h => h.trim());
-  const rows = lines.slice(1);
+  // regex: separa por sep solo si está FUERA de comillas
+  const splitRegex = new RegExp(`${escapeRegex(sep)}(?=(?:[^"]*"[^"]*")*[^"]*$)`);
 
-  return rows.map(line => {
-    const values = line.split(separator).map(v => v.trim().replace(/^"|"$/g, '')); 
+  const headers = first.split(splitRegex).map(h => unquote(h.trim()));
+  const rows = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line || /^\s*$/.test(line)) continue;
+
+    let cols = line.split(splitRegex);
+
+    // Si hay más columnas que headers (p. ej. porque la última trae el separador sin comillar),
+    // juntamos todo lo sobrante en la última columna (Descripcion).
+    if (cols.length > headers.length) {
+      const fixed = cols.slice(0, headers.length - 1);
+      const tail = cols.slice(headers.length - 1).join(sep);
+      cols = [...fixed, tail];
+    }
+
     const obj = {};
-    headers.forEach((header, i) => {
-      obj[header] = values[i] ?? "";
+    headers.forEach((h, idx) => {
+      const raw = (cols[idx] ?? "").trim();
+      obj[h] = unquote(raw);
     });
-    return obj;
-  });
+    rows.push(obj);
+  }
+
+  return rows;
+
+  function unquote(s) {
+    // si viene entre comillas, quítalas y des-escapá comillas dobles
+    if (s.startsWith('"') && s.endsWith('"')) {
+      s = s.slice(1, -1).replace(/""/g, '"');
+    }
+    return s;
+  }
+  function escapeRegex(ch) {
+    // por si algún día usás otro separador especial
+    return ch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
 }
+
 
 
 
