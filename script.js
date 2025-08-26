@@ -994,6 +994,7 @@ function toggleZoom(idImagen) {
 
   // Posición inicial: justo sobre la imagen original
   const rect = original.getBoundingClientRect();
+  clone.style.transition = 'none';
   clone.style.position = 'fixed';
   clone.style.top = rect.top + 'px';
   clone.style.left = rect.left + 'px';
@@ -1025,6 +1026,10 @@ function toggleZoom(idImagen) {
 
   // Animar clon a tamaño y posición final
   setTimeout(() => {
+    clone.style.transition = 'top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease, border-radius 0.3s ease';
+    
+    const finalTop = (window.innerHeight - finalHeight) / 2;
+    const finalLeft = (window.innerWidth - finalWidth) / 2;
     clone.style.top = finalTop + 'px';
     clone.style.left = finalLeft + 'px';
     clone.style.width = finalWidth + 'px';
