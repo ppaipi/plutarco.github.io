@@ -992,7 +992,7 @@ function toggleZoom(idImagen) {
   clone.classList.add('zoom-clone');
   document.body.appendChild(clone);
 
-  // Posición inicial (fixed, relativo a viewport)
+  // Posición inicial: justo sobre la imagen original
   const rect = original.getBoundingClientRect();
   clone.style.position = 'fixed';
   clone.style.top = rect.top + 'px';
@@ -1019,19 +1019,19 @@ function toggleZoom(idImagen) {
     finalWidth = finalHeight * aspectRatio;
   }
 
-  // Posición final centrada
+  // Posición final centrada en viewport
   const finalTop = (vh - finalHeight) / 2;
   const finalLeft = (vw - finalWidth) / 2;
 
-  // Animar clon
+  // Animar clon a tamaño y posición final
   setTimeout(() => {
     clone.style.top = finalTop + 'px';
     clone.style.left = finalLeft + 'px';
     clone.style.width = finalWidth + 'px';
     clone.style.height = finalHeight + 'px';
-  }, 10);
+  }, 20);
 
-  // Función cerrar zoom
+  // Función para cerrar zoom
   function closeZoom(cloneImg) {
     cloneImg.style.top = rect.top + 'px';
     cloneImg.style.left = rect.left + 'px';
