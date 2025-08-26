@@ -968,6 +968,7 @@ function toggleZoom(idImagen) {
     return;
   }
 
+  // Crear overlay si no existe
   let overlay = document.querySelector('.zoom-overlay');
   if (!overlay) {
     overlay = document.createElement('div');
@@ -976,6 +977,7 @@ function toggleZoom(idImagen) {
   }
   overlay.classList.add('open');
 
+  // Crear botón cerrar si no existe
   let closeBtn = document.querySelector('.zoom-close-btn');
   if (!closeBtn) {
     closeBtn = document.createElement('div');
@@ -990,19 +992,15 @@ function toggleZoom(idImagen) {
   clone.classList.add('zoom-clone');
   document.body.appendChild(clone);
 
-  // Obtener posición original (relativa a viewport)
+  // Posición inicial (fixed, relativo a viewport)
   const rect = original.getBoundingClientRect();
-
-  // Obtener scroll para posicionar absoluto
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-
   clone.style.position = 'fixed';
   clone.style.top = rect.top + 'px';
   clone.style.left = rect.left + 'px';
   clone.style.width = rect.width + 'px';
   clone.style.height = rect.height + 'px';
   clone.style.margin = 0;
+
   clone.getBoundingClientRect(); // Forzar reflow
 
   // Calcular tamaño final manteniendo proporción
@@ -1021,31 +1019,22 @@ function toggleZoom(idImagen) {
     finalWidth = finalHeight * aspectRatio;
   }
 
-  // Posición final centrada con scroll
+  // Posición final centrada
   const finalTop = (vh - finalHeight) / 2;
   const finalLeft = (vw - finalWidth) / 2;
 
-
-  // Animar clon a tamaño y posición final
-
+  // Animar clon
   setTimeout(() => {
+    clone.style.top = finalTop + 'px';
+    clone.style.left = finalLeft + 'px';
+    clone.style.width = finalWidth + 'px';
+    clone.style.height = finalHeight + 'px';
+  }, 10);
+
+  // Función cerrar zoom
+  function closeZoom(cloneImg) {
     cloneImg.style.top = rect.top + 'px';
     cloneImg.style.left = rect.left + 'px';
-    cloneImg.style.width = rect.width + 'px';
-    cloneImg.style.height = rect.height + 'px';
-
-  }, 10); // pequeño delay para transición suave
-
-  
-
-  // Función para cerrar zoom
-  function closeZoom(cloneImg) {
-    const rect = original.getBoundingClientRect();
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-
-    cloneImg.style.top = (rect.top + scrollTop) + 'px';
-    cloneImg.style.left = (rect.left + scrollLeft) + 'px';
     cloneImg.style.width = rect.width + 'px';
     cloneImg.style.height = rect.height + 'px';
 
@@ -1054,6 +1043,7 @@ function toggleZoom(idImagen) {
 
     cloneImg.addEventListener('transitionend', () => cloneImg.remove(), { once: true });
   }
+
   function escListener(e) {
     if (e.key === 'Escape') {
       closeZoom(clone);
