@@ -8,20 +8,33 @@ async function loadProducts() {
   // URL del Google Sheets publicado como CSV
   const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYR7RFTwXoTMLKy7-jq3D0RUrNpqrMfFBmGh-UmSYhEnVnvxkcZKCB4VLeRg58jw/pub?output=csv";
 
-  const resAll = await fetch(SHEET_URL + "&cacheBust=" + Date.now()); 
-  const csvText = await resAll.text();
-  
-  // Parsear CSV a objetos
-  products = parseCSV(csvText);
+  try {
+    // Evita cacheo con ?cacheBust
+    const response = await fetch(SHEET_URL + "&cacheBust=" + Date.now(), { cache: "no-store" });
+    if (!response.ok) throw new Error("Error al cargar los productos");
 
-  filteredProducts = [...products];
-  renderProducts(filteredProducts);
+    const csvText = await response.text();
 
-  const header = document.querySelector('header');
-  if (header) {
-    header.scrollIntoView({ behavior: 'smooth' });
+    // Parsear CSV a objetos
+    products = parseCSV(csvText);
+
+    // Asegurar copia independiente
+    filteredProducts = [...products];
+
+    // Renderizar
+    renderProducts(filteredProducts);
+
+    // Subir al header
+    const header = document.querySelector('header');
+    if (header) {
+      header.scrollIntoView({ behavior: 'smooth' });
+    }
+  } catch (error) {
+    console.error("No se pudieron cargar los productos:", error);
+    alert("Hubo un problema al cargar los productos. Intenta más tarde.");
   }
 }
+
 
 
 function cerrarModalDescripcion() {
