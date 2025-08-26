@@ -137,28 +137,23 @@ function createProductCard(prod) {
 function parseCSV(csvText) {
   const lines = csvText.trim().split(/\r?\n/);
 
-  // Usar coma como separador y respetar valores entre comillas
-  const parseLine = (line) => {
-    const regex = /(".*?"|[^",]+)(?=\s*,|\s*$)/g;
-    const result = [];
-    let match;
-    while ((match = regex.exec(line)) !== null) {
-      let val = match[1].trim();
+  // Detectar separador (coma o punto y coma)
+  const firstLine = lines[0];
+  const separator = firstLine.includes(";") ? ";" : ",";
 
-      // Quitar comillas alrededor si existen
-      if (val.startsWith('"') && val.endsWith('"')) {
-        val = val.slice(1, -1);
-      }
+  const headers = lines[0].split(separator).map(h => h.trim());
+  const rows = lines.slice(1);
 
-      // Reemplazar coma decimal por punto (para parseFloat)
-      if (/^\d+,\d+$/.test(val)) {
-        val = val.replace(',', '.');
-      }
+  return rows.map(line => {
+    const values = line.split(separator).map(v => v.trim().replace(/^"|"$/g, '')); 
+    const obj = {};
+    headers.forEach((header, i) => {
+      obj[header] = values[i] ?? "";
+    });
+    return obj;
+  });
+}
 
-      result.push(val);
-    }
-    return result;
-  };
 
   const headers = parseLine(lines[0]);
   return lines.slice(1).map(line => {
