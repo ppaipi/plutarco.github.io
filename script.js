@@ -1078,7 +1078,16 @@ window.onload = () => {
   initAutocomplete();
 
   const searchInput = document.getElementById('search-input');
+  const clickHeader = document.getElementById('click_header');
   if (searchInput) {
     searchInput.addEventListener('input', () => searchProduct());
+  }
+  if(clickHeader){
+    clickHeader.onclick = () => {
+    indiceCategoria = '';
+    currentFilter = 'Todas';
+    filteredProducts = [...products];
+    renderProductsByCategory(filteredProducts);
+  };
   }
 };
