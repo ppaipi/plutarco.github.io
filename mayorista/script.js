@@ -9,31 +9,41 @@ async function loadProducts() {
   const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYR7RFTwXoTMLKy7-jq3D0RUrNpqrMfFBmGh-UmSYhEnVnvxkcZKCB4VLeRg58jw/pub?output=csv";
 
   try {
-    // Evita cacheo con ?cacheBust
-    const response = await fetch(SHEET_URL + "&cacheBust=" + Date.now(), { cache: "no-store" });
-    if (!response.ok) throw new Error("Error al cargar los productos");
+    // Intentar cargar desde Google Sheets
+    const resAll = await fetch(SHEET_URL + "&cacheBust=" + Date.now());
+    if (!resAll.ok) throw new Error("Error en la respuesta de Google Sheets");
 
-    const csvText = await response.text();
-
-    // Parsear CSV a objetos
+    const csvText = await resAll.text();
     products = parseCSV(csvText);
 
-    // Asegurar copia independiente
-    filteredProducts = [...products];
-
-    // Renderizar
-    renderProducts(filteredProducts);
-
-    // Subir al header
-    const header = document.querySelector('header');
-    if (header) {
-      header.scrollIntoView({ behavior: 'smooth' });
-    }
   } catch (error) {
-    console.error("No se pudieron cargar los productos:", error);
-    alert("Hubo un problema al cargar los productos. Intenta más tarde.");
+    console.warn("No se pudo cargar desde Google Sheets, usando Productos.csv local", error);
+
+    try {
+      // Cargar desde archivo local como respaldo
+      const resLocal = await fetch("Productos.csv?cacheBust=" + Date.now());
+      if (!resLocal.ok) throw new Error("Error al cargar Productos.csv local");
+
+      const csvTextLocal = await resLocal.text();
+      products = parseCSV(csvTextLocal);
+
+    } catch (localError) {
+      console.error("No se pudo cargar ningún archivo de productos", localError);
+      products = [];
+    }
+  }
+
+  // Copiar a filteredProducts y renderizar
+  filteredProducts = [...products];
+  renderProducts(filteredProducts);
+
+  // Scroll al header
+  const header = document.querySelector("header");
+  if (header) {
+    header.scrollIntoView({ behavior: "smooth" });
   }
 }
+
 
 
 
