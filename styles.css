@@ -1009,3 +1009,12 @@ footer {
     display: block;
   }
 }
+.subcategory-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 25px 0 15px;
+  color: #333;
+  border-bottom: 2px solid #e1b181; /* mismo color de tu paleta */
+  padding-bottom: 5px;
+  text-transform: capitalize;
+}
