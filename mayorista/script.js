@@ -155,21 +155,6 @@ function parseCSV(csvText) {
 }
 
 
-  const headers = parseLine(lines[0]);
-  return lines.slice(1).map(line => {
-    const values = parseLine(line);
-    const obj = {};
-    headers.forEach((h, i) => {
-      const key = h.trim();
-      let val = values[i] || '';
-      if (key === 'Codigo') val = String(val);
-      else if (key === 'Precio' || key === 'Costo' || key === 'Stock') val = parseFloat(val) || 0;
-      obj[key] = val;
-    });
-    return obj;
-  });
-}
-
 
 // Renderiza todos los productos (sin categorías ni paginación)
 function renderProducts(productos) {
