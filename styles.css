@@ -802,12 +802,22 @@ footer {
   transition: transform 0.3s ease; /* animación suave */
 }
 
-/* Fondo oscuro fullscreen para el zoom */
+/* ==========================
+   Variables de color
+   ========================== */
+:root {
+  --zoom-overlay-bg: rgba(0, 0, 0, 0.6);
+  --zoom-clone-radius: 12px;
+  --zoom-clone-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  --zoom-close-size: 40px;
+  --zoom-close-color: white;
+}
+
 /* Fondo oscuro fullscreen */
 .zoom-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: var(--zoom-overlay-bg);
   z-index: 15000;
   cursor: zoom-out;
   opacity: 0;
@@ -823,17 +833,17 @@ footer {
 /* Imagen clonada animada */
 .zoom-clone {
   position: fixed;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  border-radius: var(--zoom-clone-radius);
+  box-shadow: var(--zoom-clone-shadow);
   cursor: zoom-out;
   z-index: 15001;
-
   transition:
     top 0.3s ease,
     left 0.3s ease,
     width 0.3s ease,
     height 0.3s ease,
     border-radius 0.3s ease;
+  will-change: top, left, width, height;
 }
 
 /* Botón cerrar */
@@ -842,20 +852,27 @@ footer {
   top: 24px;
   right: 24px;
   font-size: 30px;
-  color: white;
+  color: var(--zoom-close-color);
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  line-height: 40px;
+  width: var(--zoom-close-size);
+  height: var(--zoom-close-size);
+  line-height: var(--zoom-close-size);
   text-align: center;
   cursor: pointer;
   user-select: none;
   z-index: 15002;
   transition: background-color 0.2s ease;
+  background-color: rgba(0,0,0,0.4);
 }
 
+/* Hover del botón cerrar */
+.zoom-close-btn:hover {
+  background-color: rgba(0,0,0,0.6);
+}
 
-
+/* ==========================
+   Media queries para móviles
+   ========================== */
 @media (max-width: 600px) {
   .zoom-close-btn {
     top: 12px;
@@ -867,10 +884,10 @@ footer {
   }
 
   .zoom-clone {
-    max-width: 95vw !important;
-    max-height: 95vh !important;
     border-radius: 8px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    max-width: 95vw !important;
+    max-height: 95vh !important;
   }
 }
 
@@ -885,13 +902,12 @@ footer {
   }
 
   .zoom-clone {
-    max-width: 98vw !important;
-    max-height: 98vh !important;
     border-radius: 6px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    max-width: 98vw !important;
+    max-height: 98vh !important;
   }
 }
-
 
 .modal-info {
   flex: 1;
