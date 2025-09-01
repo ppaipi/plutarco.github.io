@@ -703,7 +703,7 @@ function initAutocomplete() {
       else if (km <= 6) costo = 5000;
       else if (km <= 7) costo = 6000;
       else {
-        msg = `🛑 Fuera del rango de entrega (distancia ${km}km)`;
+        msg = `🛑 Fuera del rango de entrega (distancia ${km}km) <a href="wa.me/1150168920"> Escribenos y acordamos un precio </a>`;
         color = 'red';
         costo = 0;
       }
