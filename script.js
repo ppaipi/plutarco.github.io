@@ -820,6 +820,8 @@ function enviarPedido() {
     document.getElementById('pickup-day').value = '';
 
     desbloquearBoton(btn);
+    filteredProducts = [...products];
+    renderProductsByCategory(filteredProducts);
   });
 }
 
