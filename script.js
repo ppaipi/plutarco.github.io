@@ -703,7 +703,7 @@ function initAutocomplete() {
       else if (km <= 6) costo = 5000;
       else if (km <= 7) costo = 6000;
       else {
-        msg = `🛑 Fuera del rango de entrega (distancia ${km}km) <a href="wa.me/1150168920"> Escribenos y acordamos un precio </a>`;
+        msg = `🛑 Fuera del rango de entrega (distancia ${km}km) <a href="https://wa.me/5491150168920?text=Hola!" target="_blank"> Escribenos y acordamos un precio </a>`;
         color = 'red';
         costo = 0;
       }
@@ -718,7 +718,7 @@ function initAutocomplete() {
 function mostrarMensajeEnvio(texto, color) {
   const envioMsg = document.getElementById('envio-msg');
   if (envioMsg) {
-    envioMsg.textContent = texto;
+    envioMsg.innerHTML = texto;
     envioMsg.style.color = color;
   }
 }
