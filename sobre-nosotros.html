@@ -106,9 +106,17 @@
 
     /* 📱 MOBILE */
     @media (max-width: 600px) {
-      header {
-        padding: 2rem 1rem; /* más alto */
-      }
+        header {
+            height: 120px; /* 👈 antes era más chico, ahora más alto */
+            font-size: 1.4rem; /* aumenta un poco el texto del header */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        header h1 {
+            font-size: 2rem; /* 👈 título más grande en móvil */
+        }
 
       .logo-titulo img {
         height: 100px; /* logo más grande */
@@ -127,10 +135,18 @@
       }
 
       .galeria img {
-        width: 100%;
-        height: auto; /* que no corte nada */
-        object-fit: contain; /* muestra la foto entera */
+        max-height: 250px; /* 👈 achicamos un poco las fotos */
+        width: auto;
+        margin: 0 auto;
+        display: block;
+        object-fit: contain;
       }
+        .content p {
+            font-size: 1.2rem; /* 👈 texto más grande para mejor lectura */
+            line-height: 1.6;
+            text-align: center;
+            padding: 0 10px;
+        }
 
       .volver-btn {
         width: 100%;
