@@ -106,28 +106,25 @@
 
     /* 📱 MOBILE */
     @media (max-width: 600px) {
-        header {
-            height: 120px; /* 👈 antes era más chico, ahora más alto */
-            font-size: 1.4rem; /* aumenta un poco el texto del header */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-        header h1 {
-            font-size: 2rem; /* 👈 título más grande en móvil */
-        }
+      header {
+        height: 180px; /* 👈 MUCHO más alto */
+        padding: 2rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
 
       .logo-titulo img {
-        height: 100px; /* logo más grande */
+        height: 130px; /* 👈 logo mucho más grande */
       }
 
       .logo-titulo h1 {
-        font-size: 2.2rem; /* título más grande */
+        font-size: 2.6rem; /* 👈 título más grande */
       }
 
       .logo-titulo span {
-        font-size: 1.1rem;
+        font-size: 1.3rem;
       }
 
       .galeria {
@@ -135,23 +132,25 @@
       }
 
       .galeria img {
-        max-height: 250px; /* 👈 achicamos un poco las fotos */
+        max-height: 200px; /* 👈 un poco más chicas */
         width: auto;
         margin: 0 auto;
         display: block;
         object-fit: contain;
       }
-        .content p {
-            font-size: 1.2rem; /* 👈 texto más grande para mejor lectura */
-            line-height: 1.6;
-            text-align: center;
-            padding: 0 10px;
-        }
+
+      .sobre-nosotros-container p {
+        font-size: 1.3rem; /* 👈 texto más grande */
+        line-height: 1.7;
+        padding: 0 12px;
+        text-align: center;
+      }
 
       .volver-btn {
         width: 100%;
-        padding: 1rem;
-        font-size: 1.2rem;
+        padding: 1.3rem; /* 👈 más grande */
+        font-size: 1.4rem; /* 👈 letra más grande */
+        border-radius: 10px;
       }
     }
   </style>
@@ -189,7 +188,7 @@
     </div>
 
     <!-- Botón volver -->
-    <a href="www.plutarcoalmacen.com.ar" class="volver-btn">⬅ Volver</a>
+    <a href="https://www.plutarcoalmacen.com.ar" class="volver-btn">⬅ Volver</a>
   </main>
 </body>
 </html>
