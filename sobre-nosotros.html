@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Sobre Nosotros - Plutarco Almacén</title>
-  <link rel="stylesheet" href="styles.css"> <!-- tu CSS principal -->
+  <link rel="stylesheet" href="styles.css">
   <style>
     body {
       margin: 0;
@@ -37,7 +37,7 @@
     header {
       background-color: var(--color-primario);
       color: var(--color-secundario);
-      padding: 1rem;
+      padding: 1.5rem;
       text-align: center;
     }
 
@@ -46,11 +46,11 @@
       align-items: center;
       justify-content: center;
       gap: 1rem;
-      flex-wrap: wrap; /* permite que se acomode en mobile */
+      flex-wrap: wrap;
     }
 
     .logo-titulo img {
-      height: 70px;
+      height: 80px;
       width: auto;
     }
 
@@ -58,7 +58,7 @@
       font-family: 'Comic Neue', 'Comic Sans MS';
       color: black;
       font-weight: 600;
-      font-size: 1.8rem;
+      font-size: 2rem;
       letter-spacing: 1px;
       margin: 0;
       text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
@@ -82,15 +82,8 @@
     .galeria img {
       flex: 1 1 280px;
       max-width: 100%;
-      height: 250px;
-      object-fit: cover;
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      transition: transform 0.3s ease;
-    }
-
-    .galeria img:hover {
-      transform: scale(1.03);
     }
 
     /* BOTÓN VOLVER */
@@ -113,45 +106,30 @@
 
     /* 📱 MOBILE */
     @media (max-width: 600px) {
-      .sobre-nosotros-container {
-        margin: 1rem;
-        padding: 1rem;
-      }
-
-      .sobre-nosotros-container h2 {
-        font-size: 1.6rem;
-      }
-
-      .sobre-nosotros-container p {
-        font-size: 1rem;
-      }
-
-      .logo-titulo {
-        flex-direction: column;
-        gap: 0.5rem;
+      header {
+        padding: 2rem 1rem; /* más alto */
       }
 
       .logo-titulo img {
-        height: 60px;
+        height: 100px; /* logo más grande */
       }
 
       .logo-titulo h1 {
-        font-size: 1.4rem;
-        text-align: center;
+        font-size: 2.2rem; /* título más grande */
       }
 
       .logo-titulo span {
-        font-size: 0.9rem;
+        font-size: 1.1rem;
       }
 
       .galeria {
         flex-direction: column;
-        gap: 1rem;
       }
 
       .galeria img {
         width: 100%;
-        height: auto; /* fotos grandes en mobile */
+        height: auto; /* que no corte nada */
+        object-fit: contain; /* muestra la foto entera */
       }
 
       .volver-btn {
@@ -175,16 +153,16 @@
   <main class="sobre-nosotros-container">
     <h2>Sobre Nosotros</h2>
     <p>
-      Plutarco Almacén nació de un simple deseo: volver a comer rico y sano. 
+      Plutarco nació de un simple deseo: volver a comer rico y sano. 
       En un mundo donde la comida se llena cada vez más de procesos e ingredientes confusos, 
       decidimos volver a lo natural. Allá por 2011, Darío Chapur, el alma detrás de este proyecto, 
       empezó a darle forma a un sueño: crear un espacio donde la comida y el arte pudieran encontrarse y convivir.  
-      Hoy, entre las calles Plutarco e Iberá, florece este rinconcito que brilla por sus productos orgánicos, opciones veganas 
+      Hoy, entre Plutarco e Iberá, florece este rinconcito que brilla por sus productos orgánicos, opciones veganas 
       y la energía de quienes creen que otra forma de alimentarse es posible.  
-      Nuestra joyita es la panadería artesanal: orgánica, de calidad, saludable y con panes de todo tipo 
+      Nuestra joyita es la panadería artesanal: orgánica, hecha con paciencia, dedicación y con panes de todo tipo 
       para que cada uno encuentre el suyo.  
       Los invitamos a darse una vuelta por Iberá 3852 y compartir con nosotros esta manera más simple y natural 
-      de disfrutar la comida, o, en caso de que no puedan pasar, hagan un pedido online.
+      de disfrutar la comida.
     </p>
 
     <!-- Galería -->
@@ -195,7 +173,7 @@
     </div>
 
     <!-- Botón volver -->
-    <a href="https://www.plutarcoalmacen.com.ar" class="volver-btn">⬅ Volver</a>
+    <a href="www.plutarcoalmacen.com.ar" class="volver-btn">⬅ Volver</a>
   </main>
 </body>
 </html>
