@@ -808,7 +808,7 @@ function enviarPedido() {
 
     // --- VACIAR TODO EL CARRITO ---
     cart = {};                      // borra los productos seleccionados
-    filteredProducts = [...allProducts]; // resetear listado de productos
+    filteredProducts = [...products]; // resetear listado de productos
     renderProductsByCategory(filteredProducts);
     updateCart();
 
@@ -820,8 +820,6 @@ function enviarPedido() {
     document.getElementById('pickup-day').value = '';
 
     desbloquearBoton(btn);
-    filteredProducts = [...products];
-    renderProductsByCategory(filteredProducts);
   });
 }
 
