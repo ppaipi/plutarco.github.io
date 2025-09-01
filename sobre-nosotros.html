@@ -24,15 +24,38 @@
       margin-bottom: 2rem;
       font-size: 1.1rem;
     }
+
+    /* Galería de fotos */
     .galeria {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 1rem;
+      margin-bottom: 2rem;
     }
     .galeria img {
-      width: 100%;
+      max-width: 280px;
+      height: 200px; /* mismo alto para todas */
+      object-fit: cover; /* recorta sin deformar */
       border-radius: 10px;
-      object-fit: cover;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    /* Botón volver */
+    .volver-btn {
+      display: inline-block;
+      padding: 0.7rem 1.5rem;
+      background-color: var(--color-primario);
+      color: var(--color-secundario);
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+    .volver-btn:hover {
+      background-color: var(--color-terceario-hover);
     }
   </style>
 </head>
@@ -61,11 +84,15 @@
       de disfrutar la comida.
     </p>
 
+    <!-- Galería -->
     <div class="galeria">
       <img src="media/Plutarco1.jpg" alt="Plutarco foto 1">
       <img src="media/Plutarco2.jpg" alt="Plutarco foto 2">
       <img src="media/Plutarco3.jpg" alt="Plutarco foto 3">
     </div>
+
+    <!-- Botón volver -->
+    <a href="index.html" class="volver-btn">⬅ Volver</a>
   </main>
 </body>
 </html>
