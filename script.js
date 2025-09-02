@@ -10,6 +10,22 @@ let costoEnvioActual = 0;
 let indiceCategoria = '';
 let descripcionesPorCodigo = {};
 const LOCAL_ADDRESS = 'Ibera 3852, Coghlan, CABA, Argentina.';
+const ordenCategorias = [
+  "Panificados Integrales",
+  "Refrigerados",
+  "Comidas congeladas",
+  "Infusiones",
+  "Organicos",
+  "Productos Sueltos",
+  "Cereales y Legumbres",
+  "Aceites y Conservas",
+  "Snack",
+  "Mieles y Dulces",
+  "Bebidas",
+  "Sales y Condimentos"
+];
+const ordenSubCategorias = ["Oliva", "Girasol", "Conservas", "Yerba Mate", "Yuyos", "Cafe", "Veganos", "Lacteos", "Sales", "Condimentos"];
+
 
 
 async function loadProducts() {
@@ -254,12 +270,18 @@ function renderCategoryMenu() {
   highlightSelected("Todas");
 
   let categorias = [...new Set(products.map(p => p.Categoria))];
-  categorias = categorias.filter(cat => cat !== 'Panaderia Artesanal')
-    .sort((a, b) => a.localeCompare(b, 'es'));
 
-  if (products.some(p => p.Categoria === 'Panaderia Artesanal')) {
-    categorias.unshift('Panaderia Artesanal');
-  }
+  // Reordenar según el array
+  categorias.sort((a, b) => {
+    const indexA = ordenCategorias.indexOf(a);
+    const indexB = ordenCategorias.indexOf(b);
+
+    const posA = indexA !== -1 ? indexA : Infinity;
+    const posB = indexB !== -1 ? indexB : Infinity;
+
+    if (posA !== posB) return posA - posB;
+    return a.localeCompare(b, 'es'); // alfabético si no están en el array
+  });
 
   categorias.forEach(cat => {
     const catFiltered = cat.replace(/\s+/g, '-');
@@ -274,6 +296,7 @@ function renderCategoryMenu() {
     container.appendChild(btn);
   });
 }
+
 
 function highlightSelected(selectedBtn) {
   document.querySelectorAll('.cat-btn').forEach(btn => {
@@ -324,11 +347,18 @@ function renderProductsByCategory(productos) {
   }
 
   let categorias = [...new Set(productos.map(p => p.Categoria))];
-  categorias = categorias.filter(c => c !== 'Panaderia Artesanal')
-    .sort((a, b) => a.localeCompare(b, 'es'));
-  if (productos.some(p => p.Categoria === 'Panaderia Artesanal')) {
-    categorias.unshift('Panaderia Artesanal');
-  }
+
+
+  categorias.sort((a, b) => {
+    const indexA = ordenCategorias.indexOf(a);
+    const indexB = ordenCategorias.indexOf(b);
+
+    const posA = indexA !== -1 ? indexA : Infinity;
+    const posB = indexB !== -1 ? indexB : Infinity;
+
+    if (posA !== posB) return posA - posB;
+    return a.localeCompare(b, 'es');
+  });
 
   categorias.forEach(cat => {
     const div = document.createElement('div');
@@ -336,12 +366,9 @@ function renderProductsByCategory(productos) {
 
     const h2 = document.createElement('h2');
     h2.className = `category-title ${cat.replace(/\s+/g, '-')}`;
-
-    // Título principal con link
     h2.innerHTML = `<a href="#" onclick="filterCategory('${cat}'); return false;">${cat}</a>`;
 
-    // Subtítulo opcional
-    if (cat === "Panaderia Artesanal") {
+    if (cat === "Panificados Integrales") {
       const subTitle = document.createElement('span');
       subTitle.className = 'category-subtitle';
       subTitle.textContent = "Toda nuestra panaderia está elaborada con harinas integrales organicas, sin aditivos, conservantes, ni harinas blancas.";
@@ -350,28 +377,23 @@ function renderProductsByCategory(productos) {
 
     div.appendChild(h2);
 
-
-    // productos de esa categoría
     const productosCat = productos
       .filter(p => p.Categoria === cat)
-      .sort(sortByRanking)
-    // si estoy viendo una categoría filtrada => agrupar por SubCategoria
+      .sort(sortByRanking);
+
     if (currentFilter === cat) {
-      const ordenDeseado = ["Oliva", "Girasol", "Conservas", "Yerba Mate", "Yuyos", "Cafe", "Veganos", "Lacteos", "Sales", "Condimentos"];
 
       let subcategorias = [...new Set(productosCat.map(p => p.SubCategoria || ''))];
 
       subcategorias.sort((a, b) => {
-        const indexA = ordenDeseado.indexOf(a);
-        const indexB = ordenDeseado.indexOf(b);
+        const indexA = ordenSubCategorias.indexOf(a);
+        const indexB = ordenSubCategorias.indexOf(b);
 
         const posA = indexA !== -1 ? indexA : Infinity;
         const posB = indexB !== -1 ? indexB : Infinity;
 
-        if (posA !== posB) {
-          return posA - posB; // primero según ordenDeseado
-        }
-        return a.localeCompare(b, 'es'); // luego alfabético
+        if (posA !== posB) return posA - posB;
+        return a.localeCompare(b, 'es');
       });
 
       subcategorias.forEach(sub => {
@@ -389,7 +411,6 @@ function renderProductsByCategory(productos) {
         const productosSub = productosCat.filter(p => (p.SubCategoria || '') === sub);
         productosSub.forEach(prod => grid.appendChild(createProductCard(prod)));
 
-        // agregar vacíos para que el grid no se deforme
         const resto = productosSub.length % 5;
         if (resto !== 0) {
           for (let i = resto; i < 5; i++) {
@@ -403,8 +424,7 @@ function renderProductsByCategory(productos) {
       });
 
     } else {
-      // modo inicio (Todas): muestro primeros 5 + botón ver más
-      highlightSelected("Todas")
+      highlightSelected("Todas");
       const grid = document.createElement('div');
       grid.className = 'product-grid';
 
@@ -428,6 +448,7 @@ function renderProductsByCategory(productos) {
     container.appendChild(div);
   });
 }
+
 
 function sortByRanking(a, b) {
   const rankA = rankingMap[a.Nombre] ?? Infinity; 
