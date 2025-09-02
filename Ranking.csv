@@ -1,6 +1,6 @@
 Ranking;Producto
-1;PRODUCTOS A PESAR X KG
-2;varios almacen
+1;Maple de Huevos COECO
+2;½ Docena huevos COECO
 3;Empanadas (todas) DAFNE / VARDO
 4;Pan de Semillas Plutarco
 5;Cortezas 250g envasadas Plutarco
@@ -29,26 +29,26 @@ Ranking;Producto
 28;Chapati (pan para sandwich) Plutarco
 29;Mantequilla de mani 380g NINAS
 30;Manzanilla 50g Plut
-31;Mezcla yuyos para mate 50g Plut
+31;yerba Kalena con palo 500 gr
 32;Babaganush ONNEG
 33;Pre-pizza integral Plutarco
 34;Pre-pizza de arroz Plutarco
-35;Garbanzos 500g plutarco
+35;Arroz yamani 500g Plutarco
 36;Pan de centeno Plutarco
 37;Alfajor (todos) KETO Nutrirte
-38;Lentejas 500g Plutarco
-39;Datilicious datiles con avellanas La Foret 80g
-40;Hamburguesas Funger
+38;Datilicious datiles con avellanas La Foret 80g
+39;Avena arrollada tradicional instantanea 500g Plutarco
+40;Garbanzos 500g plutarco
 41;Huevos � Docena Egg Hongs
-42;Arroz yamani 500g Plutarco
+42;Lentejas 500g Plutarco
 43;� Docena huevos COECO
 44;sahumerios nag champa (ayurvedasandalwood)
-45;Te de burro (Burrito) PLUT 50g
+45;Cafe Motofeca Colombia 250g
 46;Torta Galesa Plutarco
 47;Curcuma x 50grs
 48;Manicol 35 gr PACHAMANI todos
 49;Barra con Almendra LADDUBAR
-50;Avena arrollada tradicional instantanea 500g Plutarco
+50;Arroz integral 500g Plutarco
 51;Arroz yamani 1 kg Plutarco
 52;Quinoa blanca  500 grs SUMA QAMA�A
 53;BROWNIE / ALFAJOR EPUYEN
@@ -59,9 +59,9 @@ Ranking;Producto
 58;Yogurth griego natural ghurt 370g
 59;Alfajor Coprigio caprigio (sin azucar)
 60;Sal rosada del Himalaya fina organica 500 gr
-61;Cafe Motofeca Colombia 250g
-62;TOQUES THAI CASA VEGANA x420g
-63;yerba Kalena con palo 500 gr
+61;Cedron 50g Plut
+62;
+63;Roapipo 500grs Tradicional
 64;Miel Pura 500g RAIMAPU (sin etiqueta)
 65;Tortillas PURO MAIZ (Amarillo)
 66;barra de cereales muecas coco y cacao
@@ -83,13 +83,13 @@ Ranking;Producto
 82;Ciruelas 500g
 83;Barra con avellanas LADDUBAR
 84;Yerba La Buena 500 gr
-85;
+85;Mezcla yuyos para mate 50g Plut
 86;Galletas arroz rodez sin sal 1
 87;Jugo Manzana roja Pura Frutta 250ml
-88;Cedron 50g Plut
+88;
 89;Leche de Almendras AMANDE
 90;Arroz blanco g. largo 500 g Plutarco
-91;Harina Integral Brotes fina 1 kg
+91;
 92;Medallones y milanesas (variedades). Semilla Amarilla
 93;Harina de GARBANZOS x 500g PLUTARCO
 94;mermelada las quinas sin azucar frutos rojos 420g
@@ -103,7 +103,7 @@ Ranking;Producto
 102;Jugo Manzana roja Pura Frutta 1 lt
 103;Huevos Maple Egg Hongs
 104;Quinoa blanca 250 grs SUMA QAMA�A
-105;TOQUES GARBANZOS CASA VEGANA x420g
+105;
 106;Tintura madre MELENA DE LEON ARTESANAL
 107;Nuggets soyana 300gr
 108;Canela en polvo 50g Plut
@@ -117,7 +117,7 @@ Ranking;Producto
 116;Fideos Wakas  Kale
 117;yerba Kalena DESPALADA 500 gr
 118;Yerba TITRAYJU 500g
-119;Arroz integral 500g Plutarco
+119;
 120;Alfajor Mani Felices Las Vacas
 121;Avena arrollada tradicional instantanea 1 kg Plutarco
 122;Hibiscus 50g Plut
@@ -148,7 +148,7 @@ Ranking;Producto
 147;Pata y muslo pollo con piel y hueso COECO
 148;Wik Barra de Quinoa inflada y chocolate
 149;Oregano 50g Plut
-150;TOQUES LENTEJAS CASA VEGANA x420g
+150;
 151;Yogurth bebible natural entero 1 lt La Choza (NO incluye el envase)
 152;Crackers SHIVA ahumado x 100grs
 153;Azucar mascabo 500 gr ECOSUCRE
@@ -162,7 +162,7 @@ Ranking;Producto
 161;Quinoa blanca  1kg SUMA QAMA�A
 162;Pasta de Mani Kui natural
 163;Yogurth bebible natural 500cm3 La Choza (NO incluye el envase)
-164;Azucar mascabo 500 gr BALAJU
+164;Harina Integral Brotes fina 1 kg
 165;FECULA de Mandioca 500g PLUTARCO
 166;Diente de leon 50g Plut
 167;Jengibre 50g Plut
@@ -209,7 +209,7 @@ Ranking;Producto
 208;Manicol 100 gr PACHAMANI cacao y nuez
 209;minis Cashoo
 210;Salsa Tomates NUESTRAS MANOS 950 cc
-211;TOQUES TIKKA CASA VEGANA x420g
+211;
 212;Yogurth Vegano COCO IOGO CRUDDA  160 GR VAINILLA
 213;Comino molido 50g Plut
 214;Extracto de vainilla El Castillo 30 cc
@@ -251,7 +251,7 @@ Ranking;Producto
 250;Galletas de arroz Rodez Sin sal
 251;Pan esenio Crudencio
 252;Pochoclos organico agridulces BAMBOO
-253;Roapipo 500grs Tradicional
+253;
 254;Porotos Pallares 500g Plutarco
 255;Yerba Mate Legado 500g
 256;Yerba Sol y Lluvia x 500g
@@ -261,7 +261,7 @@ Ranking;Producto
 260;Jabon de coco 450 gr
 261;Pasionaria 50g Plut
 262;Shampoo solido Samu 70 gr limon y aloe vera
-263;
+263;Azucar mascabo 500 gr BALAJU
 264;crudda bar coco chocolate
 265;Fideos Wakas de quinoa 300g
 266;Vinagre de Sidra de Manzana 500ml BIORE
@@ -1228,3 +1228,8 @@ Ranking;Producto
 1227;Granola 100grs
 1228;Cacao amargo en polvo 100g PLUTARCO
 1229;Chips chocolate 200g Plut
+1230;6 EMPANADAS de queso Veganas Congeladas VARDO RE EVOLUCION
+1231;6 EMPANADAS Veganas Congeladas DAFNE
+1232;8 EMPANADAS Veganas Congeladas VARDO RE EVOLUCION
+1233;Hamburguesas Funger
+1234;TOQUES GARBANZOS CASA VEGANA x420g
