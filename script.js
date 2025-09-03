@@ -12,10 +12,10 @@ let descripcionesPorCodigo = {};
 const LOCAL_ADDRESS = 'Ibera 3852, Coghlan, CABA, Argentina.';
 const ordenCategorias = [
   "Panificados Integrales",
-  "Refrigerados",
-  "Comidas congeladas",
-  "Infusiones",
   "Organicos",
+  "Refrigerados",
+  "Congelados",
+  "Infusiones",
   "Productos Sueltos",
   "Cereales y Legumbres",
   "Aceites y Conservas",
