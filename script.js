@@ -716,6 +716,7 @@ function initAutocomplete() {
       let msg = '';
       let color = 'green';
 
+      const kmRedondeado = Math.ceil(km * 10) / 10;
       if (km <= 1) costo = 2000;
       else if (km <= 2) costo = 2500;
       else if (km <= 3) costo = 3000;
@@ -724,7 +725,7 @@ function initAutocomplete() {
       else if (km <= 6) costo = 5000;
       else if (km <= 7) costo = 6000;
       else {
-        msg = `🛑 Fuera del rango de entrega (distancia ${km}km) <a href="https://wa.me/5491150168920?text=Hola!" target="_blank"> Escribenos y acordamos un precio </a>`;
+        msg = `🛑 Fuera del rango de entrega (distancia ${kmRedondeado}km) <a href="https://wa.me/5491150168920?text=Hola!" target="_blank"> Escribenos y acordamos un precio sin compromiso!</a>`;
         color = 'red';
         costo = 0;
       }
@@ -764,18 +765,31 @@ function validarCampos(btn) {
   const mail = document.getElementById('email').value.trim();
   const telefono = document.getElementById('phone').value.trim();
   const direccion = document.getElementById('address').value.trim();
+  const comentario = document.getElementById('comment').value.trim();
 
-  if (!dia || !nombre || !mail || !telefono || !direccion) {
+  if (!dia || !nombre || !mail || !telefono || !direccion || !comentario) {
     alert('Complete todos los campos.');
-    desbloquearBoton(btn);
     return false;
   }
 
   if (Object.keys(cart).length === 0) {
     alert('Agregue productos al carrito.');
-    desbloquearBoton(btn);
     return false;
   }
+
+  if(mail.indexOf('@') === -1 || mail.indexOf('.') === -1) {
+    alert('Ingrese un mail valido.');
+    return false;
+  }
+  if (telefono.length < 8) {
+    alert('Ingrese un teléfono válido.');
+    return false;
+  }
+  if(nombre.indexOf(' ') === -1) {
+    alert('Ingrese su nombre completo.');
+    return false;
+  }
+
 
   return true;
 }
