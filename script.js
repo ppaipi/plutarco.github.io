@@ -776,6 +776,10 @@ function validarCampos(btn) {
     alert('Agregue productos al carrito.');
     return false;
   }
+  if(nombre.indexOf(' ') === -1) {
+    alert('Ingrese su nombre completo.');
+    return false;
+  }
 
   if(mail.indexOf('@') === -1 || mail.indexOf('.') === -1) {
     alert('Ingrese un mail valido.');
@@ -785,10 +789,7 @@ function validarCampos(btn) {
     alert('Ingrese un teléfono válido.');
     return false;
   }
-  if(nombre.indexOf(' ') === -1) {
-    alert('Ingrese su nombre completo.');
-    return false;
-  }
+
 
 
   return true;
