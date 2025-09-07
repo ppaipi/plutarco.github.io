@@ -850,6 +850,7 @@ function enviarPedido() {
     filteredProducts = [...products]; // resetear listado de productos
     renderProductsByCategory(filteredProducts);
     mostrarMensajeEnvio('', 'black');
+    costoEnvioActual = 0;
     updateCart();
 
     // Limpiar campos del formulario
