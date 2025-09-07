@@ -849,6 +849,7 @@ function enviarPedido() {
     cart = {};                      // borra los productos seleccionados
     filteredProducts = [...products]; // resetear listado de productos
     renderProductsByCategory(filteredProducts);
+    mostrarMensajeEnvio('', 'black');
     updateCart();
 
     // Limpiar campos del formulario
