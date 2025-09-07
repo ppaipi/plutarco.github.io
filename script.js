@@ -827,7 +827,7 @@ function enviarPedido() {
     telefono: document.getElementById('phone').value.trim(),
     direccion: document.getElementById('address').value.trim(),
     retiro: document.getElementById('pickup-day').value,
-    comentario: "", // opcional
+    comentario: document.getElementById('comment').value.trim(),
     productos: productos,
     subtotal: totalProductos,
     envio: costoEnvioActual,
