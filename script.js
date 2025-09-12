@@ -737,7 +737,7 @@ function initAutocomplete() {
       }
       let costoSinOferta = costo+1000;
       costoEnvioActual = costo;
-      if(costo=0){
+      if(costo==0){
         mostrarMensajeEnvio(msg || `🚚 ENVíO GRATIS <del> $2.000 </del> ➜ SIN COSTO`, color);
       }
       else{
