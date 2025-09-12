@@ -723,13 +723,13 @@ function initAutocomplete() {
       let color = 'green';
 
       const kmRedondeado = Math.ceil(km * 10) / 10;
-      if (km <= 1) costo = 2000;
-      else if (km <= 2) costo = 2500;
-      else if (km <= 3) costo = 3000;
-      else if (km <= 4) costo = 3500;
-      else if (km <= 5) costo = 4500;
-      else if (km <= 6) costo = 5000;
-      else if (km <= 7) costo = 6000;
+      if (km <= 1) costo = 0;
+      else if (km <= 2) costo = 0;
+      else if (km <= 3) costo = 2500;
+      else if (km <= 4) costo = 3000;
+      else if (km <= 5) costo = 4000;
+      else if (km <= 6) costo = 4500;
+      else if (km <= 7) costo = 5000;
       else {
         msg = `🛑 Fuera del rango de entrega (distancia ${kmRedondeado}km) <a href="https://wa.me/5491150168920?text=Hola!" target="_blank"> Escribenos y acordamos un precio sin compromiso!</a>`;
         color = 'red';
@@ -737,7 +737,12 @@ function initAutocomplete() {
       }
 
       costoEnvioActual = costo;
-      mostrarMensajeEnvio(msg || `🚚 Costo Envío: $${costo}`, color);
+      if(costo=0){
+        mostrarMensajeEnvio(msg || `🚚 ENVíO GRATIS <del> $2.000 </del> ➜ SIN COSTO`, color);
+      }
+      else{
+        mostrarMensajeEnvio(msg || `🚚 Costo Envío: <del> $${costo+1000} </del> ➜ $${costo}`, color);
+      }
       updateCart();
     });
   });
