@@ -735,13 +735,13 @@ function initAutocomplete() {
         color = 'red';
         costo = 0;
       }
-
+      let costoSinOferta = costo+1000;
       costoEnvioActual = costo;
       if(costo=0){
         mostrarMensajeEnvio(msg || `🚚 ENVíO GRATIS <del> $2.000 </del> ➜ SIN COSTO`, color);
       }
       else{
-        mostrarMensajeEnvio(msg || `🚚 Costo Envío: <del> $${costo+1000} </del> ➜ $${costo}`, color);
+        mostrarMensajeEnvio(msg || `🚚 Costo Envío: <del> $${costoSinOferta} </del> ➜ $${costo}`, color);
       }
       updateCart();
     });
