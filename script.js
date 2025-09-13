@@ -190,28 +190,58 @@ function cargarDiasEntrega() {
   const select = document.getElementById("pickup-day");
   if (!select) return;
 
-  const diasValidos = [3,6]; // 1: Lunes, 2: Martes,3: Miercoles,4: Jueves 5: Viernes,6: Sabado
-  const opciones = [];
+  select.innerHTML = ""; // limpiar opciones previas
 
+  const diasValidos = [1, 4]; // Lunes (1), Jueves (4)
+  const horasCorte = { 
+    1: 13, // Lunes → límite 13hs
+    4: 14  // Jueves → límite 14hs
+  };
+
+  const opciones = [];
   let hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
 
   while (opciones.length < 2) {
     hoy.setDate(hoy.getDate() + 1);
     const diaSemana = hoy.getDay();
+
     if (diasValidos.includes(diaSemana)) {
       const fechaISO = hoy.toISOString().split("T")[0]; // YYYY-MM-DD
-
-      const diaNombre = hoy.toLocaleDateString('es-AR', { weekday: 'long' });
+      const diaNombre = hoy.toLocaleDateString("es-AR", { weekday: "long" });
       const diaCapitalizado = diaNombre.charAt(0).toUpperCase() + diaNombre.slice(1);
 
       const dia = hoy.getDate();
       const mes = hoy.getMonth() + 1;
-      const texto = `${diaCapitalizado} ${dia}/${mes}`;
 
-      opciones.push({ value: fechaISO, texto });
+      // Texto con hora aprox según día
+      const horaEntrega = horasCorte[diaSemana];
+      const texto = `${diaCapitalizado} ${dia}/${mes} ${horaEntrega}hs aprox`;
+
+      // Validar si todavía está dentro del horario límite
+      let incluir = true;
+      const ahora = new Date();
+      if (ahora.toISOString().split("T")[0] === fechaISO) {
+        if (ahora.getHours() >= horasCorte[diaSemana]) {
+          incluir = false; // ya pasó la hora de corte
+        }
+      }
+
+      if (incluir) {
+        opciones.push({ value: fechaISO, texto });
+      }
     }
   }
+
+  // Cargar al <select>
+  opciones.forEach(opt => {
+    const option = document.createElement("option");
+    option.value = opt.value;
+    option.textContent = opt.texto;
+    select.appendChild(option);
+  });
+}
+
 
   select.innerHTML = '<option value="" disabled selected>Seleccionar una fecha</option>';
   opciones.forEach(opt => {
