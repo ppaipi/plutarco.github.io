@@ -723,30 +723,28 @@ function initAutocomplete() {
       let color = 'green';
 
       const kmRedondeado = Math.ceil(km * 10) / 10;
-      if (km <= 1) costo = 0;
-      else if (km <= 2) costo = 0;
-      else if (km <= 3) costo = 2000;
-      else if (km <= 4) costo = 2500;
-      else if (km <= 5) costo = 3000;
-      else if (km <= 6) costo = 4000;
-      else if (km <= 7) costo = 4500;
-      else if (km <= 8) costo = 5500;
-      else if (km <= 9) costo = 6500;
-      else if (km <= 10) costo = 7000;
+      costo = 0;
+      if (km <= 1) costo = 1500;
+      else if (km <= 2) costo = 1500;
+      else if (km <= 3) costoSinOferta = 2000;
+      else if (km <= 4) costoSinOferta = 2500;
+      else if (km <= 5) costoSinOferta = 3000;
+      else if (km <= 6) costoSinOferta = 4000;
+      else if (km <= 7) costoSinOferta = 4500;
+      else if (km <= 8) costoSinOferta = 5500;
+      else if (km <= 9) costoSinOferta = 6500;
+      else if (km <= 10) costoSinOferta = 7000;
 
       else {
-        msg = `🛑 Fuera del rango de entrega (distancia ${kmRedondeado}km) <a href="https://wa.me/5491150168920?text=Hola!" target="_blank"> Escribenos y acordamos un precio sin compromiso!</a>`;
+        msg = `🛑 Fuera del rango de entrega (distancia ${kmRedondeado}km) <a href="https://wa.me/5491150168920?text=Hola!" target="_blank"> Escribenos y acordamos un precio! (puede ser gratis)</a>`;
         color = 'red';
         costo = 0;
       }
-      let costoSinOferta = costo+1000;
       costoEnvioActual = costo;
-      if(costo==0){
-        mostrarMensajeEnvio(msg || `🚚 ENVIO GRATIS <del> $1.500 </del>  ➜ SIN COSTO`, color);
+      if(costo==0 && costoSinOferta){
+        mostrarMensajeEnvio(msg || `🚚 ENVIO GRATIS <del> $${costoSinOferta} </del>  ➜ SIN COSTO`, color);
       }
-      else{
-        mostrarMensajeEnvio(msg || `🚚 Costo Envío: <del> $${costoSinOferta} </del>  ➜ $${costo}`, color);
-      }
+
       updateCart();
     });
   });
