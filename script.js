@@ -747,8 +747,8 @@ function initAutocomplete() {
 
       const kmRedondeado = Math.ceil(km * 10) / 10;
       costo = 0;
-      if (km <= 1) costo = 1500;
-      else if (km <= 2) costo = 1500;
+      if (km <= 1) costoSinOferta = 1500;
+      else if (km <= 2) costoSinOferta = 1500;
       else if (km <= 3) costoSinOferta = 2000;
       else if (km <= 4) costoSinOferta = 2500;
       else if (km <= 5) costoSinOferta = 3000;
