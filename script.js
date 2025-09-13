@@ -233,14 +233,7 @@ function cargarDiasEntrega() {
     }
   }
 
-  // Cargar al <select>
-  opciones.forEach(opt => {
-    const option = document.createElement("option");
-    option.value = opt.value;
-    option.textContent = opt.texto;
-    select.appendChild(option);
-  });
-}
+
 
 
   select.innerHTML = '<option value="" disabled selected>Seleccionar una fecha</option>';
