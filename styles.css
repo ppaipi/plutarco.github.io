@@ -669,6 +669,38 @@ footer {
     display: block;
   }
 }
+.banner-envio {
+  background-color: #43a047; /* verde intenso */
+  color: white;
+  text-align: center;
+  padding: 12px 40px;
+  font-size: 1rem;
+  font-weight: bold;
+  position: relative;
+  z-index: 500;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.banner-envio strong {
+  color: #ffeb3b; /* resalta "gratis" en amarillo */
+}
+
+.cerrar-banner {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  position: absolute;
+  right: 15px;
+  top: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.cerrar-banner:hover {
+  transform: scale(1.2);
+}
 
 /* Botón WhatsApp */
 .whatsapp-float {
