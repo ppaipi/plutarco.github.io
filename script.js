@@ -873,7 +873,7 @@ function enviarPedido() {
     body: formData
   })
   .finally(() => {
-    alert('Pedido enviado con éxito!');
+    alert('Pedido enviado con éxito! Recibiar al mail instrucciones de pago.');
 
     // --- VACIAR TODO EL CARRITO ---
     cart = {};                      // borra los productos seleccionados
