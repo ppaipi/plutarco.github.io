@@ -194,7 +194,7 @@ function cargarDiasEntrega() {
 
   const diasValidos = [1, 4]; // Lunes (1), Jueves (4)
   const horasCorte = { 
-    1: 13, // Lunes → límite 13hs
+    1: 14, // Lunes → límite 13hs
     4: 14  // Jueves → límite 14hs
   };
 
