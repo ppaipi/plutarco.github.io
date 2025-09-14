@@ -194,8 +194,8 @@ function cargarDiasEntrega() {
 
   const diasValidos = [1, 4]; // Lunes (1), Jueves (4)
   const horasCorte = { 
-    1: 14, // Lunes → límite 13hs
-    4: 14  // Jueves → límite 14hs
+    1: 13, // Lunes → límite 14hs
+    4: 13  // Jueves → límite 14hs
   };
 
   const opciones = [];
@@ -216,7 +216,7 @@ function cargarDiasEntrega() {
 
       // Texto con hora aprox según día
       const horaEntrega = horasCorte[diaSemana];
-      const texto = `${diaCapitalizado} ${dia}/${mes} ${horaEntrega}hs aprox`;
+      const texto = `${diaCapitalizado} ${dia}/${mes} ${horaEntrega+1}hs aprox`;
 
       // Validar si todavía está dentro del horario límite
       let incluir = true;
@@ -893,9 +893,6 @@ function enviarPedido() {
     desbloquearBoton(btn);
   });
 }
-
-
-
 
 
 
