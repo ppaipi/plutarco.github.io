@@ -719,8 +719,6 @@ function initAutocomplete() {
 
 function actualizarEnvio() {
   const input = document.getElementById('address');
-  const autocomplete = new google.maps.places.Autocomplete(input);
-  autocomplete.setFields(['formatted_address']);
 
     if(input.value === 'A ACORDAR') {
       mostrarMensajeEnvio('Dirección A ACORDAR. El costo de envío se definirá al confirmar el pedido.', 'orange');
