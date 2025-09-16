@@ -656,11 +656,11 @@ function updateCart() {
   }
   if(subtotal>=cantidadMinima){
     pedidoMinimo = true;
-    initAutocomplete()
+    actualizarEnvio()
   }
   else{
     pedidoMinimo = false;
-    initAutocomplete()
+    actualizarEnvio()
 
   }
   const envio = costoEnvioActual;
@@ -713,6 +713,15 @@ function initAutocomplete() {
   autocomplete.setFields(['formatted_address']);
 
   autocomplete.addListener('place_changed', () => {
+    actualizarEnvio();
+  });
+}
+
+function actualizarEnvio() {
+  const input = document.getElementById('address');
+  const autocomplete = new google.maps.places.Autocomplete(input);
+  autocomplete.setFields(['formatted_address']);
+
     if(input.value === 'A ACORDAR') {
       mostrarMensajeEnvio('Dirección A ACORDAR. El costo de envío se definirá al confirmar el pedido.', 'orange');
       costoEnvioActual = 0;
@@ -785,7 +794,6 @@ function initAutocomplete() {
 
       updateCart();
     });
-  });
 }
 
 function mostrarMensajeEnvio(texto, color) {
