@@ -796,7 +796,9 @@ function actualizarEnvio() {
       color = 'red';
       costo = 0;
     }
-
+    if(costo != costoEnvioActual){
+      updateCart();
+    }
     if (pedidoMinimo) {
       costoEnvioActual = 0;
       mostrarMensajeEnvio(msg || `🚚 ENVÍO GRATIS <del>$${costo}</del> ➜ SIN COSTO`, color);
