@@ -1071,6 +1071,8 @@ footer {
 
 .btn-contacto-tienda {
   text-align:center; margin-top:8px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
 }
 .btn-contacto-tienda button {
   background: #e3f2fd; color: #1864c4; border: none; border-radius: 1rem; padding: 0.5rem 1.2rem; font-size: 0.95rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.07);
