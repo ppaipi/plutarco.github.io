@@ -657,7 +657,8 @@ function updateCart() {
   // actualizar flag de pedido mínimo
   pedidoMinimo = subtotal >= cantidadMinima;
 
-  const envio = costoEnvioActual; // 🚨 OJO: se toma el último calculado por actualizarEnvio()
+  // El costo de envío se calcula en actualizarEnvio, aquí solo se muestra
+  const envio = costoEnvioActual;
   const total = subtotal + envio;
 
   const totalEl = document.getElementById('total');
@@ -738,13 +739,14 @@ function initAutocomplete() {
   });
 }
 
+
 function actualizarEnvio() {
   const input = document.getElementById('address');
 
   if (input.value.trim().toUpperCase() === 'A ACORDAR') {
     mostrarMensajeEnvio('Dirección A ACORDAR. El costo de envío se definirá al confirmar el pedido.', 'orange');
     costoEnvioActual = 0;
-    updateCart(); // ✅ se permite SOLO aquí porque es un caso especial
+    updateCart();
     return;
   }
 
@@ -803,15 +805,23 @@ function actualizarEnvio() {
     }
 
     // 🚚 chequeo de pedido mínimo
-    if (pedidoMinimo) {
+    // Calcular subtotal actual
+    let subtotal = 0;
+    for (let codigo in cart) {
+      const producto = products.find(p => p.Codigo === codigo);
+      const cantidad = cart[codigo];
+      subtotal += producto.Precio * cantidad;
+    }
+    const esPedidoMinimo = subtotal >= cantidadMinima;
+
+    if (esPedidoMinimo) {
       costoEnvioActual = 0;
       mostrarMensajeEnvio(msg || `🚚 ENVÍO GRATIS <del>$${costo}</del> ➜ SIN COSTO`, color);
     } else {
       costoEnvioActual = costo;
-      mostrarMensajeEnvio(msg || `🚚 Costo envío: $${costo} (envío gratis compras superiores a $20.000)`, color);
+      mostrarMensajeEnvio(msg || `🚚 Costo envío: $${costo} (envío gratis compras superiores a $${cantidadMinima})`, color);
     }
 
-    // ✅ al final, actualizo carrito SOLO una vez con el costo calculado
     updateCart();
   });
 }
