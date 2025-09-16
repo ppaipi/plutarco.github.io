@@ -636,7 +636,6 @@ function updateCart() {
           src="media/PRODUCTOS/${producto.Codigo}.jpeg" 
           alt="${producto.Nombre}" 
           onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='media/PRODUCTOS/placeholder.jpeg'; }"
-          
           width="80" height="80"
           style="object-fit: cover;">
         <div>
@@ -655,14 +654,13 @@ function updateCart() {
     subtotal += producto.Precio * cantidad;
     count += cantidad;
   }
-  if(subtotal>=cantidadMinima){
-    pedidoMinimo = true;
-    actualizarEnvio()
-  }
-  else{
-    pedidoMinimo = false;
-    actualizarEnvio()
-  }
+
+  // 🔹 Definir si corresponde envío gratis
+  pedidoMinimo = subtotal >= cantidadMinima;
+
+  // 🔹 Calcular envío (según pedidoMinimo)
+  actualizarEnvio();
+
   const envio = costoEnvioActual;
   const total = subtotal + envio;
 
@@ -671,6 +669,7 @@ function updateCart() {
   if (totalEl) totalEl.textContent = total;
   if (countEl) countEl.textContent = count;
 }
+
 
 const cart2 = document.getElementById('cart');
 const cartButtonWrapper = document.getElementById('cart-icon-fixed');
