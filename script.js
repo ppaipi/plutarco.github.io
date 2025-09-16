@@ -737,7 +737,7 @@ function actualizarEnvio() {
   if (input.value.trim().toUpperCase() === 'A ACORDAR') {
     mostrarMensajeEnvio('Dirección A ACORDAR. El costo de envío se definirá al confirmar el pedido.', 'orange');
     costoEnvioActual = 0;
-    updateCart();
+    updateCart(); // 🔹 recalcula total
     return;
   }
 
@@ -747,7 +747,7 @@ function actualizarEnvio() {
   if (!destino) {
     mostrarMensajeEnvio('Dirección inválida.', 'red');
     costoEnvioActual = 0;
-    updateCart();
+    updateCart(); // 🔹 recalcula total
     return;
   }
 
@@ -803,8 +803,10 @@ function actualizarEnvio() {
       mostrarMensajeEnvio(msg || `🚚 Costo envío: $${costo} (envío gratis compras superiores a $20.000)`, color);
     }
 
+    updateCart(); // 🔹 siempre recalcula total después de fijar costoEnvioActual
   });
 }
+
 
 function mostrarMensajeEnvio(texto, color) {
   const envioMsg = document.getElementById('envio-msg');
