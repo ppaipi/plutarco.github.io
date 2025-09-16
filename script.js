@@ -1184,7 +1184,7 @@ const botonContacto = document.getElementById("btn-contacto-tienda");
     renderProductsByCategory(filteredProducts);
   };
   }
-  if(botonContacto){
-    botonContacto.className.toggle("oculto");
+  if (botonContacto) {
+    botonContacto.classList.toggle("oculto");
   }
 };
