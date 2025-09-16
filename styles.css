@@ -1071,7 +1071,7 @@ footer {
 
 .btn-contacto-tienda {
   text-align:center; margin-top:8px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
 
 }
 .btn-contacto-tienda button {
@@ -1079,5 +1079,5 @@ footer {
 }
 .btn-contacto-tienda button:hover {
   transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 15px rgba(0,0,0,0.1);
 }
