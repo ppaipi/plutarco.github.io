@@ -617,7 +617,6 @@ function removeFromCart(codigo) {
   updateCart();
   animateCart();
 }
-
 function updateCart() {
   const ul = document.getElementById('cart-items');
   if (!ul) return;
@@ -655,18 +654,35 @@ function updateCart() {
     count += cantidad;
   }
 
-  // 🔹 Definir si corresponde envío gratis
+  // 🔹 actualizar flag de pedido mínimo
   pedidoMinimo = subtotal >= cantidadMinima;
-
 
   const envio = costoEnvioActual;
   const total = subtotal + envio;
 
+  // 🔹 actualizar DOM
   const totalEl = document.getElementById('total');
   const countEl = document.getElementById('cart-count');
   if (totalEl) totalEl.textContent = total;
   if (countEl) countEl.textContent = count;
+
+  // 🔹 opcional: mostrar resumen
+  const resumen = document.getElementById('cart-summary');
+  if (resumen) {
+    resumen.innerHTML = `
+      <p>Subtotal: $${subtotal}</p>
+      <p>Envío: $${envio}</p>
+      <p><strong>Total: $${total}</strong></p>
+    `;
+  }
+
+  // 🔹 Si hay dirección cargada, recalcular envío con la nueva condición
+  const input = document.getElementById('address');
+  if (input && input.value.trim() !== '') {
+    actualizarEnvio(); 
+  }
 }
+
 
 
 const cart2 = document.getElementById('cart');
