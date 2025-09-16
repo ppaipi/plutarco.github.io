@@ -773,7 +773,7 @@ function calcularCostoEnvio(destino, subtotal, callback) {
     else if (km <= 9) costo = 6500;
     else if (km <= 10) costo = 7000;
     else {
-      msg = `🛑 Fuera del rango de entrega (distancia ${kmRedondeado}km) <a href=\"https://wa.me/5491150168920?text=Hola!\" target=\"_blank\">Escribinos y acordamos un precio!</a>`;
+      msg = `🛑 Fuera del rango de entrega (distancia ${kmRedondeado}km) <a href=\"https://wa.me/5491150168920?text=Hola! Vengo de la pagina web\" target=\"_blank\">Escribinos y acordamos un precio!</a>`;
       color = 'red';
       costo = 0;
     }
