@@ -654,19 +654,18 @@ function updateCart() {
     count += cantidad;
   }
 
-  // 🔹 actualizar flag de pedido mínimo
+  // actualizar flag de pedido mínimo
   pedidoMinimo = subtotal >= cantidadMinima;
 
-  const envio = costoEnvioActual;
+  const envio = costoEnvioActual; // 🚨 OJO: se toma el último calculado por actualizarEnvio()
   const total = subtotal + envio;
 
-  // 🔹 actualizar DOM
   const totalEl = document.getElementById('total');
   const countEl = document.getElementById('cart-count');
   if (totalEl) totalEl.textContent = total;
   if (countEl) countEl.textContent = count;
 
-  // 🔹 opcional: mostrar resumen
+  // opcional: mostrar resumen
   const resumen = document.getElementById('cart-summary');
   if (resumen) {
     resumen.innerHTML = `
@@ -675,13 +674,8 @@ function updateCart() {
       <p><strong>Total: $${total}</strong></p>
     `;
   }
-
-  // 🔹 Si hay dirección cargada, recalcular envío con la nueva condición
-  const input = document.getElementById('address');
-  if (input && input.value.trim() !== '') {
-    actualizarEnvio(); 
-  }
 }
+
 
 
 
@@ -747,11 +741,10 @@ function initAutocomplete() {
 function actualizarEnvio() {
   const input = document.getElementById('address');
 
-  // Caso especial "A ACORDAR"
   if (input.value.trim().toUpperCase() === 'A ACORDAR') {
     mostrarMensajeEnvio('Dirección A ACORDAR. El costo de envío se definirá al confirmar el pedido.', 'orange');
     costoEnvioActual = 0;
-    updateCart(); // ✅ solo actualiza números
+    updateCart(); // ✅ se permite SOLO aquí porque es un caso especial
     return;
   }
 
@@ -809,6 +802,7 @@ function actualizarEnvio() {
       costo = 0;
     }
 
+    // 🚚 chequeo de pedido mínimo
     if (pedidoMinimo) {
       costoEnvioActual = 0;
       mostrarMensajeEnvio(msg || `🚚 ENVÍO GRATIS <del>$${costo}</del> ➜ SIN COSTO`, color);
@@ -817,10 +811,10 @@ function actualizarEnvio() {
       mostrarMensajeEnvio(msg || `🚚 Costo envío: $${costo} (envío gratis compras superiores a $20.000)`, color);
     }
 
-    updateCart(); // ✅ recalculamos total una sola vez
+    // ✅ al final, actualizo carrito SOLO una vez con el costo calculado
+    updateCart();
   });
 }
-
 
 
 function mostrarMensajeEnvio(texto, color) {
