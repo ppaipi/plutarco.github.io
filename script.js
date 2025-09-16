@@ -551,7 +551,12 @@ function searchProduct() {
 function addToCart(codigo) {
   cart[codigo] = (cart[codigo] || 0) + 1;
   updateProductCard(codigo);
-  updateCart();
+  const addressInput = document.getElementById('address');
+  if (addressInput && addressInput.value.trim() && addressInput.value.trim().toUpperCase() !== 'A ACORDAR') {
+    actualizarEnvio();
+  } else {
+    updateCart();
+  }
   animateCart();
 }
 
@@ -607,14 +612,24 @@ function updateQuantity(codigo, delta) {
   }
 
   updateProductCard(codigo);
-  updateCart();
+  const addressInput = document.getElementById('address');
+  if (addressInput && addressInput.value.trim() && addressInput.value.trim().toUpperCase() !== 'A ACORDAR') {
+    actualizarEnvio();
+  } else {
+    updateCart();
+  }
   animateCart();
 }
 
 function removeFromCart(codigo) {
   delete cart[codigo];
   renderProductsByCategory(filteredProducts);
-  updateCart();
+  const addressInput = document.getElementById('address');
+  if (addressInput && addressInput.value.trim() && addressInput.value.trim().toUpperCase() !== 'A ACORDAR') {
+    actualizarEnvio();
+  } else {
+    updateCart();
+  }
   animateCart();
 }
 function updateCart() {
@@ -629,26 +644,7 @@ function updateCart() {
     const cantidad = cart[codigo];
     const li = document.createElement('li');
     li.innerHTML = `
-      <div class="cart-item">
-        <img 
-          class="thumb"
-          src="media/PRODUCTOS/${producto.Codigo}.jpeg" 
-          alt="${producto.Nombre}" 
-          onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='media/PRODUCTOS/placeholder.jpeg'; }"
-          width="80" height="80"
-          style="object-fit: cover;">
-        <div>
-          <strong>${producto.Nombre}</strong>
-          <div class="quantity-controls">
-            <button onclick="updateQuantity('${codigo}', -1)">-</button>
-            <span>${cantidad}</span>
-            <button onclick="updateQuantity('${codigo}', 1)">+</button>
-            <button onclick="removeFromCart('${codigo}')" class="remove-btn">❌</button>
-          </div>
-          <p>$${producto.Precio * cantidad}</p>
-        </div>
-      </div>
-    `;
+      <div class=\"cart-item\">\n        <img \n          class=\"thumb\"\n          src=\"media/PRODUCTOS/${producto.Codigo}.jpeg\" \n          alt=\"${producto.Nombre}\" \n          onerror=\"this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='media/PRODUCTOS/placeholder.jpeg'; }\"\n          width=\"80\" height=\"80\"\n          style=\"object-fit: cover;\">\n        <div>\n          <strong>${producto.Nombre}</strong>\n          <div class=\"quantity-controls\">\n            <button onclick=\"updateQuantity('${codigo}', -1)\">-</button>\n            <span>${cantidad}</span>\n            <button onclick=\"updateQuantity('${codigo}', 1)\">+</button>\n            <button onclick=\"removeFromCart('${codigo}')\" class=\"remove-btn\">❌</button>\n          </div>\n          <p>$${producto.Precio * cantidad}</p>\n        </div>\n      </div>\n    `;
     ul.appendChild(li);
     subtotal += producto.Precio * cantidad;
     count += cantidad;
@@ -656,14 +652,6 @@ function updateCart() {
 
   // actualizar flag de pedido mínimo
   pedidoMinimo = subtotal >= cantidadMinima;
-
-  // Recalcular envío si hay dirección válida
-  const addressInput = document.getElementById('address');
-  if (addressInput && addressInput.value.trim() && addressInput.value.trim().toUpperCase() !== 'A ACORDAR') {
-    actualizarEnvio();
-    // No llamar updateCart dentro de actualizarEnvio para evitar recursividad
-    return;
-  }
 
   // El costo de envío se calcula en actualizarEnvio, aquí solo se muestra
   const envio = costoEnvioActual;
