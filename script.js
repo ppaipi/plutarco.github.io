@@ -658,8 +658,6 @@ function updateCart() {
   // 🔹 Definir si corresponde envío gratis
   pedidoMinimo = subtotal >= cantidadMinima;
 
-  // 🔹 Calcular envío (según pedidoMinimo)
-  actualizarEnvio();
 
   const envio = costoEnvioActual;
   const total = subtotal + envio;
@@ -737,7 +735,7 @@ function actualizarEnvio() {
   if (input.value.trim().toUpperCase() === 'A ACORDAR') {
     mostrarMensajeEnvio('Dirección A ACORDAR. El costo de envío se definirá al confirmar el pedido.', 'orange');
     costoEnvioActual = 0;
-    updateCart(); // 🔹 recalcula total
+    updateCart(); // ✅ solo actualiza números
     return;
   }
 
@@ -747,7 +745,7 @@ function actualizarEnvio() {
   if (!destino) {
     mostrarMensajeEnvio('Dirección inválida.', 'red');
     costoEnvioActual = 0;
-    updateCart(); // 🔹 recalcula total
+    updateCart();
     return;
   }
 
@@ -803,9 +801,10 @@ function actualizarEnvio() {
       mostrarMensajeEnvio(msg || `🚚 Costo envío: $${costo} (envío gratis compras superiores a $20.000)`, color);
     }
 
-    updateCart(); // 🔹 siempre recalcula total después de fijar costoEnvioActual
+    updateCart(); // ✅ recalculamos total una sola vez
   });
 }
+
 
 
 function mostrarMensajeEnvio(texto, color) {
