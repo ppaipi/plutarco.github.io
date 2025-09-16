@@ -11,6 +11,7 @@ let indiceCategoria = '';
 let descripcionesPorCodigo = {};
 let pedidoMinimo = false
 let cantidadMinima = 20000
+let autocomplete; 
 const LOCAL_ADDRESS = 'Ibera 3852, Coghlan, CABA, Argentina.';
 const ordenCategorias = [
   "Panificados Integrales",
@@ -707,10 +708,22 @@ function validarDia(event) {
   input.setCustomValidity([3, 6].includes(day) ? '' : 'Solo se permite miércoles o sábados');
 }
 
+
 function initAutocomplete() {
   const input = document.getElementById('address');
-  const autocomplete = new google.maps.places.Autocomplete(input);
-  autocomplete.setFields(['formatted_address']);
+  const bounds = new google.maps.LatLngBounds(
+  { lat: -34.705, lng: -58.531 }, // esquina sudoeste (ejemplo)
+  { lat: -34.515, lng: -58.335 }  // esquina noreste (ejemplo)
+);
+
+  autocomplete = new google.maps.places.Autocomplete(input, {
+    fields: ['formatted_address', 'geometry'],
+    componentRestrictions: { country: "ar" }
+  });
+
+  autocomplete.setBounds(bounds);
+  autocomplete.setOptions({ strictBounds: false }); 
+
 
   autocomplete.addListener('place_changed', () => {
     actualizarEnvio();
@@ -720,78 +733,78 @@ function initAutocomplete() {
 function actualizarEnvio() {
   const input = document.getElementById('address');
 
-    if(input.value === 'A ACORDAR') {
-      mostrarMensajeEnvio('Dirección A ACORDAR. El costo de envío se definirá al confirmar el pedido.', 'orange');
+  // Caso especial "A ACORDAR"
+  if (input.value.trim().toUpperCase() === 'A ACORDAR') {
+    mostrarMensajeEnvio('Dirección A ACORDAR. El costo de envío se definirá al confirmar el pedido.', 'orange');
+    costoEnvioActual = 0;
+    updateCart();
+    return;
+  }
+
+  const place = autocomplete.getPlace();
+  const destino = place && place.formatted_address ? place.formatted_address : input.value;
+
+  if (!destino) {
+    mostrarMensajeEnvio('Dirección inválida.', 'red');
+    costoEnvioActual = 0;
+    updateCart();
+    return;
+  }
+
+  const service = new google.maps.DistanceMatrixService();
+  service.getDistanceMatrix({
+    origins: [LOCAL_ADDRESS],
+    destinations: [destino],
+    travelMode: 'DRIVING'
+  }, (response, status) => {
+    if (status !== 'OK') {
+      mostrarMensajeEnvio('Error al calcular distancia.', 'red');
       costoEnvioActual = 0;
       updateCart();
       return;
     }
-    const place = autocomplete.getPlace();
-    if (!place.formatted_address) {
-      mostrarMensajeEnvio('Dirección inválida.', 'red');
+
+    const element = response.rows[0].elements[0];
+    if (element.status !== 'OK') {
+      mostrarMensajeEnvio('No se puede entregar a esa dirección.', 'red');
       costoEnvioActual = 0;
       updateCart();
       return;
     }
 
-    const destino = place.formatted_address;
+    const km = element.distance.value / 1000;
+    const kmRedondeado = Math.ceil(km * 10) / 10;
+    let costo = 0;
+    let msg = '';
+    let color = 'green';
 
-    const service = new google.maps.DistanceMatrixService();
-    service.getDistanceMatrix({
-      origins: [LOCAL_ADDRESS],
-      destinations: [destino],
-      travelMode: 'DRIVING'
-    }, (response, status) => {
-      if (status !== 'OK') {
-        mostrarMensajeEnvio('Error al calcular distancia.', 'red');
-        costoEnvioActual = 0;
-        updateCart();
-        return;
-      }
-
-      const element = response.rows[0].elements[0];
-      if (element.status !== 'OK') {
-        mostrarMensajeEnvio('No se puede entregar a esa dirección.', 'red');
-        costoEnvioActual = 0;
-        updateCart();
-        return;
-      }
-
-      const km = element.distance.value / 1000;
-      let costo = 0;
-      let msg = '';
-      let color = 'green';
-
-      const kmRedondeado = Math.ceil(km * 10) / 10;
+    if (km <= 1) costo = 1500;
+    else if (km <= 2) costo = 1500;
+    else if (km <= 3) costo = 2000;
+    else if (km <= 4) costo = 2500;
+    else if (km <= 5) costo = 3000;
+    else if (km <= 6) costo = 4000;
+    else if (km <= 7) costo = 4500;
+    else if (km <= 8) costo = 5500;
+    else if (km <= 9) costo = 6500;
+    else if (km <= 10) costo = 7000;
+    else {
+      msg = `🛑 Fuera del rango de entrega (distancia ${kmRedondeado}km) 
+             <a href="https://wa.me/5491150168920?text=Hola!" target="_blank">Escribinos y acordamos un precio!</a>`;
+      color = 'red';
       costo = 0;
-      if (km <= 1) costo = 1500;
-      else if (km <= 2) costo = 1500;
-      else if (km <= 3) costo = 2000;
-      else if (km <= 4) costo = 2500;
-      else if (km <= 5) costo = 3000;
-      else if (km <= 6) costo = 4000;
-      else if (km <= 7) costo = 4500;
-      else if (km <= 8) costo = 5500;
-      else if (km <= 9) costo = 6500;
-      else if (km <= 10) costo = 7000;
+    }
 
-      else {
-        msg = `🛑 Fuera del rango de entrega (distancia ${kmRedondeado}km) <a href="https://wa.me/5491150168920?text=Hola!" target="_blank"> Escribenos y acordamos un precio! (puede ser gratis)</a>`;
-        color = 'red';
-        costo = 0;
-      }
-      if(pedidoMinimo){
-        costoEnvioActual = 0;
-        mostrarMensajeEnvio(msg || `🚚 ENVIO GRATIS <del> $${costo} </del>  ➜ SIN COSTO`, color);
-      }
-      else{
-        costoEnvioActual = costo
-        mostrarMensajeEnvio(msg || `🚚 Costo envío: $${costo}  (envio gratis compras superiores a $20.000)`, color);
+    if (pedidoMinimo) {
+      costoEnvioActual = 0;
+      mostrarMensajeEnvio(msg || `🚚 ENVÍO GRATIS <del>$${costo}</del> ➜ SIN COSTO`, color);
+    } else {
+      costoEnvioActual = costo;
+      mostrarMensajeEnvio(msg || `🚚 Costo envío: $${costo} (envío gratis compras superiores a $20.000)`, color);
+    }
 
-      }
-
-      updateCart();
-    });
+    updateCart();
+  });
 }
 
 function mostrarMensajeEnvio(texto, color) {
