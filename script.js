@@ -1172,6 +1172,7 @@ window.onload = () => {
 
   const searchInput = document.getElementById('search-input');
   const clickHeader = document.getElementById('click_header');
+  const botonContacto = document.gebtn-contacto-tienda("btn-contacto-tienda");
   if (searchInput) {
     searchInput.addEventListener('input', () => searchProduct());
   }
@@ -1182,5 +1183,8 @@ window.onload = () => {
     filteredProducts = [...products];
     renderProductsByCategory(filteredProducts);
   };
+  }
+  if(botonContacto){
+    botonContacto.className.remove("oculto");
   }
 };
