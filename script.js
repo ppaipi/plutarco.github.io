@@ -736,23 +736,9 @@ function initAutocomplete() {
 }
 
 
-function actualizarEnvio() {
-  const input = document.getElementById('address');
-
-  if (input.value.trim().toUpperCase() === 'A ACORDAR') {
-    mostrarMensajeEnvio('Dirección A ACORDAR. El costo de envío se definirá al confirmar el pedido.', 'orange');
-    costoEnvioActual = 0;
-    updateCart();
-    return;
-  }
-
-  const place = autocomplete.getPlace();
-  const destino = place && place.formatted_address ? place.formatted_address : input.value;
-
-  if (!destino) {
-    mostrarMensajeEnvio('Dirección inválida.', 'red');
-    costoEnvioActual = 0;
-    updateCart();
+function calcularCostoEnvio(destino, subtotal, callback) {
+  if (!destino || destino.trim().toUpperCase() === 'A ACORDAR') {
+    callback(0, 'Dirección A ACORDAR. El costo de envío se definirá al confirmar el pedido.', 'orange');
     return;
   }
 
@@ -762,27 +748,20 @@ function actualizarEnvio() {
     destinations: [destino],
     travelMode: 'DRIVING'
   }, (response, status) => {
-    if (status !== 'OK') {
-      mostrarMensajeEnvio('Error al calcular distancia.', 'red');
-      costoEnvioActual = 0;
-      updateCart();
+    if (status !== 'OK' || !response.rows[0] || !response.rows[0].elements[0]) {
+      callback(0, 'Error al calcular distancia.', 'red');
       return;
     }
-
     const element = response.rows[0].elements[0];
     if (element.status !== 'OK') {
-      mostrarMensajeEnvio('No se puede entregar a esa dirección.', 'red');
-      costoEnvioActual = 0;
-      updateCart();
+      callback(0, 'No se puede entregar a esa dirección.', 'red');
       return;
     }
-
     const km = element.distance.value / 1000;
     const kmRedondeado = Math.ceil(km * 10) / 10;
     let costo = 0;
     let msg = '';
     let color = 'green';
-
     if (km <= 1) costo = 1500;
     else if (km <= 2) costo = 1500;
     else if (km <= 3) costo = 2000;
@@ -794,30 +773,30 @@ function actualizarEnvio() {
     else if (km <= 9) costo = 6500;
     else if (km <= 10) costo = 7000;
     else {
-      msg = `🛑 Fuera del rango de entrega (distancia ${kmRedondeado}km) 
-             <a href="https://wa.me/5491150168920?text=Hola!" target="_blank">Escribinos y acordamos un precio!</a>`;
+      msg = `🛑 Fuera del rango de entrega (distancia ${kmRedondeado}km) <a href=\"https://wa.me/5491150168920?text=Hola!\" target=\"_blank\">Escribinos y acordamos un precio!</a>`;
       color = 'red';
       costo = 0;
     }
-
-    // 🚚 chequeo de pedido mínimo
-    // Calcular subtotal actual
-    let subtotal = 0;
-    for (let codigo in cart) {
-      const producto = products.find(p => p.Codigo === codigo);
-      const cantidad = cart[codigo];
-      subtotal += producto.Precio * cantidad;
-    }
-    const esPedidoMinimo = subtotal >= cantidadMinima;
-
-    if (esPedidoMinimo) {
-      costoEnvioActual = 0;
-      mostrarMensajeEnvio(msg || `🚚 ENVÍO GRATIS <del>$${costo}</del> ➜ SIN COSTO`, color);
+    if (subtotal >= cantidadMinima) {
+      callback(0, msg || `🚚 ENVÍO GRATIS <del>$${costo}</del> ➜ SIN COSTO`, color);
     } else {
-      costoEnvioActual = costo;
-      mostrarMensajeEnvio(msg || `🚚 Costo envío: $${costo} (envío gratis compras superiores a $${cantidadMinima})`, color);
+      callback(costo, msg || `🚚 Costo envío: $${costo} (envío gratis compras superiores a $${cantidadMinima})`, color);
     }
+  });
+}
 
+function actualizarEnvio() {
+  const input = document.getElementById('address');
+  const destino = (autocomplete && autocomplete.getPlace() && autocomplete.getPlace().formatted_address) ? autocomplete.getPlace().formatted_address : input.value;
+  let subtotal = 0;
+  for (let codigo in cart) {
+    const producto = products.find(p => p.Codigo === codigo);
+    const cantidad = cart[codigo];
+    subtotal += producto.Precio * cantidad;
+  }
+  calcularCostoEnvio(destino, subtotal, function(costo, mensaje, color) {
+    costoEnvioActual = costo;
+    mostrarMensajeEnvio(mensaje, color);
     updateCart();
   });
 }
