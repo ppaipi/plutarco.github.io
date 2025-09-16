@@ -1185,6 +1185,6 @@ window.onload = () => {
   };
   }
   if(botonContacto){
-    botonContacto.className.remove("oculto");
+    botonContacto.className.toggle("oculto");
   }
 };
