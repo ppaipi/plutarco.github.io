@@ -727,6 +727,8 @@ function initAutocomplete() {
 
   autocomplete.addListener('place_changed', () => {
     actualizarEnvio();
+    updateCart();
+
   });
 }
 
@@ -803,7 +805,6 @@ function actualizarEnvio() {
       mostrarMensajeEnvio(msg || `🚚 Costo envío: $${costo} (envío gratis compras superiores a $20.000)`, color);
     }
 
-    updateCart();
   });
 }
 
