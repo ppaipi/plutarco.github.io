@@ -1172,7 +1172,7 @@ window.onload = () => {
 
   const searchInput = document.getElementById('search-input');
   const clickHeader = document.getElementById('click_header');
-  const botonContacto = document.getElementsByClassName("btn-contacto-tienda");
+  const botonContacto = document.getElementsById("btn-contacto-tienda");
   if (searchInput) {
     searchInput.addEventListener('input', () => searchProduct());
   }
