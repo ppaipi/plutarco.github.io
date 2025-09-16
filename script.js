@@ -657,6 +657,14 @@ function updateCart() {
   // actualizar flag de pedido mínimo
   pedidoMinimo = subtotal >= cantidadMinima;
 
+  // Recalcular envío si hay dirección válida
+  const addressInput = document.getElementById('address');
+  if (addressInput && addressInput.value.trim() && addressInput.value.trim().toUpperCase() !== 'A ACORDAR') {
+    actualizarEnvio();
+    // No llamar updateCart dentro de actualizarEnvio para evitar recursividad
+    return;
+  }
+
   // El costo de envío se calcula en actualizarEnvio, aquí solo se muestra
   const envio = costoEnvioActual;
   const total = subtotal + envio;
