@@ -187,8 +187,6 @@ function createProductCard(prod) {
   return div;
 }
 
-
-
 function cargarDiasEntrega() {
   const select = document.getElementById("pickup-day");
   if (!select) return;
@@ -197,34 +195,32 @@ function cargarDiasEntrega() {
 
   const diasValidos = [1, 4]; // Lunes (1), Jueves (4)
   const horasCorte = { 
-    1: 14, // Lunes → límite 14hs
+    1: 13, // Lunes → límite 13hs
     4: 14  // Jueves → límite 14hs
   };
 
   const opciones = [];
-  let hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
+  let fechaIterada = new Date(); // empieza desde hoy
+  const ahora = new Date();
 
   while (opciones.length < 2) {
-    hoy.setDate(hoy.getDate() + 1);
-    const diaSemana = hoy.getDay();
+    fechaIterada.setDate(fechaIterada.getDate() + 1);
+    const diaSemana = fechaIterada.getDay();
 
     if (diasValidos.includes(diaSemana)) {
-      const fechaISO = hoy.toISOString().split("T")[0]; // YYYY-MM-DD
-      const diaNombre = hoy.toLocaleDateString("es-AR", { weekday: "long" });
+      const fechaISO = fechaIterada.toISOString().split("T")[0];
+      const diaNombre = fechaIterada.toLocaleDateString("es-AR", { weekday: "long" });
       const diaCapitalizado = diaNombre.charAt(0).toUpperCase() + diaNombre.slice(1);
 
-      const dia = hoy.getDate();
-      const mes = hoy.getMonth() + 1;
+      const dia = fechaIterada.getDate();
+      const mes = fechaIterada.getMonth() + 1;
 
-      // Texto con hora aprox según día
       const horaEntrega = horasCorte[diaSemana];
-      const texto = `${diaCapitalizado} ${dia}/${mes} ${horaEntrega+1}hs aprox`;
+      const texto = `${diaCapitalizado} ${dia}/${mes} ${horaEntrega}hs aprox`;
 
-      // Validar si todavía está dentro del horario límite
+      // ✅ Validar hora límite SOLO si la fecha iterada es el mismo día que hoy
       let incluir = true;
-      const ahora = new Date();
-      if (ahora.toISOString().split("T")[0] === fechaISO) {
+      if (fechaISO === ahora.toISOString().split("T")[0]) {
         if (ahora.getHours() >= horasCorte[diaSemana]) {
           incluir = false; // ya pasó la hora de corte
         }
@@ -236,9 +232,7 @@ function cargarDiasEntrega() {
     }
   }
 
-
-
-
+  // Renderizar opciones
   select.innerHTML = '<option value="" disabled selected>Seleccionar una fecha</option>';
   opciones.forEach(opt => {
     const option = document.createElement("option");
@@ -247,6 +241,7 @@ function cargarDiasEntrega() {
     select.appendChild(option);
   });
 }
+
 // Detectar si es pantalla táctil
 const isTouchDevice = () => {
   return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
