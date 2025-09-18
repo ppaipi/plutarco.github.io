@@ -195,7 +195,7 @@ function cargarDiasEntrega() {
 
   const diasValidos = [1, 4]; // Lunes (1), Jueves (4)
   const horasCorte = { 
-    1: 13, // Lunes → límite 13hs
+    1: 14, // Lunes → límite 13hs
     4: 14  // Jueves → límite 14hs
   };
 
@@ -216,7 +216,7 @@ function cargarDiasEntrega() {
       const mes = fechaIterada.getMonth() + 1;
 
       const horaEntrega = horasCorte[diaSemana];
-      const texto = `${diaCapitalizado} ${dia}/${mes} ${horaEntrega}hs aprox`;
+      const texto = `${diaCapitalizado} ${dia}/${mes} ${horaEntrega+1}hs aprox`;
 
       // ✅ Validar hora límite SOLO si la fecha iterada es el mismo día que hoy
       let incluir = true;
