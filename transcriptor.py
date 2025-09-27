@@ -61,5 +61,5 @@ if __name__ == "__main__":
     convertir_a_jpg_reemplazo(imagenes_dir)
 
     # Paso 2: generar JSON con nombres finales
-    salida_json = os.path.join(base_dir, "Habilitados.json")
+    salida_json = os.path.join(base_dir, "media/Habilitados.json")
     generar_json(imagenes_dir, salida_json)
