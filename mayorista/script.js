@@ -440,6 +440,8 @@ function enviarPedido() {
       alert('Pedido enviado con éxito!');
       cart = {};
       renderProducts(filteredProducts);
+      document.getElementById('name').value = '';
+      document.getElementById('email').value = '';
       updateCart();
     } else {
       alert('Error al enviar pedido.');
