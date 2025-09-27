@@ -778,8 +778,9 @@ function calcularCostoEnvio(destino, subtotal, callback) {
     let costo = 0;
     let msg = '';
     let color = 'green';
-    if (km <= 1) costo = 0;
-    else if (km <= 2) costo = 0;
+    let costo_oferta = 0;
+    if (km <= 1) costo_oferta = 1000;
+    else if (km <= 2) costo_oferta = 1500;
     else if (km <= 3) costo = 1500;
     else if (km <= 4) costo = 2000;
     else if (km <= 5) costo = 2500;
@@ -794,7 +795,7 @@ function calcularCostoEnvio(destino, subtotal, callback) {
       costo = 0;
     }
     if ((subtotal >= cantidadMinima) || (costo == 0)) {
-      callback(0, msg || `🚚 ENVÍO GRATIS <del>$${costo}</del> ➜ SIN COSTO`, color);
+      callback(0, msg || `🚚 ENVÍO GRATIS <del>$${costo+costo_oferta}</del> ➜ SIN COSTO`, color);
     } else {
       callback(costo, msg || `🚚 Costo envío: $${costo} (envío gratis compras superiores a $${cantidadMinima})`, color);
     }
