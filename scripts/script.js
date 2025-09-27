@@ -33,7 +33,7 @@ const ordenSubCategorias = ["Oliva", "Girasol", "Conservas", "Yerba Mate", "Yuyo
 
 async function loadProducts() {
   try {
-    const res = await fetch('articulos.xlsx?cacheBust=' + Date.now());
+    const res = await fetch('../media/articulos.xlsx?cacheBust=' + Date.now());
     const data = await res.arrayBuffer();
 
     // Leer el Excel
@@ -56,7 +56,7 @@ async function loadProducts() {
     }));
 
     // Filtrar solo habilitados
-    const resCodes = await fetch('Habilitados.json?cacheBust=' + Date.now());
+    const resCodes = await fetch('../media/Habilitados.json?cacheBust=' + Date.now());
     enabledCodes = await resCodes.json();
     products = allProducts.filter(p => enabledCodes.includes(p.Codigo));
     filteredProducts = [...products];
@@ -82,7 +82,7 @@ function parsePrecio(str) {
 }
 
 async function loadRanking() {
-  const res = await fetch('Ranking.csv?cacheBust=' + Date.now());
+  const res = await fetch('../media/Ranking.csv?cacheBust=' + Date.now());
   const csvText = await res.text();
   const rows = csvText.trim().split('\n').slice(1); // saco encabezado
 
@@ -165,7 +165,7 @@ function createProductCard(prod) {
     <img 
       src="media/PRODUCTOS/${prod.Codigo}.jpeg" 
       alt="${prod.Nombre}" 
-      
+      loading="lazy"
       style="object-fit: cover;"
       onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='media/PRODUCTOS/placeholder.jpeg'; }"
     >

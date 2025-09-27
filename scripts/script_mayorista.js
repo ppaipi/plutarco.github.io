@@ -21,7 +21,7 @@ async function loadProducts() {
 
     try {
       // Cargar desde archivo local como respaldo
-      const resLocal = await fetch("Productos.csv?cacheBust=" + Date.now());
+      const resLocal = await fetch("../media/Productos_mayoristas.csv" + Date.now());
       if (!resLocal.ok) throw new Error("Error al cargar Productos.csv local");
 
       const csvTextLocal = await resLocal.text();
