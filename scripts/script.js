@@ -958,7 +958,7 @@ function crearModalDescripcion(prod) {
   const img = document.createElement('img');
   img.className = 'modal-img';
   img.id = `modal-img-${prod.Codigo}`;
-  img.src = `media/PRODUCTOS/${prod.Codigo}.jpeg`;
+  img.src = `media/PRODUCTOS/${prod.Codigo}.jpg`;
   img.alt = prod.Nombre;
   img.onerror = function() {
     this.onerror = null;
