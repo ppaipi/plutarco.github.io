@@ -161,17 +161,18 @@ function createProductCard(prod) {
     };
   }
 
-  div.innerHTML = `
-    <img 
-      src="media/PRODUCTOS/${prod.Codigo}.jpeg" 
-      alt="${prod.Nombre}" 
-      loading="lazy"
-      style="object-fit: cover;"
-      onerror="this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='media/PRODUCTOS/placeholder.jpeg'; }"
-    >
-    <h3>${prod.Nombre}</h3>
-    <p>$${prod.Precio}</p>
-  `;
+div.innerHTML = `
+  <img 
+    src="media/PRODUCTOS/${prod.Codigo}.jpg" 
+    alt="${prod.Nombre}" 
+    loading="lazy"
+    style="object-fit: cover;"
+    onerror="this.onerror=null; this.src='media/PRODUCTOS/placeholder.jpg';"
+  >
+  <h3>${prod.Nombre}</h3>
+  <p>$${prod.Precio}</p>
+`;
+
 
   // SOLO abre el modal si el click no es sobre un botón
   div.onclick = (e) => {
@@ -639,8 +640,28 @@ function updateCart() {
     const cantidad = cart[codigo];
     const li = document.createElement('li');
     li.innerHTML = `
-      <div class=\"cart-item\">\n        <img \n          class=\"thumb\"\n          src=\"media/PRODUCTOS/${producto.Codigo}.jpeg\" \n          alt=\"${producto.Nombre}\" \n          onerror=\"this.onerror=null; this.src=this.src.replace('.jpeg', '.jpg'); this.onerror=function(){ this.src='media/PRODUCTOS/placeholder.jpeg'; }\"\n          width=\"80\" height=\"80\"\n          style=\"object-fit: cover;\">\n        <div>\n          <strong>${producto.Nombre}</strong>\n          <div class=\"quantity-controls\">\n            <button onclick=\"updateQuantity('${codigo}', -1)\">-</button>\n            <span>${cantidad}</span>\n            <button onclick=\"updateQuantity('${codigo}', 1)\">+</button>\n            <button onclick=\"removeFromCart('${codigo}')\" class=\"remove-btn\">❌</button>\n          </div>\n          <p>$${producto.Precio * cantidad}</p>\n        </div>\n      </div>\n    `;
+      <div class="cart-item">
+        <img 
+          class="thumb"
+          src="media/PRODUCTOS/${producto.Codigo}.jpg" 
+          alt="${producto.Nombre}" 
+          onerror="this.onerror=null; this.src='media/PRODUCTOS/placeholder.jpg';"
+          width="80" height="80"
+          style="object-fit: cover;">
+        <div>
+          <strong>${producto.Nombre}</strong>
+          <div class="quantity-controls">
+            <button onclick="updateQuantity('${codigo}', -1)">-</button>
+            <span>${cantidad}</span>
+            <button onclick="updateQuantity('${codigo}', 1)">+</button>
+            <button onclick="removeFromCart('${codigo}')" class="remove-btn">❌</button>
+          </div>
+          <p>$${producto.Precio * cantidad}</p>
+        </div>
+      </div>
+    `;
     ul.appendChild(li);
+
     subtotal += producto.Precio * cantidad;
     count += cantidad;
   }
@@ -941,8 +962,7 @@ function crearModalDescripcion(prod) {
   img.alt = prod.Nombre;
   img.onerror = function() {
     this.onerror = null;
-    this.src = this.src.replace('.jpeg', '.jpg');
-    this.onerror = function() { this.src = 'media/PRODUCTOS/placeholder.jpeg'; };
+    this.src = 'media/PRODUCTOS/placeholder.jpg';
   };
   img.onclick = () => {
     toggleZoom(img.id);
