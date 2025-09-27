@@ -10,7 +10,8 @@ imagenes_dir = os.path.join(base_dir, "media/PRODUCTOS")
 
 def convertir_a_jpg_reemplazo(carpeta):
     """
-    Convierte imágenes a JPG reemplazando los archivos originales.
+    Convierte cualquier imagen que no sea .jpg a JPG,
+    reemplazando el archivo original.
     """
     for archivo in os.listdir(carpeta):
         ruta_archivo = os.path.join(carpeta, archivo)
@@ -21,28 +22,28 @@ def convertir_a_jpg_reemplazo(carpeta):
         nombre, extension = os.path.splitext(archivo)
         extension = extension.lower()
 
+        # Si ya es .jpg → no hacer nada
+        if extension == ".jpg":
+            print(f"✅ Ya es JPG: {archivo}")
+            continue
+
         try:
             with Image.open(ruta_archivo) as img:
                 img = img.convert("RGB")  # JPG no soporta transparencia
 
                 ruta_salida = os.path.join(carpeta, f"{nombre}.jpg")
-
-                # Guardar como JPG
                 img.save(ruta_salida, "JPEG", quality=95)
 
-            # Si no era ya .jpg → eliminar original
-            if extension != ".jpg":
-                os.remove(ruta_archivo)
-                print(f"♻️ Reemplazado: {archivo} → {nombre}.jpg")
-            else:
-                print(f"✅ Ya era JPG: {archivo}")
+            os.remove(ruta_archivo)  # borrar original
+            print(f"♻️ Reemplazado: {archivo} → {nombre}.jpg")
 
         except Exception as e:
             print(f"⚠️ Error con {archivo}: {e}")
 
 def generar_json(carpeta, salida):
     """
-    Genera un JSON con los nombres de archivo (sin extensión).
+    Genera un JSON con los nombres de archivo (sin extensión),
+    listando solo los .jpg finales.
     """
     nombres = [
         os.path.splitext(archivo)[0]
@@ -59,6 +60,6 @@ if __name__ == "__main__":
     # Paso 1: convertir imágenes reemplazando originales
     convertir_a_jpg_reemplazo(imagenes_dir)
 
-    # Paso 2: generar JSON con nombres
+    # Paso 2: generar JSON con nombres finales
     salida_json = os.path.join(base_dir, "Habilitados.json")
     generar_json(imagenes_dir, salida_json)
