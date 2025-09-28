@@ -920,7 +920,7 @@ function enviarPedido() {
   })
   .finally(() => {
     alert('Pedido enviado con éxito! Recibiar al mail instrucciones de pago.');
-
+    gtag('event', 'conversion', { 'send_to': 'AW-17595623865/7ZfJCJrl1aAbELnTn8ZB', 'transaction_id': '' });
     // --- VACIAR TODO EL CARRITO ---
     cart = {};                      // borra los productos seleccionados
     filteredProducts = [...products]; // resetear listado de productos
