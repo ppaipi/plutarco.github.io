@@ -33,7 +33,7 @@ const ordenSubCategorias = ["Oliva", "Girasol", "Conservas", "Yerba Mate", "Yuyo
 
 async function loadProducts() {
   try {
-    const res = await fetch('../media/articulos.xlsx?cacheBust=' + Date.now());
+    const res = await fetch('../media/articulos_filtrados.xlsx?cacheBust=' + Date.now());
     const data = await res.arrayBuffer();
 
     // Leer el Excel
@@ -55,10 +55,8 @@ async function loadProducts() {
       Proveedor: row["PROVEEDOR"] || "",
     }));
 
-    // Filtrar solo habilitados
-    const resCodes = await fetch('../media/Habilitados.json?cacheBust=' + Date.now());
-    enabledCodes = await resCodes.json();
-    products = allProducts.filter(p => enabledCodes.includes(p.Codigo));
+    // Ahora products = todos los del Excel filtrado
+    products = [...allProducts];
     filteredProducts = [...products];
 
     // Render
@@ -74,6 +72,7 @@ async function loadProducts() {
     console.error("Error cargando productos:", err);
   }
 }
+
 function parsePrecio(str) {
   if (!str) return 0;
   // Quitar puntos de miles y reemplazar coma decimal por punto
@@ -98,6 +97,7 @@ async function loadRanking() {
     }
   });
 }
+
 
 
 
