@@ -55,8 +55,10 @@ async function loadProducts() {
       Proveedor: row["PROVEEDOR"] || "",
     }));
 
-    // Reordenar según ranking (si existe)
-    products = ordenarSegunRanking(allProducts);
+    // Filtrar solo habilitados
+    const resCodes = await fetch('../media/Habilitados.json?cacheBust=' + Date.now());
+    enabledCodes = await resCodes.json();
+    products = allProducts.filter(p => enabledCodes.includes(p.Codigo));
     filteredProducts = [...products];
 
     // Render
@@ -72,10 +74,10 @@ async function loadProducts() {
     console.error("Error cargando productos:", err);
   }
 }
-
 function parsePrecio(str) {
   if (!str) return 0;
-  const limpio = str.replace(/\./g, '').replace(',', '.'); // miles y decimales
+  // Quitar puntos de miles y reemplazar coma decimal por punto
+  const limpio = str.replace(/\./g, '').replace(',', '.');
   return parseFloat(limpio) || 0;
 }
 
@@ -83,8 +85,6 @@ async function loadRanking() {
   const res = await fetch('../media/Ranking.csv?cacheBust=' + Date.now());
   const csvText = await res.text();
   const rows = csvText.trim().split('\n').slice(1); // saco encabezado
-
-  rankingMap = {}; // reinicio
 
   rows.forEach(row => {
     const cols = row.split(';'); // <-- separador correcto
@@ -98,16 +98,6 @@ async function loadRanking() {
     }
   });
 }
-
-// 🔹 Nueva función para ordenar productos según ranking
-function ordenarSegunRanking(lista) {
-  return [...lista].sort((a, b) => {
-    const rankA = rankingMap[a.Codigo] ?? Infinity;
-    const rankB = rankingMap[b.Codigo] ?? Infinity;
-    return rankA - rankB;
-  });
-}
-
 
 
 
