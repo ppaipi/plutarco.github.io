@@ -55,8 +55,8 @@ async function loadProducts() {
       Proveedor: row["PROVEEDOR"] || "",
     }));
 
-    // Ahora products = todos los del Excel filtrado
-    products = [...allProducts];
+    // Reordenar según ranking (si existe)
+    products = ordenarSegunRanking(allProducts);
     filteredProducts = [...products];
 
     // Render
@@ -75,8 +75,7 @@ async function loadProducts() {
 
 function parsePrecio(str) {
   if (!str) return 0;
-  // Quitar puntos de miles y reemplazar coma decimal por punto
-  const limpio = str.replace(/\./g, '').replace(',', '.');
+  const limpio = str.replace(/\./g, '').replace(',', '.'); // miles y decimales
   return parseFloat(limpio) || 0;
 }
 
@@ -84,6 +83,8 @@ async function loadRanking() {
   const res = await fetch('../media/Ranking.csv?cacheBust=' + Date.now());
   const csvText = await res.text();
   const rows = csvText.trim().split('\n').slice(1); // saco encabezado
+
+  rankingMap = {}; // reinicio
 
   rows.forEach(row => {
     const cols = row.split(';'); // <-- separador correcto
@@ -95,6 +96,15 @@ async function loadRanking() {
     if (producto && !isNaN(rank)) {
       rankingMap[producto] = rank;
     }
+  });
+}
+
+// 🔹 Nueva función para ordenar productos según ranking
+function ordenarSegunRanking(lista) {
+  return [...lista].sort((a, b) => {
+    const rankA = rankingMap[a.Codigo] ?? Infinity;
+    const rankB = rankingMap[b.Codigo] ?? Infinity;
+    return rankA - rankB;
   });
 }
 
