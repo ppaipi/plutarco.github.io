@@ -30,6 +30,22 @@ def normalize_code(s):
     return s
 
 # ---------------------------
+# Util: limpiar precio argentino → float
+# ---------------------------
+def limpiar_precio(valor):
+    if pd.isna(valor):
+        return 0.0
+    try:
+        s = str(valor).strip()
+        # Quitar separador de miles
+        s = s.replace('.', '')
+        # Reemplazar coma decimal por punto
+        s = s.replace(',', '.')
+        return float(s)
+    except:
+        return 0.0
+
+# ---------------------------
 # Paso 1: convertir imágenes (reemplazo)
 # ---------------------------
 def convertir_a_jpg_reemplazo(carpeta):
@@ -95,7 +111,6 @@ def filtrar_excel_por_json(excel_path, json_path, salida_path):
 # Paso 4: generar CSV Facebook
 # ---------------------------
 def generar_excel_facebook(df, salida_path):
-    # Columnas que Facebook necesita
     columnas_fb = [
         "id", "title", "description", "availability", "condition", "price",
         "link", "image_link", "brand"
@@ -104,13 +119,9 @@ def generar_excel_facebook(df, salida_path):
     df_fb = pd.DataFrame(columns=columnas_fb)
 
     for i, row in df.iterrows():
-        # ID → CODIGO BARRA
         codigo = str(row.get("CODIGO BARRA", "")).strip()
-
-        # Title → DESCRIPCION
         title = str(row.get("DESCRIPCION", "")).strip()
 
-        # Description → ADICIONAL > LARGA > DESCRIPCION
         desc = str(
             row.get("DESCRIPCION ADICIONAL") or
             row.get("DESCRIPCION LARGA") or
@@ -118,26 +129,15 @@ def generar_excel_facebook(df, salida_path):
         )
         desc = "" if desc == "nan" else desc.strip()
 
-        # Availability (siempre en stock)
         availability = "in stock"
-
-        # Condition
         condition = "new"
 
-        # Precio (precio venta con IVA)
-        try:
-            precio = float(str(row.get("PRECIO VENTA C/IVA", "0")).replace(",", "."))
-        except:
-            precio = 0.0
+        # ✅ Ahora limpiamos bien el precio
+        precio = limpiar_precio(row.get("PRECIO VENTA C/IVA", 0))
         price = f"{precio:.2f} ARS"
 
-        # Link del producto (genérico con código)
         link = f"https://plutarcoalmacen.com.ar/producto/{codigo}"
-
-        # Imagen (debe existir en carpeta PRODUCTOS)
         image_link = f"https://plutarcoalmacen.com.ar/media/PRODUCTOS/{codigo}.jpg"
-
-        # Marca
         brand = str(row.get("MARCA", "Plutarco")).strip()
 
         df_fb.loc[i] = [
@@ -145,7 +145,6 @@ def generar_excel_facebook(df, salida_path):
             price, link, image_link, brand
         ]
 
-    # Guardar en CSV
     df_fb.to_csv(salida_path, index=False, encoding="utf-8")
     print(f"📦 CSV para Facebook guardado en: {salida_path} (filas: {len(df_fb)})")
     return df_fb
