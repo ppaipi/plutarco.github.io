@@ -109,8 +109,11 @@ def filtrar_excel_por_json(excel_path, json_path, salida_path):
 
 def generar_excel_facebook(excel_filtrado_path, ranking_path, output_path, use_sequential=False):
     """
-    Genera un CSV para Facebook a partir del Excel filtrado y un ranking opcional.
-    Si use_sequential=True ignora el ranking y usa IDs secuenciales.
+    Genera un CSV para Facebook a partir del Excel filtrado y un ranking por categoría.
+    - Respeta el orden de las categorías según aparecen en el Excel.
+    - Dentro de cada categoría, respeta el orden de Ranking.csv.
+    - Si un producto no está en Ranking.csv, va al final de su categoría con un ID alto.
+    - use_sequential=True ignora Ranking y asigna IDs secuenciales globales.
     """
     import pandas as pd
 
@@ -125,54 +128,61 @@ def generar_excel_facebook(excel_filtrado_path, ranking_path, output_path, use_s
         ranking.columns = [c.strip().upper() for c in ranking.columns]
 
         if "PRODUCTO" in ranking.columns and "RANKING" in ranking.columns:
-            # limpiar filas vacías
-            ranking = ranking.dropna(subset=["PRODUCTO", "RANKING"])
-
             for _, row in ranking.iterrows():
+                if pd.isna(row["PRODUCTO"]) or pd.isna(row["RANKING"]):
+                    continue
+                nombre_rank = normalize_code(str(row["PRODUCTO"]))
                 try:
-                    nombre_rank = normalize_code(str(row["PRODUCTO"]))
                     rank_map[nombre_rank] = int(row["RANKING"])
-                except Exception as e:
-                    print(f"⚠️ Error en fila ranking: {row.to_dict()} → {e}")
-
+                except:
+                    continue
             print(f"✅ Ranking cargado desde {ranking_path} ({len(rank_map)} productos)")
         else:
             print("⚠️ Ranking.csv no tiene columnas PRODUCTO y RANKING, se ignora.")
     except Exception as e:
         print(f"⚠️ No se pudo leer Ranking.csv: {e}")
 
-    # 3. Armar CSV para Facebook
+    # 3. Armar filas agrupadas por categoría
     rows = []
-    for i, row in df_fil.iterrows():
-        title = str(row.get("DESCRIPCION LARGA", "")).strip()
-        norm_title = normalize_code(title)
+    current_id = 1
+    if "RUBRO" not in df_fil.columns:
+        df_fil["RUBRO"] = "Sin categoría"
 
-        # ID de producto
-        if use_sequential:
-            prod_id = i + 1
+    categorias = df_fil["RUBRO"].unique().tolist()
+
+    for categoria in categorias:
+        df_cat = df_fil[df_fil["RUBRO"] == categoria].copy()
+
+        if not use_sequential:
+            df_cat["_norm_title"] = df_cat["DESCRIPCION LARGA"].astype(str).apply(normalize_code)
+            df_cat["_ranking"] = df_cat["_norm_title"].map(rank_map).fillna(9999).astype(int)
+            df_cat = df_cat.sort_values(by="_ranking")
         else:
-            prod_id = rank_map.get(norm_title, 9999)  # 9999 si no está en ranking
+            df_cat["_ranking"] = range(1, len(df_cat) + 1)
 
-        price = str(row.get("PRECIO VENTA C/IVA", "")).replace(",", ".")
-        if not price or price == "nan":
-            continue
+        for _, row in df_cat.iterrows():
+            title = str(row.get("DESCRIPCION LARGA", "")).strip()
+            price = str(row.get("PRECIO VENTA C/IVA", "")).replace(",", ".")
+            if not price or price == "nan":
+                continue
 
-        rows.append({
-            "id": prod_id,
-            "title": title,
-            "description": row.get("DESCRIPCION ADICIONAL", ""),
-            "availability": "in stock",
-            "condition": "new",
-            "price": f"{price} ARS",
-            "link": "https://plutarco.github.io",  # ajustar si querés
-            "image_link": "",
-            "brand": row.get("MARCA", ""),
-            "google_product_category": "",
-        })
+            rows.append({
+                "id": current_id,
+                "title": title,
+                "description": row.get("DESCRIPCION ADICIONAL", ""),
+                "availability": "in stock",
+                "condition": "new",
+                "price": f"{price} ARS",
+                "link": "https://plutarco.github.io",
+                "image_link": "",
+                "brand": row.get("MARCA", ""),
+                "google_product_category": categoria,
+            })
+            current_id += 1
 
     # 4. Guardar CSV
     df_out = pd.DataFrame(rows)
-    df_out.to_csv(output_path, sep=";", index=False)
+    df_out.to_csv(output_path, sep=";", index=False, encoding="utf-8")
     print(f"📦 CSV para Facebook guardado en: {output_path} (filas: {len(df_out)})")
 
 # ---------------------------
@@ -183,15 +193,16 @@ if __name__ == "__main__":
     ranking_csv = "/home/felipe/Documents/plutarco.github.io/media/Ranking.csv"
     excel_facebook = "/home/felipe/Documents/plutarco.github.io/media/articulos_facebook.csv"
 
-    # Generar Excel filtrado (esto ya lo hacías antes)
+    # Paso 1: generar Excel filtrado a partir de habilitados.json
     df_fil = filtrar_excel_por_json(excel_original, json_habilitados, excel_filtrado)
     print(f"✅ Excel filtrado guardado en: {excel_filtrado} (filas: {len(df_fil)})")
 
-    # Generar CSV para Facebook usando ranking.csv
+    # Paso 2: generar CSV para Facebook usando Ranking.csv
     generar_excel_facebook(
         excel_filtrado,   # path al excel filtrado
         ranking_csv,      # path al Ranking.csv
         excel_facebook,   # salida final
-        use_sequential=False  # cambia a True si querés ignorar Ranking y usar IDs secuenciales
+        use_sequential=False  # False → usa Ranking.csv | True → IDs secuenciales
     )
+
 
