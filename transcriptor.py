@@ -107,94 +107,91 @@ def filtrar_excel_por_json(excel_path, json_path, salida_path):
 
     return df_filtrado
 
-def generar_excel_facebook(df, salida_path):
-    columnas_fb = [
-        "id", "title", "description", "availability", "condition", "price",
-        "link", "image_link", "brand",
-        "google_product_category", "fb_product_category"
-    ]
+def generar_excel_facebook(excel_filtrado_path, ranking_path, output_path, use_sequential=False):
+    """
+    Genera un CSV para Facebook a partir del Excel filtrado y un ranking opcional.
+    Si use_sequential=True ignora el ranking y usa IDs secuenciales.
+    """
+    import pandas as pd
 
-    # -------------------
-    # Intentar cargar ranking.csv
-    # -------------------
+    # 1. Cargar Excel filtrado
+    df_fil = pd.read_excel(excel_filtrado_path)
+    print(f"✅ Excel filtrado cargado ({len(df_fil)} filas)")
+
+    # 2. Cargar ranking
     rank_map = {}
-    ranking_path = os.path.join(base_dir, "media", "ranking.csv")
+    try:
+        ranking = pd.read_csv(ranking_path, sep=";")
+        ranking.columns = [c.strip().upper() for c in ranking.columns]
 
-    if os.path.exists(ranking_path):
-        try:
-            ranking = pd.read_csv(ranking_path, sep=";|,", engine="python")
-            ranking.columns = ranking.columns.str.strip().str.upper()
+        if "PRODUCTO" in ranking.columns and "RANKING" in ranking.columns:
+            # limpiar filas vacías
+            ranking = ranking.dropna(subset=["PRODUCTO", "RANKING"])
 
-            if "PRODUCTO" in ranking.columns and "RANKING" in ranking.columns:
-                rank_map = {
-                    normalize_code(str(row["PRODUCTO"])): int(row["RANKING"])
-                    for _, row in ranking.iterrows()
-                    if not pd.isna(row["RANKING"])
-                }
-                print(f"✅ Ranking cargado desde {ranking_path} ({len(rank_map)} productos)")
-            else:
-                print("⚠️ Ranking.csv no tiene columnas PRODUCTO y RANKING, se ignora.")
-        except Exception as e:
-            print(f"⚠️ Error leyendo ranking.csv: {e}")
+            for _, row in ranking.iterrows():
+                try:
+                    nombre_rank = normalize_code(str(row["PRODUCTO"]))
+                    rank_map[nombre_rank] = int(row["RANKING"])
+                except Exception as e:
+                    print(f"⚠️ Error en fila ranking: {row.to_dict()} → {e}")
 
-    if not rank_map:
-        print("⚠️ No se aplicó ranking. Se usarán IDs secuenciales.")
-        use_sequential = True
-    else:
-        use_sequential = False
+            print(f"✅ Ranking cargado desde {ranking_path} ({len(rank_map)} productos)")
+        else:
+            print("⚠️ Ranking.csv no tiene columnas PRODUCTO y RANKING, se ignora.")
+    except Exception as e:
+        print(f"⚠️ No se pudo leer Ranking.csv: {e}")
 
-    # -------------------
-    # Construcción del dataframe de Facebook
-    # -------------------
-    df_fb = pd.DataFrame(columns=columnas_fb)
-
-    for i, row in df.iterrows():
-        codigo = str(row.get("CODIGO BARRA", "")).strip()
+    # 3. Armar CSV para Facebook
+    rows = []
+    for i, row in df_fil.iterrows():
         title = str(row.get("DESCRIPCION LARGA", "")).strip()
+        norm_title = normalize_code(title)
 
-        desc = str(
-            row.get("DESCRIPCION ADICIONAL") or
-            row.get("DESCRIPCION LARGA") or
-            row.get("DESCRIPCION") or ""
-        )
-        desc = "" if desc == "nan" else desc.strip()
-
-        availability = "in stock"
-        condition = "new"
-
-        # ✅ Precio limpio
-        precio = limpiar_precio(row.get("PRECIO VENTA C/IVA", 0))
-        price = f"{precio:.2f} ARS"
-
-        link = f"https://plutarcoalmacen.com.ar/producto/{codigo}"
-        image_link = f"https://plutarcoalmacen.com.ar/media/PRODUCTOS/{codigo}.jpg"
-        brand = str(row.get("MARCA", "Plutarco")).strip()
-        rubro = str(row.get("RUBRO", "Otros")).strip()
-
-        # ✅ ID: Ranking o secuencial
+        # ID de producto
         if use_sequential:
             prod_id = i + 1
         else:
-            prod_id = rank_map.get(normalize_code(title), 9999)
+            prod_id = rank_map.get(norm_title, 9999)  # 9999 si no está en ranking
 
-        df_fb.loc[i] = [
-            prod_id, title, desc, availability, condition,
-            price, link, image_link, brand,
-            rubro, rubro
-        ]
+        price = str(row.get("PRECIO VENTA C/IVA", "")).replace(",", ".")
+        if not price or price == "nan":
+            continue
 
-    # -------------------
-    # Guardar CSV
-    # -------------------
-    df_fb.to_csv(salida_path, index=False, encoding="utf-8")
-    print(f"📦 CSV para Facebook guardado en: {salida_path} (filas: {len(df_fb)})")
-    return df_fb
+        rows.append({
+            "id": prod_id,
+            "title": title,
+            "description": row.get("DESCRIPCION ADICIONAL", ""),
+            "availability": "in stock",
+            "condition": "new",
+            "price": f"{price} ARS",
+            "link": "https://plutarco.github.io",  # ajustar si querés
+            "image_link": "",
+            "brand": row.get("MARCA", ""),
+            "google_product_category": "",
+        })
+
+    # 4. Guardar CSV
+    df_out = pd.DataFrame(rows)
+    df_out.to_csv(output_path, sep=";", index=False)
+    print(f"📦 CSV para Facebook guardado en: {output_path} (filas: {len(df_out)})")
 
 # ---------------------------
 # MAIN
 # ---------------------------
 if __name__ == "__main__":
-    convertir_a_jpg_reemplazo(imagenes_dir)
-    generar_json(imagenes_dir, json_habilitados)
+    excel_filtrado = "/home/felipe/Documents/plutarco.github.io/media/articulos_filtrados.xlsx"
+    ranking_csv = "/home/felipe/Documents/plutarco.github.io/media/Ranking.csv"
+    excel_facebook = "/home/felipe/Documents/plutarco.github.io/media/articulos_facebook.csv"
+
+    # Generar Excel filtrado (esto ya lo hacías antes)
     df_fil = filtrar_excel_por_json(excel_original, json_habilitados, excel_filtrado)
-    generar_excel_facebook(df_fil, excel_facebook)
+    print(f"✅ Excel filtrado guardado en: {excel_filtrado} (filas: {len(df_fil)})")
+
+    # Generar CSV para Facebook usando ranking.csv
+    generar_excel_facebook(
+        excel_filtrado,   # path al excel filtrado
+        ranking_csv,      # path al Ranking.csv
+        excel_facebook,   # salida final
+        use_sequential=False  # cambia a True si querés ignorar Ranking y usar IDs secuenciales
+    )
+
