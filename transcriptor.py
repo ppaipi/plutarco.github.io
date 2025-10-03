@@ -172,7 +172,7 @@ def generar_excel_facebook(excel_filtrado_path, ranking_path, output_path, use_s
             codigo = str(row.get("CODIGO BARRA", "")).strip()
 
             rows.append({
-                "id": current_id,
+                "id": current_id+1000,
                 "title": title,
                 "description": row.get("DESCRIPCION ADICIONAL", ""),
                 "availability": "in stock",
