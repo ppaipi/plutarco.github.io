@@ -166,6 +166,9 @@ def generar_excel_facebook(excel_filtrado_path, ranking_path, output_path, use_s
             if not price or price == "nan":
                 continue
 
+            # Tomar el código del producto
+            codigo = str(row.get("CODIGO BARRA", "")).strip()
+
             rows.append({
                 "id": current_id,
                 "title": title,
@@ -173,8 +176,10 @@ def generar_excel_facebook(excel_filtrado_path, ranking_path, output_path, use_s
                 "availability": "in stock",
                 "condition": "new",
                 "price": f"{price} ARS",
-                "link": "https://plutarco.github.io",
-                "image_link": "",
+                # URL del producto con el código
+                "link": f"https://plutarcoalmacen.com.ar/",
+                # Imagen asociada al código
+                "image_link": f"https://plutarcoalmacen.com.ar/media/PRODUCTOS/{codigo}.jpg",
                 "brand": row.get("MARCA", ""),
                 "google_product_category": categoria,
             })
