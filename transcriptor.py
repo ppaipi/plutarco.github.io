@@ -107,9 +107,6 @@ def filtrar_excel_por_json(excel_path, json_path, salida_path):
 
     return df_filtrado
 
-# ---------------------------
-# Paso 4: generar CSV Facebook
-# ---------------------------
 def generar_excel_facebook(df, salida_path):
     columnas_fb = [
         "id", "title", "description", "availability", "condition", "price",
@@ -117,11 +114,43 @@ def generar_excel_facebook(df, salida_path):
         "google_product_category", "fb_product_category"
     ]
 
+    # -------------------
+    # Intentar cargar ranking.csv
+    # -------------------
+    rank_map = {}
+    ranking_path = os.path.join(base_dir, "media", "ranking.csv")
+
+    if os.path.exists(ranking_path):
+        try:
+            ranking = pd.read_csv(ranking_path, sep=";|,", engine="python")
+            ranking.columns = ranking.columns.str.strip().str.upper()
+
+            if "PRODUCTO" in ranking.columns and "RANKING" in ranking.columns:
+                rank_map = {
+                    normalize_code(str(row["PRODUCTO"])): int(row["RANKING"])
+                    for _, row in ranking.iterrows()
+                    if not pd.isna(row["RANKING"])
+                }
+                print(f"✅ Ranking cargado desde {ranking_path} ({len(rank_map)} productos)")
+            else:
+                print("⚠️ Ranking.csv no tiene columnas PRODUCTO y RANKING, se ignora.")
+        except Exception as e:
+            print(f"⚠️ Error leyendo ranking.csv: {e}")
+
+    if not rank_map:
+        print("⚠️ No se aplicó ranking. Se usarán IDs secuenciales.")
+        use_sequential = True
+    else:
+        use_sequential = False
+
+    # -------------------
+    # Construcción del dataframe de Facebook
+    # -------------------
     df_fb = pd.DataFrame(columns=columnas_fb)
 
     for i, row in df.iterrows():
         codigo = str(row.get("CODIGO BARRA", "")).strip()
-        title = str(row.get("DESCRIPCION", "")).strip()
+        title = str(row.get("DESCRIPCION LARGA", "")).strip()
 
         desc = str(
             row.get("DESCRIPCION ADICIONAL") or
@@ -133,27 +162,30 @@ def generar_excel_facebook(df, salida_path):
         availability = "in stock"
         condition = "new"
 
-        # ✅ Limpieza de precio
+        # ✅ Precio limpio
         precio = limpiar_precio(row.get("PRECIO VENTA C/IVA", 0))
         price = f"{precio:.2f} ARS"
 
         link = f"https://plutarcoalmacen.com.ar/producto/{codigo}"
         image_link = f"https://plutarcoalmacen.com.ar/media/PRODUCTOS/{codigo}.jpg"
         brand = str(row.get("MARCA", "Plutarco")).strip()
-
-        # ✅ Categoría → usamos el RUBRO como categoría
         rubro = str(row.get("RUBRO", "Otros")).strip()
 
+        # ✅ ID: Ranking o secuencial
+        if use_sequential:
+            prod_id = i + 1
+        else:
+            prod_id = rank_map.get(normalize_code(title), 9999)
+
         df_fb.loc[i] = [
-            codigo, title, desc, availability, condition,
+            prod_id, title, desc, availability, condition,
             price, link, image_link, brand,
             rubro, rubro
         ]
 
-    # ✅ Ordenar por RUBRO antes de exportar
-    df_fb = df_fb.sort_values(by=["google_product_category", "title"])
-
-    # Guardar CSV (o XLSX si preferís)
+    # -------------------
+    # Guardar CSV
+    # -------------------
     df_fb.to_csv(salida_path, index=False, encoding="utf-8")
     print(f"📦 CSV para Facebook guardado en: {salida_path} (filas: {len(df_fb)})")
     return df_fb
