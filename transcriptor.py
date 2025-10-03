@@ -169,7 +169,7 @@ def generar_excel_facebook(excel_filtrado_path, ranking_path, output_path, use_s
             
             price = f"{precio_val:.2f} ARS"
 
-            codigo = str(row.get("CODIGO", "")).strip()
+            codigo = str(row.get("CODIGO BARRA", "")).strip()
 
             rows.append({
                 "id": current_id,
