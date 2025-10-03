@@ -113,7 +113,8 @@ def filtrar_excel_por_json(excel_path, json_path, salida_path):
 def generar_excel_facebook(df, salida_path):
     columnas_fb = [
         "id", "title", "description", "availability", "condition", "price",
-        "link", "image_link", "brand"
+        "link", "image_link", "brand",
+        "google_product_category", "fb_product_category"
     ]
 
     df_fb = pd.DataFrame(columns=columnas_fb)
@@ -132,7 +133,7 @@ def generar_excel_facebook(df, salida_path):
         availability = "in stock"
         condition = "new"
 
-        # ✅ Ahora limpiamos bien el precio
+        # ✅ Limpieza de precio
         precio = limpiar_precio(row.get("PRECIO VENTA C/IVA", 0))
         price = f"{precio:.2f} ARS"
 
@@ -140,11 +141,19 @@ def generar_excel_facebook(df, salida_path):
         image_link = f"https://plutarcoalmacen.com.ar/media/PRODUCTOS/{codigo}.jpg"
         brand = str(row.get("MARCA", "Plutarco")).strip()
 
+        # ✅ Categoría → usamos el RUBRO como categoría
+        rubro = str(row.get("RUBRO", "Otros")).strip()
+
         df_fb.loc[i] = [
             codigo, title, desc, availability, condition,
-            price, link, image_link, brand
+            price, link, image_link, brand,
+            rubro, rubro
         ]
 
+    # ✅ Ordenar por RUBRO antes de exportar
+    df_fb = df_fb.sort_values(by=["google_product_category", "title"])
+
+    # Guardar CSV (o XLSX si preferís)
     df_fb.to_csv(salida_path, index=False, encoding="utf-8")
     print(f"📦 CSV para Facebook guardado en: {salida_path} (filas: {len(df_fb)})")
     return df_fb
