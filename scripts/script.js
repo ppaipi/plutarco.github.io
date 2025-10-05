@@ -29,7 +29,7 @@ const ordenCategorias = [
 ];
 const ordenSubCategorias = ["Oliva", "Girasol", "Conservas", "Yerba Mate", "Yuyos", "Cafe", "Veganos", "Lacteos", "Sales", "Condimentos"];
 
-
+let direccionValidaGoogle = false; // Variable global para saber si la dirección es válida de Google
 
 async function loadProducts() {
   try {
@@ -98,10 +98,6 @@ async function loadRanking() {
     }
   });
 }
-
-
-
-
 
 function cerrarModalDescripcion() {
   const modal = document.getElementById('modal-descripcion');
@@ -731,9 +727,9 @@ function validarDia(event) {
 function initAutocomplete() {
   const input = document.getElementById('address');
   const bounds = new google.maps.LatLngBounds(
-  { lat: -34.705, lng: -58.531 }, // esquina sudoeste (ejemplo)
-  { lat: -34.515, lng: -58.335 }  // esquina noreste (ejemplo)
-);
+    { lat: -34.705, lng: -58.531 },
+    { lat: -34.515, lng: -58.335 }
+  );
 
   autocomplete = new google.maps.places.Autocomplete(input, {
     fields: ['formatted_address', 'geometry'],
@@ -745,9 +741,16 @@ function initAutocomplete() {
 
 
   autocomplete.addListener('place_changed', () => {
+    const place = autocomplete.getPlace && autocomplete.getPlace();
+    if (place && place.formatted_address && place.geometry) {
+      direccionValidaGoogle = true;
+    } else {
+      direccionValidaGoogle = false;
+    }
+    camposTocados['address'] = true;
+    validarDireccionSolo();
     actualizarEnvio();
     updateCart();
-
   });
 }
 
@@ -869,20 +872,6 @@ function validarCamposEnTiempoReal() {
     { id: 'name', nombre: 'Nombre', validar: v => !!v && v.indexOf(' ') !== -1, mensaje: 'Ingrese su nombre completo.' },
     { id: 'email', nombre: 'Email', validar: v => !!v && v.indexOf('@') !== -1 && v.indexOf('.') !== -1, mensaje: 'Ingrese un mail válido.' },
     { id: 'phone', nombre: 'Teléfono', validar: v => !!v && v.length >= 8, mensaje: 'Ingrese un teléfono válido.' },
-    // Dirección: validación por Google Maps Autocomplete
-    { 
-      id: 'address',
-      nombre: 'Dirección',
-      validar: function(v) {
-        // Permitir "A ACORDAR" como excepción
-        if (v.trim().toUpperCase() === 'A ACORDAR') return true;
-        // Validar que haya un place válido de Google Autocomplete
-        if (!autocomplete) return false;
-        const place = autocomplete.getPlace && autocomplete.getPlace();
-        return place && place.formatted_address && place.geometry;
-      },
-      mensaje: 'Seleccione una dirección válida de la lista de Google Maps.'
-    },
     { id: 'comment', nombre: 'Comentario', validar: v => !!v, mensaje: 'Ingrese un comentario.' }
   ];
 
@@ -894,15 +883,7 @@ function validarCamposEnTiempoReal() {
     let valor = el.value.trim();
     let errorMsg = '';
 
-    // Solo mostrar error si el usuario ya tocó el campo
-    let esValido;
-    if (typeof campo.validar === 'function') {
-      esValido = campo.validar(valor);
-    } else {
-      esValido = campo.validar(valor);
-    }
-
-    if (!esValido) {
+    if (!campo.validar(valor)) {
       if (camposTocados[campo.id]) {
         errorMsg = campo.mensaje;
         hayError = true;
@@ -917,20 +898,19 @@ function validarCamposEnTiempoReal() {
       validacionCampos[campo.id] = true;
     }
 
-    // Mensaje debajo del campo, pegado (marginTop reducido)
+    // Mensaje debajo del campo, pegado
     let errorDiv = el.nextElementSibling;
     if (!errorDiv || !errorDiv.classList.contains('campo-error')) {
       errorDiv = document.createElement('div');
       errorDiv.className = 'campo-error';
-      errorDiv.style.color = 'red';
-      errorDiv.style.fontSize = '0.9em';
-      errorDiv.style.marginTop = '2px';
-      errorDiv.style.marginBottom = '0px';
       el.parentNode.insertBefore(errorDiv, el.nextSibling);
     }
     errorDiv.textContent = errorMsg;
     errorDiv.style.display = errorMsg ? 'block' : 'none';
   });
+
+  // Validar dirección solo si ya se tocó (pero no en cada input)
+  validarDireccionSolo();
 
   // Validar carrito solo si ya se tocó algún campo del carrito
   let carritoErrorDiv = document.getElementById('carrito-error');
@@ -975,29 +955,65 @@ document.addEventListener('DOMContentLoaded', () => {
   campos.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-      el.addEventListener('input', function() {
-        camposTocados[id] = true;
-        validarCamposEnTiempoReal();
-      });
-      el.addEventListener('change', function() {
-        camposTocados[id] = true;
-        validarCamposEnTiempoReal();
-      });
-      // No validar al cargar la página
+      if (id === 'address') {
+        // Solo marcar como tocado y validar al perder foco
+        el.addEventListener('blur', function() {
+          camposTocados['address'] = true;
+          validarDireccionSolo();
+        });
+      } else {
+        el.addEventListener('input', function() {
+          camposTocados[id] = true;
+          validarCamposEnTiempoReal();
+        });
+        el.addEventListener('change', function() {
+          camposTocados[id] = true;
+          validarCamposEnTiempoReal();
+        });
+      }
     }
   });
-  // Validar dirección al perder foco para forzar validación si no seleccionó de la lista
-  const addressInput = document.getElementById('address');
-  if (addressInput) {
-    addressInput.addEventListener('blur', function() {
-      camposTocados['address'] = true;
-      validarCamposEnTiempoReal();
-    });
-  }
   // No validar automáticamente al cargar
 });
 
-// Nueva función para chequear todas las variables de validación antes de enviar
+// Validar dirección solo cuando corresponde
+function validarDireccionSolo() {
+  const el = document.getElementById('address');
+  if (!el) return;
+  let valor = el.value.trim();
+  let errorMsg = '';
+  // Permitir "A ACORDAR"
+  if (valor.toUpperCase() === 'A ACORDAR') {
+    direccionValidaGoogle = true;
+  }
+  if (!direccionValidaGoogle) {
+    if (camposTocados['address']) {
+      errorMsg = 'Seleccione una dirección válida de la lista de Google Maps.';
+      el.style.borderColor = 'red';
+      validacionCampos['address'] = false;
+    } else {
+      el.style.borderColor = '';
+      validacionCampos['address'] = false;
+    }
+  } else {
+    el.style.borderColor = '';
+    validacionCampos['address'] = true;
+  }
+  // Mensaje debajo del campo, pegado
+  let errorDiv = el.nextElementSibling;
+  if (!errorDiv || !errorDiv.classList.contains('campo-error')) {
+    errorDiv = document.createElement('div');
+    errorDiv.className = 'campo-error';
+    el.parentNode.insertBefore(errorDiv, el.nextSibling);
+  }
+  errorDiv.textContent = errorMsg;
+  errorDiv.style.display = errorMsg ? 'block' : 'none';
+
+  // Habilitar/deshabilitar el botón de envío
+  const btn = document.getElementById('submit-btn');
+  if (btn) btn.disabled = !todosCamposValidados();
+}
+
 function todosCamposValidados() {
   return Object.values(validacionCampos).every(v => v === true);
 }
@@ -1323,6 +1339,18 @@ const botonContacto = document.getElementById("btn-contacto-tienda");
   if (searchInput) {
     searchInput.addEventListener('input', () => searchProduct());
   }
+  if(clickHeader){
+    clickHeader.onclick = () => {
+    indiceCategoria = '';
+    currentFilter = 'Todas';
+    filteredProducts = [...products];
+    renderProductsByCategory(filteredProducts);
+  };
+  }
+  if (botonContacto) {
+    botonContacto.classList.toggle("oculto");
+  }
+};
   if(clickHeader){
     clickHeader.onclick = () => {
     indiceCategoria = '';
