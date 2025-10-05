@@ -841,42 +841,115 @@ function desbloquearBoton(btn) {
   }
 }
 
-function validarCampos(btn) {
-  const dia = document.getElementById('pickup-day').value;
-  const nombre = document.getElementById('name').value.trim();
-  const mail = document.getElementById('email').value.trim();
-  const telefono = document.getElementById('phone').value.trim();
-  const direccion = document.getElementById('address').value.trim();
-  const comentario = document.getElementById('comment').value.trim();
+// Variables globales para el estado de validación de cada campo
+const validacionCampos = {
+  'pickup-day': false,
+  'name': false,
+  'email': false,
+  'phone': false,
+  'address': false,
+  'comment': false,
+  'carrito': false
+};
 
-  if (!dia || !nombre || !mail || !telefono || !direccion || !comentario) {
-    alert('Complete todos los campos.');
-    return false;
+// Validación en tiempo real: mensajes debajo de cada campo y borde rojo si hay error
+function validarCamposEnTiempoReal() {
+  const campos = [
+    { id: 'pickup-day', nombre: 'Día de retiro', validar: v => !!v, mensaje: 'Seleccione un día de retiro.' },
+    { id: 'name', nombre: 'Nombre', validar: v => !!v && v.indexOf(' ') !== -1, mensaje: 'Ingrese su nombre completo.' },
+    { id: 'email', nombre: 'Email', validar: v => !!v && v.indexOf('@') !== -1 && v.indexOf('.') !== -1, mensaje: 'Ingrese un mail válido.' },
+    { id: 'phone', nombre: 'Teléfono', validar: v => !!v && v.length >= 8, mensaje: 'Ingrese un teléfono válido.' },
+    { id: 'address', nombre: 'Dirección', validar: v => !!v, mensaje: 'Ingrese una dirección.' },
+    { id: 'comment', nombre: 'Comentario', validar: v => !!v, mensaje: 'Ingrese un comentario.' }
+  ];
+
+  let hayError = false;
+
+  campos.forEach(campo => {
+    const el = document.getElementById(campo.id);
+    if (!el) return;
+    let valor = el.value.trim();
+    let errorMsg = '';
+
+    // Validar campo
+    if (!campo.validar(valor)) {
+      errorMsg = campo.mensaje;
+      hayError = true;
+      el.style.borderColor = 'red';
+      validacionCampos[campo.id] = false;
+    } else {
+      el.style.borderColor = '';
+      validacionCampos[campo.id] = true;
+    }
+
+    // Mensaje debajo del campo
+    let errorDiv = el.nextElementSibling;
+    if (!errorDiv || !errorDiv.classList.contains('campo-error')) {
+      errorDiv = document.createElement('div');
+      errorDiv.className = 'campo-error';
+      errorDiv.style.color = 'red';
+      errorDiv.style.fontSize = '0.9em';
+      errorDiv.style.marginTop = '2px';
+      el.parentNode.insertBefore(errorDiv, el.nextSibling);
+    }
+    errorDiv.textContent = errorMsg;
+  });
+
+  // Validar carrito
+  let carritoErrorDiv = document.getElementById('carrito-error');
+  if (!carritoErrorDiv) {
+    carritoErrorDiv = document.createElement('div');
+    carritoErrorDiv.id = 'carrito-error';
+    carritoErrorDiv.style.color = 'red';
+    carritoErrorDiv.style.margin = '10px 0';
+    const form = document.getElementById('pedido-form') || document.body;
+    form.appendChild(carritoErrorDiv);
   }
-
   if (Object.keys(cart).length === 0) {
-    alert('Agregue productos al carrito.');
-    return false;
-  }
-  if(nombre.indexOf(' ') === -1) {
-    alert('Ingrese su nombre completo.');
-    return false;
+    carritoErrorDiv.textContent = 'Agregue productos al carrito.';
+    hayError = true;
+    validacionCampos['carrito'] = false;
+  } else {
+    carritoErrorDiv.textContent = '';
+    validacionCampos['carrito'] = true;
   }
 
-  if(mail.indexOf('@') === -1 || mail.indexOf('.') === -1) {
-    alert('Ingrese un mail valido.');
-    return false;
-  }
-  if (telefono.length < 8) {
-    alert('Ingrese un teléfono válido.');
-    return false;
-  }
-  return true;
+  // Habilitar/deshabilitar el botón de envío
+  const btn = document.getElementById('submit-btn');
+  if (btn) btn.disabled = hayError;
+
+  return !hayError;
+}
+
+// Ya no se usa en el submit, pero se deja para compatibilidad
+function validarCampos(btn) {
+  return validarCamposEnTiempoReal();
+}
+
+// Asignar eventos a los campos para validar en tiempo real
+document.addEventListener('DOMContentLoaded', () => {
+  const campos = [
+    'pickup-day', 'name', 'email', 'phone', 'address', 'comment'
+  ];
+  campos.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', validarCamposEnTiempoReal);
+      el.addEventListener('change', validarCamposEnTiempoReal);
+    }
+  });
+  // Validar también al cargar la página
+  validarCamposEnTiempoReal();
+});
+
+// Nueva función para chequear todas las variables de validación antes de enviar
+function todosCamposValidados() {
+  return Object.values(validacionCampos).every(v => v === true);
 }
 
 function enviarPedido() {
   const btn = document.getElementById('submit-btn');
-  if (!validarCampos(btn)) return;
+  if (!todosCamposValidados(btn)) return;
 
   bloquearBoton(btn);
 
