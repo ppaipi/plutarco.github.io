@@ -869,7 +869,20 @@ function validarCamposEnTiempoReal() {
     { id: 'name', nombre: 'Nombre', validar: v => !!v && v.indexOf(' ') !== -1, mensaje: 'Ingrese su nombre completo.' },
     { id: 'email', nombre: 'Email', validar: v => !!v && v.indexOf('@') !== -1 && v.indexOf('.') !== -1, mensaje: 'Ingrese un mail válido.' },
     { id: 'phone', nombre: 'Teléfono', validar: v => !!v && v.length >= 8, mensaje: 'Ingrese un teléfono válido.' },
-    { id: 'address', nombre: 'Dirección', validar: v => !!v, mensaje: 'Ingrese una dirección.' },
+    // Dirección: validación por Google Maps Autocomplete
+    { 
+      id: 'address',
+      nombre: 'Dirección',
+      validar: function(v) {
+        // Permitir "A ACORDAR" como excepción
+        if (v.trim().toUpperCase() === 'A ACORDAR') return true;
+        // Validar que haya un place válido de Google Autocomplete
+        if (!autocomplete) return false;
+        const place = autocomplete.getPlace && autocomplete.getPlace();
+        return place && place.formatted_address && place.geometry;
+      },
+      mensaje: 'Seleccione una dirección válida de la lista de Google Maps.'
+    },
     { id: 'comment', nombre: 'Comentario', validar: v => !!v, mensaje: 'Ingrese un comentario.' }
   ];
 
@@ -882,7 +895,14 @@ function validarCamposEnTiempoReal() {
     let errorMsg = '';
 
     // Solo mostrar error si el usuario ya tocó el campo
-    if (!campo.validar(valor)) {
+    let esValido;
+    if (typeof campo.validar === 'function') {
+      esValido = campo.validar(valor);
+    } else {
+      esValido = campo.validar(valor);
+    }
+
+    if (!esValido) {
       if (camposTocados[campo.id]) {
         errorMsg = campo.mensaje;
         hayError = true;
@@ -966,6 +986,14 @@ document.addEventListener('DOMContentLoaded', () => {
       // No validar al cargar la página
     }
   });
+  // Validar dirección al perder foco para forzar validación si no seleccionó de la lista
+  const addressInput = document.getElementById('address');
+  if (addressInput) {
+    addressInput.addEventListener('blur', function() {
+      camposTocados['address'] = true;
+      validarCamposEnTiempoReal();
+    });
+  }
   // No validar automáticamente al cargar
 });
 
@@ -995,13 +1023,18 @@ function enviarPedido() {
       total: prod.Precio * cantidad
     });
   }
-  
+
+  // Usar dirección validada por Google si existe
+  let direccion = document.getElementById('address').value.trim();
+  if (autocomplete && autocomplete.getPlace && autocomplete.getPlace() && autocomplete.getPlace().formatted_address) {
+    direccion = autocomplete.getPlace().formatted_address;
+  }
 
   const pedido = {
     nombre: document.getElementById('name').value.trim(),
     mail: document.getElementById('email').value.trim(),
     telefono: document.getElementById('phone').value.trim(),
-    direccion: document.getElementById('address').value.trim(),
+    direccion: direccion,
     retiro: document.getElementById('pickup-day').value,
     comentario: document.getElementById('comment').value.trim(),
     productos: productos,
@@ -1039,8 +1072,6 @@ function enviarPedido() {
     desbloquearBoton(btn);
   });
 }
-
-
 
 
 // --- Funcionalidad modal descripción producto ---
