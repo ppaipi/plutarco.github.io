@@ -520,12 +520,18 @@ ul {
 }
 
 /* Inputs y botones del formulario del carrito */
-.inputs {
+#cart input[type="text"],
+#cart input[type="email"],
+#cart input[type="tel"],
+#cart input[type="date"] {
   width: 100%;
-  padding: 0.5rem;
-  margin: 0.3rem 0 1rem;
   border-radius: 0.5rem;
   border: 1px solid #ccc;
+}
+.inputs {
+  padding: 0.5rem;
+  margin: 0.3rem 0 1rem;
+
 }
 
 #cart label {
