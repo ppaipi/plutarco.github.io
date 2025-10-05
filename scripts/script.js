@@ -549,6 +549,8 @@ function addToCart(codigo) {
     updateCart();
   }
   animateCart();
+  // Oculta el mensaje de error del carrito si hay productos
+  actualizarErrorCarrito();
 }
 
 function updateProductCard(codigo) {
@@ -610,6 +612,8 @@ function updateQuantity(codigo, delta) {
     updateCart();
   }
   animateCart();
+  // Oculta el mensaje de error del carrito si hay productos
+  actualizarErrorCarrito();
 }
 
 function removeFromCart(codigo) {
@@ -622,7 +626,23 @@ function removeFromCart(codigo) {
     updateCart();
   }
   animateCart();
+  // Oculta el mensaje de error del carrito si hay productos
+  actualizarErrorCarrito();
 }
+
+// Nueva función para actualizar el mensaje de error del carrito
+function actualizarErrorCarrito() {
+  let carritoErrorDiv = document.getElementById('carrito-error');
+  if (carritoErrorDiv) {
+    if (Object.keys(cart).length > 0) {
+      carritoErrorDiv.textContent = '';
+      carritoErrorDiv.style.display = 'none';
+      validacionCampos['carrito'] = true;
+    }
+    // Si el usuario ya intentó enviar y el carrito está vacío, el mensaje se mostrará en validarCamposEnTiempoReal
+  }
+}
+
 function updateCart() {
   const ul = document.getElementById('cart-items');
   if (!ul) return;
@@ -930,7 +950,8 @@ function validarCamposEnTiempoReal() {
     const form = document.getElementById('pedido-form') || document.getElementById('cart');
     form.appendChild(carritoErrorDiv);
   }
-  if ((intentoEnviar) && Object.keys(cart).length === 0) {
+  // Mostrar mensaje solo si el usuario intentó enviar y el carrito está vacío
+  if (intentoEnviar && Object.keys(cart).length === 0) {
     carritoErrorDiv.textContent = 'Agregue productos al carrito.';
     hayError = true;
     validacionCampos['carrito'] = false;
