@@ -106,12 +106,14 @@
       <h2>🛒 Carrito de Compras</h2>
       <ul id="cart-items"></ul>
 
-      
-      <label for="pickup-day">📅 Día de entrega:</label>
-      <select id="pickup-day" required>
-        <option value="" disabled selected>Seleccionar una fecha</option>
-      </select>
-      
+      <!-- pickup-day ahora igual de estético que los otros inputs -->
+      <div class="inputs">
+        <label for="pickup-day">📅 Día de entrega:</label>
+        <select id="pickup-day" required>
+          <option value="" disabled selected>Seleccionar una fecha</option>
+        </select>
+      </div>
+
       <div class="inputs">
         <label for="name">👤 Nombre completo:</label>
         <input type="text" id="name" placeholder="Tu nombre completo">

@@ -539,6 +539,7 @@ ul {
 }
 
 /* Inputs y botones del formulario del carrito */
+#cart select,
 #cart input[type="text"],
 #cart input[type="email"],
 #cart input[type="tel"],
@@ -555,6 +556,7 @@ ul {
   box-shadow: 0 1px 2px rgba(30,136,229,0.03);
 }
 
+#cart select:focus,
 #cart input[type="text"]:focus,
 #cart input[type="email"]:focus,
 #cart input[type="tel"]:focus,
