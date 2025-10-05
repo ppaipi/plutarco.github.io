@@ -1350,7 +1350,7 @@ const botonContacto = document.getElementById("btn-contacto-tienda");
   if (botonContacto) {
     botonContacto.classList.toggle("oculto");
   }
-};
+}
   if(clickHeader){
     clickHeader.onclick = () => {
     indiceCategoria = '';
@@ -1362,4 +1362,4 @@ const botonContacto = document.getElementById("btn-contacto-tienda");
   if (botonContacto) {
     botonContacto.classList.toggle("oculto");
   }
-};
+
