@@ -852,6 +852,16 @@ const validacionCampos = {
   'carrito': false
 };
 
+// Nuevo: trackea si el usuario ya tocó el campo
+const camposTocados = {
+  'pickup-day': false,
+  'name': false,
+  'email': false,
+  'phone': false,
+  'address': false,
+  'comment': false
+};
+
 // Validación en tiempo real: mensajes debajo de cada campo y borde rojo si hay error
 function validarCamposEnTiempoReal() {
   const campos = [
@@ -871,18 +881,23 @@ function validarCamposEnTiempoReal() {
     let valor = el.value.trim();
     let errorMsg = '';
 
-    // Validar campo
+    // Solo mostrar error si el usuario ya tocó el campo
     if (!campo.validar(valor)) {
-      errorMsg = campo.mensaje;
-      hayError = true;
-      el.style.borderColor = 'red';
-      validacionCampos[campo.id] = false;
+      if (camposTocados[campo.id]) {
+        errorMsg = campo.mensaje;
+        hayError = true;
+        el.style.borderColor = 'red';
+        validacionCampos[campo.id] = false;
+      } else {
+        el.style.borderColor = '';
+        validacionCampos[campo.id] = false;
+      }
     } else {
       el.style.borderColor = '';
       validacionCampos[campo.id] = true;
     }
 
-    // Mensaje debajo del campo
+    // Mensaje debajo del campo, pegado (marginTop reducido)
     let errorDiv = el.nextElementSibling;
     if (!errorDiv || !errorDiv.classList.contains('campo-error')) {
       errorDiv = document.createElement('div');
@@ -890,28 +905,34 @@ function validarCamposEnTiempoReal() {
       errorDiv.style.color = 'red';
       errorDiv.style.fontSize = '0.9em';
       errorDiv.style.marginTop = '2px';
+      errorDiv.style.marginBottom = '0px';
       el.parentNode.insertBefore(errorDiv, el.nextSibling);
     }
     errorDiv.textContent = errorMsg;
+    errorDiv.style.display = errorMsg ? 'block' : 'none';
   });
 
-  // Validar carrito
+  // Validar carrito solo si ya se tocó algún campo del carrito
   let carritoErrorDiv = document.getElementById('carrito-error');
   if (!carritoErrorDiv) {
     carritoErrorDiv = document.createElement('div');
     carritoErrorDiv.id = 'carrito-error';
     carritoErrorDiv.style.color = 'red';
-    carritoErrorDiv.style.margin = '10px 0';
-    const form = document.getElementById('pedido-form') || document.body;
+    carritoErrorDiv.style.margin = '4px 0 0 0';
+    const form = document.getElementById('pedido-form') || document.getElementById('cart');
     form.appendChild(carritoErrorDiv);
   }
-  if (Object.keys(cart).length === 0) {
+  // Solo mostrar error si el usuario ya tocó algún campo del formulario
+  const algunCampoTocado = Object.values(camposTocados).some(v => v);
+  if (algunCampoTocado && Object.keys(cart).length === 0) {
     carritoErrorDiv.textContent = 'Agregue productos al carrito.';
     hayError = true;
     validacionCampos['carrito'] = false;
+    carritoErrorDiv.style.display = 'block';
   } else {
     carritoErrorDiv.textContent = '';
-    validacionCampos['carrito'] = true;
+    validacionCampos['carrito'] = Object.keys(cart).length > 0;
+    carritoErrorDiv.style.display = 'none';
   }
 
   // Habilitar/deshabilitar el botón de envío
@@ -934,12 +955,18 @@ document.addEventListener('DOMContentLoaded', () => {
   campos.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-      el.addEventListener('input', validarCamposEnTiempoReal);
-      el.addEventListener('change', validarCamposEnTiempoReal);
+      el.addEventListener('input', function() {
+        camposTocados[id] = true;
+        validarCamposEnTiempoReal();
+      });
+      el.addEventListener('change', function() {
+        camposTocados[id] = true;
+        validarCamposEnTiempoReal();
+      });
+      // No validar al cargar la página
     }
   });
-  // Validar también al cargar la página
-  validarCamposEnTiempoReal();
+  // No validar automáticamente al cargar
 });
 
 // Nueva función para chequear todas las variables de validación antes de enviar
