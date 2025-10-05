@@ -528,6 +528,15 @@ ul {
   border-radius: 1rem;
   width: 100%;
 }
+.finalize-btn:hover {
+  background-color: var(--color-terceario);
+}
+
+.total {
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-top: 1rem;
+}
 
 /* Inputs y botones del formulario del carrito */
 #cart input[type="text"],
