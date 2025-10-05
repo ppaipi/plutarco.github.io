@@ -526,41 +526,57 @@ ul {
 #cart input[type="date"] {
   width: 100%;
   border-radius: 0.5rem;
-  border: 1px solid #ccc;
-}
-.inputs {
-  padding: 0.5rem;
-  margin: 0.3rem 0 1rem;
-
-}
-
-#cart label {
-  font-weight: bold;
-  margin-top: 1rem;
-  display: block;
-}
-
-.finalize-btn {
-  background-color: var(--color-primario);
-  color: var(--color-secundario);
-  font-weight: bold;
-  border: none;
-  padding: 0.7rem 1.2rem;
-  margin-top: 1rem;
-  border-radius: 1rem;
-  width: 100%;
+  border: 1.5px solid #d2d2d2;
+  padding: 0.55rem 0.9rem;
   font-size: 1rem;
-  cursor: pointer;
+  background: #fafbfc;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  margin-top: 0.18em;
+  margin-bottom: 0.1em;
+  box-shadow: 0 1px 2px rgba(30,136,229,0.03);
 }
 
-.finalize-btn:hover {
-  background-color: var(--color-terceario);
+#cart input[type="text"]:focus,
+#cart input[type="email"]:focus,
+#cart input[type="tel"]:focus,
+#cart input[type="date"]:focus {
+  border-color: var(--color-primario);
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 2px #1e88e51a;
 }
 
-.total {
-  font-weight: bold;
-  font-size: 1.2rem;
-  margin-top: 1rem;
+.inputs {
+  padding: 0.2rem 0.1rem 0.2rem 0.1rem;
+  margin: 0.3rem 0 0.7rem 0;
+  background: #fff;
+  border-radius: 0.7rem;
+  box-shadow: 0 1px 4px rgba(30,136,229,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  position: relative;
+}
+
+.inputs label {
+  font-weight: 500;
+  margin-bottom: 0.18em;
+  font-size: 1rem;
+  color: #1e88e5;
+  letter-spacing: 0.01em;
+}
+
+.campo-error {
+  color: #e53935;
+  font-size: 0.92em;
+  margin-top: 0.08em !important;
+  margin-bottom: 0 !important;
+  line-height: 1.1;
+  padding: 0 0.1em;
+  font-weight: 500;
+  min-height: 1.1em;
+  /* Para que no mueva el layout cuando aparece/desaparece */
+  transition: color 0.15s;
 }
 
 /* Footer */
