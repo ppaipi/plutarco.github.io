@@ -886,22 +886,22 @@ function validarCamposEnTiempoReal() {
     let valor = el.value.trim();
     let errorMsg = '';
 
-    // Solo mostrar error si el usuario ya tocó el campo (blur/change) o intentó enviar
-    let mostrarError = camposTocados[campo.id] || intentoEnviar;
+    // Mostrar error si el usuario ya tocó el campo (blur/change) o intentó enviar, y el campo NO es válido
+    let mostrarError = (camposTocados[campo.id] || intentoEnviar) && !campo.validar(valor);
     let esValido = campo.validar(valor);
 
+    el.classList.remove('input-error', 'input-success');
     if (!esValido) {
       if (mostrarError) {
         errorMsg = campo.mensaje;
         hayError = true;
-        el.style.borderColor = 'red';
+        el.classList.add('input-error');
         validacionCampos[campo.id] = false;
       } else {
-        el.style.borderColor = '';
         validacionCampos[campo.id] = false;
       }
     } else {
-      el.style.borderColor = '';
+      el.classList.add('input-success');
       validacionCampos[campo.id] = true;
     }
 
@@ -914,8 +914,8 @@ function validarCamposEnTiempoReal() {
       parentInputs.appendChild(errorDiv);
     }
     // Solo mostrar el mensaje si corresponde y el campo no es válido
-    errorDiv.textContent = (mostrarError && !esValido) ? errorMsg : '';
-    errorDiv.style.display = (mostrarError && !esValido) ? 'block' : 'none';
+    errorDiv.textContent = mostrarError ? errorMsg : '';
+    errorDiv.style.display = mostrarError ? 'block' : 'none';
   });
 
   // Validar dirección solo si ya se tocó (blur/change) o intentó enviar
@@ -972,6 +972,9 @@ document.addEventListener('DOMContentLoaded', () => {
           camposTocados['address'] = true;
           validarDireccionSolo();
         });
+        el.addEventListener('input', function() {
+          validarDireccionSolo();
+        });
       } else {
         el.addEventListener('blur', function() {
           camposTocados[id] = true;
@@ -979,6 +982,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         el.addEventListener('change', function() {
           camposTocados[id] = true;
+          validarCamposEnTiempoReal();
+        });
+        el.addEventListener('input', function() {
           validarCamposEnTiempoReal();
         });
       }
@@ -997,18 +1003,19 @@ function validarDireccionSolo() {
   if (valor.toUpperCase() === 'A ACORDAR') {
     direccionValidaGoogle = true;
   }
-  // Solo mostrar error si el usuario ya tocó el campo (blur/change) o intentó enviar
+  // Mostrar error si el usuario ya tocó el campo (blur/change) o intentó enviar, y el campo NO es válido
+  let mostrarError = (camposTocados['address'] || intentoEnviar) && !direccionValidaGoogle;
+  el.classList.remove('input-error', 'input-success');
   if (!direccionValidaGoogle) {
-    if (camposTocados['address'] || intentoEnviar) {
+    if (mostrarError) {
       errorMsg = 'Seleccione una dirección válida.';
-      el.style.borderColor = 'red';
+      el.classList.add('input-error');
       validacionCampos['address'] = false;
     } else {
-      el.style.borderColor = '';
       validacionCampos['address'] = false;
     }
   } else {
-    el.style.borderColor = '';
+    el.classList.add('input-success');
     validacionCampos['address'] = true;
   }
   // Mensaje debajo del campo, dentro del div.inputs
@@ -1019,8 +1026,8 @@ function validarDireccionSolo() {
     errorDiv.className = 'campo-error';
     parentInputs.appendChild(errorDiv);
   }
-  errorDiv.textContent = errorMsg;
-  errorDiv.style.display = errorMsg ? 'block' : 'none';
+  errorDiv.textContent = mostrarError ? errorMsg : '';
+  errorDiv.style.display = mostrarError ? 'block' : 'none';
 
   // Habilitar/deshabilitar el botón de envío
   const btn = document.getElementById('submit-btn');
@@ -1371,6 +1378,12 @@ const botonContacto = document.getElementById("btn-contacto-tienda");
     indiceCategoria = '';
     currentFilter = 'Todas';
     filteredProducts = [...products];
+    renderProductsByCategory(filteredProducts);
+  };
+  }
+  if (botonContacto) {
+    botonContacto.classList.toggle("oculto");
+  }
     renderProductsByCategory(filteredProducts);
   };
   }
