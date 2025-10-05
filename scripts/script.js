@@ -69,7 +69,6 @@ async function loadProducts() {
     if (header) {
       header.scrollIntoView({ behavior: 'smooth' });
     }
-
   } catch (err) {
     console.error("Error cargando productos:", err);
   }
@@ -1357,37 +1356,20 @@ window.onload = () => {
 
   const searchInput = document.getElementById('search-input');
   const clickHeader = document.getElementById('click_header');
-const botonContacto = document.getElementById("btn-contacto-tienda");
+  const botonContacto = document.getElementById("btn-contacto-tienda");
   if (searchInput) {
     searchInput.addEventListener('input', () => searchProduct());
   }
-  if(clickHeader){
+  if (clickHeader) {
     clickHeader.onclick = () => {
-    indiceCategoria = '';
-    currentFilter = 'Todas';
-    filteredProducts = [...products];
-    renderProductsByCategory(filteredProducts);
-  };
-  }
-    if (botonContacto) {
-      botonContacto.classList.toggle("oculto");
-    }
-  }
-  if(clickHeader){
-    clickHeader.onclick = () => {
-    indiceCategoria = '';
-    currentFilter = 'Todas';
-    filteredProducts = [...products];
-    renderProductsByCategory(filteredProducts);
-  };
-  }
-  if (botonContacto) {
-    botonContacto.classList.toggle("oculto");
-  }
-    renderProductsByCategory(filteredProducts);
-  };
+      indiceCategoria = '';
+      currentFilter = 'Todas';
+      filteredProducts = [...products];
+      renderProductsByCategory(filteredProducts);
+    };
   }
   if (botonContacto) {
     botonContacto.classList.toggle("oculto");
   }
 
+}
