@@ -865,6 +865,9 @@ const camposTocados = {
   'comment': false
 };
 
+// Nuevo: para saber si el usuario intentó enviar el formulario
+let intentoEnviar = false;
+
 // Validación en tiempo real: mensajes debajo de cada campo y borde rojo si hay error
 function validarCamposEnTiempoReal() {
   const campos = [
@@ -883,8 +886,9 @@ function validarCamposEnTiempoReal() {
     let valor = el.value.trim();
     let errorMsg = '';
 
+    // Solo mostrar error si el usuario ya tocó el campo (blur/change) o intentó enviar
     if (!campo.validar(valor)) {
-      if (camposTocados[campo.id]) {
+      if (camposTocados[campo.id] || intentoEnviar) {
         errorMsg = campo.mensaje;
         hayError = true;
         el.style.borderColor = 'red';
@@ -898,21 +902,22 @@ function validarCamposEnTiempoReal() {
       validacionCampos[campo.id] = true;
     }
 
-    // Mensaje debajo del campo, pegado
-    let errorDiv = el.nextElementSibling;
-    if (!errorDiv || !errorDiv.classList.contains('campo-error')) {
+    // Mensaje debajo del campo, dentro del div.inputs
+    let parentInputs = el.closest('.inputs') || el.parentNode;
+    let errorDiv = parentInputs.querySelector('.campo-error');
+    if (!errorDiv) {
       errorDiv = document.createElement('div');
       errorDiv.className = 'campo-error';
-      el.parentNode.insertBefore(errorDiv, el.nextSibling);
+      parentInputs.appendChild(errorDiv);
     }
     errorDiv.textContent = errorMsg;
     errorDiv.style.display = errorMsg ? 'block' : 'none';
   });
 
-  // Validar dirección solo si ya se tocó (pero no en cada input)
+  // Validar dirección solo si ya se tocó (blur/change) o intentó enviar
   validarDireccionSolo();
 
-  // Validar carrito solo si ya se tocó algún campo del carrito
+  // Validar carrito solo si el usuario intentó enviar
   let carritoErrorDiv = document.getElementById('carrito-error');
   if (!carritoErrorDiv) {
     carritoErrorDiv = document.createElement('div');
@@ -922,9 +927,7 @@ function validarCamposEnTiempoReal() {
     const form = document.getElementById('pedido-form') || document.getElementById('cart');
     form.appendChild(carritoErrorDiv);
   }
-  // Solo mostrar error si el usuario ya tocó algún campo del formulario
-  const algunCampoTocado = Object.values(camposTocados).some(v => v);
-  if (algunCampoTocado && Object.keys(cart).length === 0) {
+  if ((intentoEnviar) && Object.keys(cart).length === 0) {
     carritoErrorDiv.textContent = 'Agregue productos al carrito.';
     hayError = true;
     validacionCampos['carrito'] = false;
@@ -956,13 +959,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById(id);
     if (el) {
       if (id === 'address') {
-        // Solo marcar como tocado y validar al perder foco
+        // Solo marcar como tocado y validar al perder foco o cambiar
         el.addEventListener('blur', function() {
           camposTocados['address'] = true;
           validarDireccionSolo();
         });
+        el.addEventListener('change', function() {
+          camposTocados['address'] = true;
+          validarDireccionSolo();
+        });
       } else {
-        el.addEventListener('input', function() {
+        el.addEventListener('blur', function() {
           camposTocados[id] = true;
           validarCamposEnTiempoReal();
         });
@@ -986,9 +993,10 @@ function validarDireccionSolo() {
   if (valor.toUpperCase() === 'A ACORDAR') {
     direccionValidaGoogle = true;
   }
+  // Solo mostrar error si el usuario ya tocó el campo (blur/change) o intentó enviar
   if (!direccionValidaGoogle) {
-    if (camposTocados['address']) {
-      errorMsg = 'Seleccione una dirección válida de la lista de Google Maps.';
+    if (camposTocados['address'] || intentoEnviar) {
+      errorMsg = 'Seleccione una dirección válida.';
       el.style.borderColor = 'red';
       validacionCampos['address'] = false;
     } else {
@@ -999,12 +1007,13 @@ function validarDireccionSolo() {
     el.style.borderColor = '';
     validacionCampos['address'] = true;
   }
-  // Mensaje debajo del campo, pegado
-  let errorDiv = el.nextElementSibling;
-  if (!errorDiv || !errorDiv.classList.contains('campo-error')) {
+  // Mensaje debajo del campo, dentro del div.inputs
+  let parentInputs = el.closest('.inputs') || el.parentNode;
+  let errorDiv = parentInputs.querySelector('.campo-error');
+  if (!errorDiv) {
     errorDiv = document.createElement('div');
     errorDiv.className = 'campo-error';
-    el.parentNode.insertBefore(errorDiv, el.nextSibling);
+    parentInputs.appendChild(errorDiv);
   }
   errorDiv.textContent = errorMsg;
   errorDiv.style.display = errorMsg ? 'block' : 'none';
@@ -1019,9 +1028,11 @@ function todosCamposValidados() {
 }
 
 function enviarPedido() {
-  const btn = document.getElementById('submit-btn');
-  if (!todosCamposValidados(btn)) return;
+  intentoEnviar = true;
+  validarCamposEnTiempoReal();
+  if (!todosCamposValidados()) return;
 
+  const btn = document.getElementById('submit-btn');
   bloquearBoton(btn);
 
   let totalProductos = 0;
@@ -1086,6 +1097,8 @@ function enviarPedido() {
     document.getElementById('pickup-day').value = '';
 
     desbloquearBoton(btn);
+    intentoEnviar = false; // reset para el próximo pedido
+    validarCamposEnTiempoReal(); // limpiar errores visuales
   });
 }
 
@@ -1136,7 +1149,6 @@ function crearModalDescripcion(prod) {
   price.style.marginBottom = '1.2rem';
   price.textContent = `$${prod.Precio}`;
   desc.className = 'modal-price';
-
 
   // Controles de carrito
   const controls = document.createElement('div');
@@ -1350,7 +1362,6 @@ const botonContacto = document.getElementById("btn-contacto-tienda");
   if (botonContacto) {
     botonContacto.classList.toggle("oculto");
   }
-}
   if(clickHeader){
     clickHeader.onclick = () => {
     indiceCategoria = '';
