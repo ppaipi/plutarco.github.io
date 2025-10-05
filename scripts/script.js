@@ -924,6 +924,31 @@ function validarCamposEnTiempoReal() {
       validacionCampos[campo.id] = true;
     }
 
+    // --- CAMBIO SOLO PARA pickup-day ---
+    if (campo.id === 'pickup-day') {
+      // Buscar el div.inputs más cercano al select (si existe)
+      let parentInputs = el.closest('.inputs');
+      // Si no hay, crear uno alrededor del select
+      if (!parentInputs) {
+        // Si el select no está dentro de un div.inputs, lo envolvemos
+        let wrapper = document.createElement('div');
+        wrapper.className = 'inputs';
+        el.parentNode.insertBefore(wrapper, el);
+        wrapper.appendChild(el);
+        parentInputs = wrapper;
+      }
+      let errorDiv = parentInputs.querySelector('.campo-error');
+      if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.className = 'campo-error';
+        parentInputs.appendChild(errorDiv);
+      }
+      errorDiv.textContent = mostrarError ? errorMsg : '';
+      errorDiv.style.display = mostrarError ? 'block' : 'none';
+      return; // No seguir con el resto para pickup-day
+    }
+    // --- FIN CAMBIO pickup-day ---
+
     // Mensaje debajo del campo, dentro del div.inputs
     let parentInputs = el.closest('.inputs') || el.parentNode;
     let errorDiv = parentInputs.querySelector('.campo-error');
@@ -932,7 +957,6 @@ function validarCamposEnTiempoReal() {
       errorDiv.className = 'campo-error';
       parentInputs.appendChild(errorDiv);
     }
-    // Solo mostrar el mensaje si corresponde y el campo no es válido
     errorDiv.textContent = mostrarError ? errorMsg : '';
     errorDiv.style.display = mostrarError ? 'block' : 'none';
   });
@@ -969,10 +993,7 @@ function validarCamposEnTiempoReal() {
   return !hayError;
 }
 
-// Ya no se usa en el submit, pero se deja para compatibilidad
-function validarCampos(btn) {
-  return validarCamposEnTiempoReal();
-}
+// ...existing code...
 
 // Asignar eventos a los campos para validar en tiempo real
 document.addEventListener('DOMContentLoaded', () => {
