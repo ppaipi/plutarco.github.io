@@ -887,8 +887,11 @@ function validarCamposEnTiempoReal() {
     let errorMsg = '';
 
     // Solo mostrar error si el usuario ya tocó el campo (blur/change) o intentó enviar
-    if (!campo.validar(valor)) {
-      if (camposTocados[campo.id] || intentoEnviar) {
+    let mostrarError = camposTocados[campo.id] || intentoEnviar;
+    let esValido = campo.validar(valor);
+
+    if (!esValido) {
+      if (mostrarError) {
         errorMsg = campo.mensaje;
         hayError = true;
         el.style.borderColor = 'red';
@@ -910,8 +913,9 @@ function validarCamposEnTiempoReal() {
       errorDiv.className = 'campo-error';
       parentInputs.appendChild(errorDiv);
     }
-    errorDiv.textContent = errorMsg;
-    errorDiv.style.display = errorMsg ? 'block' : 'none';
+    // Solo mostrar el mensaje si corresponde y el campo no es válido
+    errorDiv.textContent = (mostrarError && !esValido) ? errorMsg : '';
+    errorDiv.style.display = (mostrarError && !esValido) ? 'block' : 'none';
   });
 
   // Validar dirección solo si ya se tocó (blur/change) o intentó enviar
@@ -1098,7 +1102,6 @@ function enviarPedido() {
 
     desbloquearBoton(btn);
     intentoEnviar = false; // reset para el próximo pedido
-    validarCamposEnTiempoReal(); // limpiar errores visuales
   });
 }
 
