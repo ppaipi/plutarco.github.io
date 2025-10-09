@@ -762,6 +762,7 @@ function initAutocomplete() {
   autocomplete.setBounds(bounds);
   autocomplete.setOptions({ strictBounds: false }); 
 
+  // Cuando el usuario elige una dirección de la lista
   autocomplete.addListener('place_changed', () => {
     const place = autocomplete.getPlace && autocomplete.getPlace();
     if (place && place.formatted_address && place.geometry) {
@@ -769,7 +770,7 @@ function initAutocomplete() {
       camposTocados['address'] = true;
       validarDireccionSolo();
 
-      // Espera 2 segundos antes de llamar a la API (ahorra solicitudes)
+      // Espera 2 segundos antes de llamar a la API (evita múltiples llamadas)
       clearTimeout(timeoutEnvio);
       timeoutEnvio = setTimeout(() => {
         const destino = place.formatted_address.trim();
@@ -784,24 +785,33 @@ function initAutocomplete() {
 }
 
 function actualizarEnvioConCache(destino) {
-  // No recalcula si la dirección no cambió
+  // Si el destino es el mismo que el último calculado y tenemos caché, reutilizamos el resultado
   if (destino === ultimaDireccionConsultada && ultimoResultadoEnvio) {
     const { costo, msg, color } = ultimoResultadoEnvio;
-    mostrarResultadoEnvio(costo, msg, color);
+    costoEnvioActual = costo;
+    mostrarMensajeEnvio(msg, color);
+    updateCart();
     return;
   }
 
-  // 🔹 Calcular subtotal manualmente (en lugar de calcularSubtotal())
+  // Calcular subtotal igual que en actualizarEnvio()
   let subtotal = 0;
   for (let codigo in cart) {
     const producto = products.find(p => p.Codigo === codigo);
-    if (producto) subtotal += producto.Precio * cart[codigo];
+    const cantidad = cart[codigo];
+    subtotal += producto.Precio * cantidad;
   }
 
-  calcularCostoEnvio(destino, subtotal, (costo, msg, color) => {
+  // Llamar a la API solo si no está en caché
+  calcularCostoEnvio(destino, subtotal, function(costo, mensaje, color) {
+    // Guardar en caché
     ultimaDireccionConsultada = destino;
-    ultimoResultadoEnvio = { costo, msg, color };
-    mostrarResultadoEnvio(costo, msg, color);
+    ultimoResultadoEnvio = { costo, msg: mensaje, color };
+
+    // Mostrar resultado
+    costoEnvioActual = costo;
+    mostrarMensajeEnvio(mensaje, color);
+    updateCart();
   });
 }
 
@@ -862,25 +872,22 @@ function calcularCostoEnvio(destino, subtotal, callback) {
   });
 }
 
+
 function actualizarEnvio() {
   const input = document.getElementById('address');
-  const destino = (autocomplete && autocomplete.getPlace() && autocomplete.getPlace().formatted_address)
-    ? autocomplete.getPlace().formatted_address
-    : input.value;
-
+  const destino = (autocomplete && autocomplete.getPlace() && autocomplete.getPlace().formatted_address) ? autocomplete.getPlace().formatted_address : input.value;
   let subtotal = 0;
   for (let codigo in cart) {
     const producto = products.find(p => p.Codigo === codigo);
-    if (producto) subtotal += producto.Precio * cart[codigo];
+    const cantidad = cart[codigo];
+    subtotal += producto.Precio * cantidad;
   }
-
   calcularCostoEnvio(destino, subtotal, function(costo, mensaje, color) {
     costoEnvioActual = costo;
     mostrarMensajeEnvio(mensaje, color);
     updateCart();
   });
 }
-
 
 
 function mostrarMensajeEnvio(texto, color) {
