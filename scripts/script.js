@@ -33,7 +33,7 @@ let direccionValidaGoogle = false; // Variable global para saber si la direcció
 
 async function loadProducts() {
   try {
-    const res = await fetch('../media/articulos_filtrados.xlsx?cacheBust=' + Date.now());
+    const res = await fetch('../media/articulos.xlsx?cacheBust=' + Date.now());
     const data = await res.arrayBuffer();
 
     // Leer el Excel
