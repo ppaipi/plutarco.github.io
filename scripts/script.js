@@ -762,7 +762,6 @@ function initAutocomplete() {
   autocomplete.setBounds(bounds);
   autocomplete.setOptions({ strictBounds: false }); 
 
-  // Cuando el usuario elige una dirección de la lista
   autocomplete.addListener('place_changed', () => {
     const place = autocomplete.getPlace && autocomplete.getPlace();
     if (place && place.formatted_address && place.geometry) {
@@ -770,7 +769,7 @@ function initAutocomplete() {
       camposTocados['address'] = true;
       validarDireccionSolo();
 
-      // Espera 2 segundos antes de llamar a la API (evita múltiples llamadas)
+      // Espera 2 segundos antes de llamar a la API (ahorra solicitudes)
       clearTimeout(timeoutEnvio);
       timeoutEnvio = setTimeout(() => {
         const destino = place.formatted_address.trim();
@@ -785,14 +784,20 @@ function initAutocomplete() {
 }
 
 function actualizarEnvioConCache(destino) {
-  // No recalcula si es la misma dirección que antes
+  // No recalcula si la dirección no cambió
   if (destino === ultimaDireccionConsultada && ultimoResultadoEnvio) {
     const { costo, msg, color } = ultimoResultadoEnvio;
     mostrarResultadoEnvio(costo, msg, color);
     return;
   }
 
-  const subtotal = calcularSubtotal(); // función existente
+  // 🔹 Calcular subtotal manualmente (en lugar de calcularSubtotal())
+  let subtotal = 0;
+  for (let codigo in cart) {
+    const producto = products.find(p => p.Codigo === codigo);
+    if (producto) subtotal += producto.Precio * cart[codigo];
+  }
+
   calcularCostoEnvio(destino, subtotal, (costo, msg, color) => {
     ultimaDireccionConsultada = destino;
     ultimoResultadoEnvio = { costo, msg, color };
@@ -857,22 +862,25 @@ function calcularCostoEnvio(destino, subtotal, callback) {
   });
 }
 
-
 function actualizarEnvio() {
   const input = document.getElementById('address');
-  const destino = (autocomplete && autocomplete.getPlace() && autocomplete.getPlace().formatted_address) ? autocomplete.getPlace().formatted_address : input.value;
+  const destino = (autocomplete && autocomplete.getPlace() && autocomplete.getPlace().formatted_address)
+    ? autocomplete.getPlace().formatted_address
+    : input.value;
+
   let subtotal = 0;
   for (let codigo in cart) {
     const producto = products.find(p => p.Codigo === codigo);
-    const cantidad = cart[codigo];
-    subtotal += producto.Precio * cantidad;
+    if (producto) subtotal += producto.Precio * cart[codigo];
   }
+
   calcularCostoEnvio(destino, subtotal, function(costo, mensaje, color) {
     costoEnvioActual = costo;
     mostrarMensajeEnvio(mensaje, color);
     updateCart();
   });
 }
+
 
 
 function mostrarMensajeEnvio(texto, color) {
