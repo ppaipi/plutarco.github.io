@@ -5,15 +5,6 @@ import unicodedata
 import pandas as pd
 from PIL import Image
 
-# ---------------------------
-# Config
-# ---------------------------
-base_dir = os.path.dirname(os.path.abspath(__file__))
-imagenes_dir = os.path.join(base_dir, "media/PRODUCTOS")
-json_habilitados = os.path.join(base_dir, "media/Habilitados.json")
-excel_original = os.path.join(base_dir, "media/articulos.xlsx")
-excel_filtrado = os.path.join(base_dir, "media/articulos_filtrados.xlsx")
-excel_facebook = os.path.join(base_dir, "media/articulos_facebook.csv")
 
 # ---------------------------
 # Util: normalizar códigos
@@ -194,20 +185,34 @@ def generar_excel_facebook(excel_filtrado_path, ranking_path, output_path, use_s
 # MAIN
 # ---------------------------
 if __name__ == "__main__":
+    # Rutas absolutas (ajustá si lo necesitás)
+    excel_original = "/home/felipe/Documents/plutarco.github.io/media/articulos.xlsx"
     excel_filtrado = "/home/felipe/Documents/plutarco.github.io/media/articulos_filtrados.xlsx"
     ranking_csv = "/home/felipe/Documents/plutarco.github.io/media/Ranking.csv"
     excel_facebook = "/home/felipe/Documents/plutarco.github.io/media/articulos_facebook.csv"
+    imagenes_dir = "/home/felipe/Documents/plutarco.github.io/media/PRODUCTOS"
+    json_habilitados = "/home/felipe/Documents/plutarco.github.io/media/Habilitados.json"
 
-    # Paso 1: generar Excel filtrado a partir de habilitados.json
+    print("🌀 Paso 1: Convirtiendo imágenes a JPG (reemplazo si es necesario)...")
+    convertir_a_jpg_reemplazo(imagenes_dir)
+
+    print("🌀 Paso 2: Generando JSON de productos habilitados...")
+    nombres_json = generar_json(imagenes_dir, json_habilitados)
+    print(f"✅ JSON generado con {len(nombres_json)} productos en {json_habilitados}")
+
+    print("🌀 Paso 3: Filtrando Excel según habilitados.json...")
     df_fil = filtrar_excel_por_json(excel_original, json_habilitados, excel_filtrado)
     print(f"✅ Excel filtrado guardado en: {excel_filtrado} (filas: {len(df_fil)})")
 
-    # Paso 2: generar CSV para Facebook usando Ranking.csv
+    print("🌀 Paso 4: Generando CSV para catálogo de Facebook...")
     generar_excel_facebook(
-        excel_filtrado,   # path al excel filtrado
-        ranking_csv,      # path al Ranking.csv
-        excel_facebook,   # salida final
+        excel_filtrado,   # Excel filtrado
+        ranking_csv,      # Ranking.csv
+        excel_facebook,   # CSV de salida
         use_sequential=False  # False → usa Ranking.csv | True → IDs secuenciales
     )
+
+    print("\n🎯 Proceso completado correctamente.")
+
 
 
