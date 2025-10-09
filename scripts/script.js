@@ -743,6 +743,10 @@ function validarDia(event) {
 }
 
 
+let timeoutEnvio; // para evitar llamadas repetidas
+let ultimaDireccionConsultada = "";
+let ultimoResultadoEnvio = null;
+
 function initAutocomplete() {
   const input = document.getElementById('address');
   const bounds = new google.maps.LatLngBounds(
@@ -758,21 +762,43 @@ function initAutocomplete() {
   autocomplete.setBounds(bounds);
   autocomplete.setOptions({ strictBounds: false }); 
 
-
+  // Cuando el usuario elige una dirección de la lista
   autocomplete.addListener('place_changed', () => {
     const place = autocomplete.getPlace && autocomplete.getPlace();
     if (place && place.formatted_address && place.geometry) {
       direccionValidaGoogle = true;
+      camposTocados['address'] = true;
+      validarDireccionSolo();
+
+      // Espera 2 segundos antes de llamar a la API (evita múltiples llamadas)
+      clearTimeout(timeoutEnvio);
+      timeoutEnvio = setTimeout(() => {
+        const destino = place.formatted_address.trim();
+        actualizarEnvioConCache(destino);
+      }, 2000);
+
+      updateCart();
     } else {
       direccionValidaGoogle = false;
     }
-    camposTocados['address'] = true;
-    validarDireccionSolo();
-    actualizarEnvio();
-    updateCart();
   });
 }
 
+function actualizarEnvioConCache(destino) {
+  // No recalcula si es la misma dirección que antes
+  if (destino === ultimaDireccionConsultada && ultimoResultadoEnvio) {
+    const { costo, msg, color } = ultimoResultadoEnvio;
+    mostrarResultadoEnvio(costo, msg, color);
+    return;
+  }
+
+  const subtotal = calcularSubtotal(); // función existente
+  calcularCostoEnvio(destino, subtotal, (costo, msg, color) => {
+    ultimaDireccionConsultada = destino;
+    ultimoResultadoEnvio = { costo, msg, color };
+    mostrarResultadoEnvio(costo, msg, color);
+  });
+}
 
 function calcularCostoEnvio(destino, subtotal, callback) {
   if (!destino || destino.trim().toUpperCase() === 'A ACORDAR') {
@@ -781,26 +807,32 @@ function calcularCostoEnvio(destino, subtotal, callback) {
   }
 
   const service = new google.maps.DistanceMatrixService();
+
   service.getDistanceMatrix({
     origins: [LOCAL_ADDRESS],
     destinations: [destino],
     travelMode: 'DRIVING'
   }, (response, status) => {
-    if (status !== 'OK' || !response.rows[0] || !response.rows[0].elements[0]) {
+    if (status !== 'OK' || !response.rows?.[0]?.elements?.[0]) {
       callback(0, 'Error al calcular distancia.', 'red');
       return;
     }
+
     const element = response.rows[0].elements[0];
     if (element.status !== 'OK') {
       callback(0, 'No se puede entregar a esa dirección.', 'red');
       return;
     }
+
     const km = element.distance.value / 1000;
     const kmRedondeado = Math.ceil(km * 10) / 10;
+
     let costo = 0;
     let msg = '';
     let color = 'green';
     let costo_oferta = 0;
+
+    // Rangos de costo
     if (km <= 1) costo_oferta = 1000;
     else if (km <= 2) costo_oferta = 1500;
     else if (km <= 3) costo = 1500;
@@ -812,17 +844,19 @@ function calcularCostoEnvio(destino, subtotal, callback) {
     else if (km <= 9) costo = 6500;
     else if (km <= 10) costo = 7000;
     else {
-      msg = `🛑 Fuera del rango de entrega (distancia ${kmRedondeado}km) <a href=\"https://wa.me/5491150168920?text=Hola! Vengo de la pagina web\" target=\"_blank\">Escribinos y acordamos un precio!</a>`;
+      msg = `🛑 Fuera del rango de entrega (distancia ${kmRedondeado} km) <a href="https://wa.me/5491150168920?text=Hola! Vengo de la página web" target="_blank">Escribinos y acordamos un precio!</a>`;
       color = 'red';
       costo = 0;
     }
+
     if ((subtotal >= cantidadMinima) || (costo == 0)) {
-      callback(0, msg || `🚚 ENVÍO GRATIS <del>$${costo+costo_oferta}</del> ➜ SIN COSTO`, color);
+      callback(0, msg || `🚚 ENVÍO GRATIS <del>$${costo + costo_oferta}</del> ➜ SIN COSTO`, color);
     } else {
       callback(costo, msg || `🚚 Costo envío: $${costo} (envío gratis compras superiores a $${cantidadMinima})`, color);
     }
   });
 }
+
 
 function actualizarEnvio() {
   const input = document.getElementById('address');
