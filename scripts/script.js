@@ -394,7 +394,7 @@ function renderProductsByCategory(productos) {
     if (cat === "Productos Sueltos") {
       const subTitle = document.createElement('span');
       subTitle.className = 'category-subtitle';
-      subTitle.textContent = "Todos nuestros productos vienen fraccionados en porciones de 100 g. Si necesitas más, solo agregue mas unidades.";
+      subTitle.textContent = "Todos nuestros productos vienen fraccionados en porciones. Si necesitas más, solo agregue mas unidades.";
       h2.appendChild(subTitle);
     }
 
