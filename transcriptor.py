@@ -186,12 +186,12 @@ def generar_excel_facebook(excel_filtrado_path, ranking_path, output_path, use_s
 # ---------------------------
 if __name__ == "__main__":
     # Rutas absolutas (ajustá si lo necesitás)
-    excel_original = "/home/felipe/Documents/plutarco.github.io/media/articulos.xlsx"
-    excel_filtrado = "/home/felipe/Documents/plutarco.github.io/media/articulos_filtrados.xlsx"
-    ranking_csv = "/home/felipe/Documents/plutarco.github.io/media/Ranking.csv"
-    excel_facebook = "/home/felipe/Documents/plutarco.github.io/media/articulos_facebook.csv"
-    imagenes_dir = "/home/felipe/Documents/plutarco.github.io/media/PRODUCTOS"
-    json_habilitados = "/home/felipe/Documents/plutarco.github.io/media/Habilitados.json"
+    excel_original = "/home/felipe/Documentos/plutarco.github.io/media/articulos.xlsx"
+    excel_filtrado = "/home/felipe/Documentos/plutarco.github.io/media/articulos_filtrados.xlsx"
+    ranking_csv = "/home/felipe/Documentos/plutarco.github.io/media/Ranking.csv"
+    excel_facebook = "/home/felipe/Documentos/plutarco.github.io/media/articulos_facebook.csv"
+    imagenes_dir = "/home/felipe/Documentos/plutarco.github.io/media/PRODUCTOS"
+    json_habilitados = "/home/felipe/Documentos/plutarco.github.io/media/Habilitados.json"
 
     print("🌀 Paso 1: Convirtiendo imágenes a JPG (reemplazo si es necesario)...")
     convertir_a_jpg_reemplazo(imagenes_dir)
