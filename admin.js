@@ -118,6 +118,7 @@ function verDetalle(i) {
   `;
 }
 
+
 function cerrarDetalle() {
   overlay.classList.remove("active");
 }
