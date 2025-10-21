@@ -153,11 +153,11 @@ detalle.innerHTML = `
         : "No especificada"
     }</p>
 
-    ${editableField(i, "Nombre", `🏷️ ${o.Nombre}`)}
-    ${editableField(i, "Email", `📧 ${o.Email}`)}
-    ${editableField(i, "Telefono", `📞 ${o.Telefono}`)}
-    ${editableField(i, "Direccion", `📍 ${o.Direccion}`)}
-    ${editableField(i, "Comentario", `💬 ${o.Comentario || "-"}`)}
+    ${editableField(i, "Nombre", o.Nombre, "text", "🏷️ Nombre")}
+    ${editableField(i, "Email", o.Email, "text", "📧 Email")}
+    ${editableField(i, "Telefono", o.Telefono, "text", "📞 Teléfono")}
+    ${editableField(i, "Direccion", o.Direccion, "text", "📍 Dirección")}
+    ${editableField(i, "Comentario", o.Comentario || "-", "text", "💬 Comentario")}
 
     <h4>💵 Resumen del Pedido</h4>
     <table class="resumen-precios" style="width:100%; border-collapse:collapse;">
@@ -177,6 +177,7 @@ detalle.innerHTML = `
     </div>
   </div>
 `;
+
 
 }
 
