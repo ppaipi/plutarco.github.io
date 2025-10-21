@@ -1195,6 +1195,7 @@ function enviarPedido() {
     document.getElementById('phone').value = '';
     document.getElementById('address').value = '';
     document.getElementById('pickup-day').value = '';
+    document.getElementById('comment').value = '';
 
     desbloquearBoton(btn);
     intentoEnviar = false; // reset para el próximo pedido

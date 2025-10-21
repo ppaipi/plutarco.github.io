@@ -89,7 +89,7 @@ function verDetalle(i) {
       const img = `/media/PRODUCTOS/${codigo}.jpg`;
       return `
         <div class="producto">
-          <img src="${img}" onerror="this.src='/media/PRODUCTOS/default.jpg'">
+          <img src="${img}" onerror="this.src='/media/PRODUCTOS/placeholder.jpg'">
           <div class="producto-info">
             <p><strong>${nombre}</strong></p>
             <p>${unidades} x $${precio}</p>
