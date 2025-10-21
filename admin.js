@@ -160,14 +160,26 @@ detalle.innerHTML = `
     }</p>
 
     ${editableField(i, "🏷️ Nombre", o.Nombre, "text", "Nombre")}
-    ${editableLinkField(i, "📧 Email", o.Email, "mailto:" + o.Email)}
+    // Email
+    ${editableLinkField(i, "Email", "📧 Email", o.Email, o.Email ? "mailto:" + encodeURIComponent(o.Email) : "#")}
+
+    // Teléfono (WhatsApp)
     ${editableLinkField(
       i,
+      "Telefono",
       "📞 Teléfono",
       o.Telefono || "-",
       o.Telefono ? "https://wa.me/" + String(o.Telefono).replace(/\D/g, "") : "#"
     )}
-    ${editableLinkField(i, "📍 Dirección", o.Direccion, "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(o.Direccion))}
+
+    // Dirección (Google Maps)
+    ${editableLinkField(
+      i,
+      "Direccion",
+      "📍 Dirección",
+      o.Direccion || "-",
+      o.Direccion ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(o.Direccion) : "#"
+    )}
     ${editableField(i, "💬 Comentario", o.Comentario || "-", "text", "Comentario")}
 
     <h4>💵 Resumen del Pedido</h4>
@@ -204,17 +216,21 @@ function editableField(row, name, value, type = "text") {
     </p>
   `;
 }
-function editableLinkField(row, label, value, href, type = "text") {
+function editableLinkField(row, columnName, label, value, href, type = "text") {
+  // id seguro (sin espacios ni caracteres raros)
+  const safeId = `val-${row}-${String(columnName).replace(/[^a-z0-9_-]/gi, '_')}`;
+
   return `
     <p>
       <strong>${label}:</strong>
-      <a id="val-${row}-${label}" href="${href}" target="_blank" style="color: var(--accent); text-decoration: none;">
-        ${value}
+      <a id="${safeId}" href="${href}" target="_blank" style="color: var(--accent); text-decoration: none;">
+        ${value || '-'}
       </a>
-      <button class="buttom_edit" onclick="editarCampo(${row}, '${label.replace(/[📧📞📍]/g,'').trim()}', '${type}')">✏️</button>
+      <button class="buttom_edit" onclick="editarCampo(${row}, ${JSON.stringify(columnName)}, ${JSON.stringify(type)})">✏️</button>
     </p>
   `;
 }
+
 
 
 async function editarCampo(row, name, type) {
