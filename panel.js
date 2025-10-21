@@ -4,7 +4,6 @@ const tableHead = document.querySelector("#orders-table thead");
 const tableBody = document.querySelector("#orders-table tbody");
 const overlay = document.getElementById("overlay");
 const productosList = document.getElementById("productos-list");
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec";
 document.getElementById("login-btn").onclick = login;
 document.getElementById("logout-btn").onclick = logout;
 document.getElementById("export-btn").onclick = exportExcel;
