@@ -146,8 +146,8 @@ detalle.innerHTML = `
   <div class="detalle-scroll">
     <h3>🛍️ Pedido de ${o.Nombre}</h3>
 
-    <p><strong>📦 Fecha de envío:</strong> ${new Date(o["Hora de envio"]).toLocaleString("es-AR")} &nbsp; • &nbsp;
-    <strong>🚚 Fecha de entrega:</strong> ${
+    <p><strong>📦 Fecha de envío:</strong> ${new Date(o["Hora de envio"]).toLocaleString("es-AR")}</p>
+    <p><strong>🚚 Fecha de entrega:</strong> ${
       o["dia de entrega"]
         ? new Date(o["dia de entrega"]).toLocaleDateString("es-AR")
         : "No especificada"
