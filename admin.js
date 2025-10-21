@@ -92,8 +92,8 @@ function verDetalle(i) {
         <p>${p.unidades} x $${p.total}</p>
       </div>
       <div class="producto-actions">
-        <button onclick="editarProducto(${i}, ${idx})">✏️</button>
-        <button onclick="eliminarProducto(${i}, '${p.codigo}')">🗑️</button>
+        <button class="buttom_edit" onclick="editarProducto(${i}, ${idx})">✏️</button>
+        <button class="buttom_edit" onclick="eliminarProducto(${i}, '${p.codigo}')">🗑️</button>
       </div>
     </div>
   `).join("");
