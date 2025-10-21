@@ -191,3 +191,11 @@ tbody tr:hover { background: #f0fdfb; }
   gap: 8px;
   font-size: 15px;
 }
+
+.entregado {
+  background-color: #e9fbe9 !important;
+  color: #555;
+}
+.entregado td {
+  opacity: 0.7;
+}

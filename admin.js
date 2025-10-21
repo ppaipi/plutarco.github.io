@@ -67,24 +67,24 @@ function verDetalle(i) {
   overlay.classList.add("active");
 
   const productos = (o.Productos || "")
-    .split(", ")
-    .map(p => {
-      const match = p.match(/^(.*?) x(\d+) \(\$(\d+)\)$/);
-      if (!match) return null;
-      const [_, nombre, unidades, precio] = match;
-      const codigo = nombre.split(" ")[0];
-      const img = `/media/PRODUCTOS/${codigo}.jpg`;
-      return `
-        <div class="producto">
-          <img src="${img}" onerror="this.src='/media/PRODUCTOS/placeholder.jpg'">
-          <div class="producto-info">
-            <p><strong>${nombre}</strong></p>
-            <p>${unidades} x $${precio}</p>
-          </div>
-        </div>`;
-    })
-    .filter(Boolean)
-    .join("");
+  .split(", ")
+  .map(p => {
+    const [codigo, nombre, unidades, precio] = p.split("|");
+    if (!codigo) return null;
+    const img = `/media/PRODUCTOS/${codigo}.jpg`;
+    return `
+      <div class="producto">
+        <img src="${img}" onerror="this.src='/media/PRODUCTOS/placeholder.jpg'">
+        <div class="producto-info">
+          <p><strong>${nombre}</strong></p>
+          <p>${unidades} x $${precio}</p>
+        </div>
+      </div>
+    `;
+  })
+  .filter(Boolean)
+  .join("");
+
 
   detalle.innerHTML = `
     <button class="close-btn" onclick="cerrarDetalle()">✖</button>
