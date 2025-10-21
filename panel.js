@@ -1,10 +1,10 @@
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec";
-
 const loginContainer = document.getElementById("login-container");
 const panel = document.getElementById("panel");
 const tableHead = document.querySelector("#orders-table thead");
 const tableBody = document.querySelector("#orders-table tbody");
-
+const overlay = document.getElementById("overlay");
+const productosList = document.getElementById("productos-list");
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec";
 document.getElementById("login-btn").onclick = login;
 document.getElementById("logout-btn").onclick = logout;
 document.getElementById("export-btn").onclick = exportExcel;
@@ -44,9 +44,37 @@ function renderTable(orders) {
   tableHead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join("")}<th>Acciones</th></tr>`;
   tableBody.innerHTML = orders.map((o, i) => `
     <tr>
-      ${headers.map(h => `<td contenteditable="true" onblur="editCell(${i}, '${h}', this.textContent)">${o[h]}</td>`).join("")}
+      ${headers.map(h => `<td>${h === "productos" ? 
+        `<button onclick="verProductos('${o[h]}')">👁️ Ver</button>` : 
+        `<div contenteditable="true" onblur="editCell(${i}, '${h}', this.textContent)">${o[h]}</div>`}</td>`).join("")}
       <td><button onclick="markDelivered(${i})">✔️</button></td>
     </tr>`).join("");
+}
+
+function verProductos(texto) {
+  const items = texto.split(", ").map(t => {
+    const [nombre, resto] = t.split(" ($");
+    const unidades = nombre.match(/x(\d+)/)?.[1] || "1";
+    const nombreLimpio = nombre.replace(/x\d+$/, "").trim();
+    const codigo = nombreLimpio.split(" ")[0]; // asume que el código está al inicio
+    const precio = resto?.replace(")", "") || "0";
+    return { codigo, nombre: nombreLimpio, unidades, precio };
+  });
+
+  productosList.innerHTML = items.map(p => `
+    <div class="producto">
+      <img src="/media/PRODUCTOS/${p.codigo}.jpg" onerror="this.src='/media/PRODUCTOS/default.jpg'">
+      <div class="producto-info">
+        <p><strong>${p.nombre}</strong></p>
+        <p>x${p.unidades} — $${p.precio}</p>
+      </div>
+    </div>
+  `).join("");
+  overlay.classList.add("active");
+}
+
+function cerrarDetalle() {
+  overlay.classList.remove("active");
 }
 
 async function markDelivered(i) {
@@ -91,12 +119,9 @@ async function postData(payload) {
     method: "POST",
     body: formData
   });
-
   return res.json();
 }
 
-
-// Auto-login
 if (localStorage.getItem("logged")) {
   loginContainer.classList.add("hidden");
   panel.classList.remove("hidden");

@@ -7,37 +7,50 @@
   <link rel="stylesheet" href="admin.css" />
 </head>
 <body>
-  <div id="login-container" class="card">
-    <h2>🔒 Ingreso Administrador</h2>
-    <input type="text" id="user" placeholder="Usuario" />
-    <input type="password" id="password" placeholder="Contraseña" />
-    <button id="login-btn">Ingresar</button>
-    <p id="login-msg"></p>
+  <div id="login-container">
+    <h1>Panel Plutarco</h1>
+    <input id="user" placeholder="Usuario">
+    <input id="password" type="password" placeholder="Contraseña">
+    <button id="login-btn">Entrar</button>
+    <div id="login-msg"></div>
   </div>
 
   <div id="panel" class="hidden">
     <header>
-      <h1>📦 Panel de Pedidos</h1>
-      <div>
-        <input type="text" id="search" placeholder="Buscar pedido..." />
+      <h1>Pedidos Plutarco 🌿</h1>
+      <div class="controls">
+        <input type="text" id="search" placeholder="Buscar...">
         <select id="filter-status">
           <option value="all">Todos</option>
           <option value="TRUE">Confirmados</option>
           <option value="FALSE">Pendientes</option>
         </select>
-        <button id="export-btn">⬇️ Exportar Excel</button>
-        <button id="logout-btn" class="danger">Cerrar sesión</button>
+        <button id="export-btn">📤 Exportar</button>
+        <button id="logout-btn">🚪 Salir</button>
       </div>
     </header>
 
-    <main>
+    <div id="table-container">
       <table id="orders-table">
         <thead></thead>
         <tbody></tbody>
       </table>
-    </main>
+    </div>
   </div>
 
-  <script src="admin.js"></script>
+  <div class="overlay" id="overlay">
+    <div class="detail-card">
+      <h3>🧾 Detalle de Pedido</h3>
+      <div id="productos-list" class="productos-grid"></div>
+      <div style="text-align:right; margin-top:16px;">
+        <button onclick="cerrarDetalle()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const WEBAPP_URL = "plutarcoalmacen.com.ar"; 
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/felipech-admin/panel.js"></script>
 </body>
 </html>

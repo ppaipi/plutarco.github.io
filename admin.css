@@ -1,95 +1,177 @@
 :root {
-  --azul: #1e88e5;
-  --azul-oscuro: #0c4b91;
-  --gris: #f5f7fa;
-  --rojo: #e53935;
+    --bg: #f9fafc;
+    --card: #fff;
+    --accent: #009688;
+    --text: #333;
+    --muted: #777;
+    --border: #e5e7eb;
 }
 
 body {
-  font-family: 'Inter', sans-serif;
-  background: var(--gris);
-  margin: 0;
-  padding: 0;
-  color: #222;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
 }
 
-.card {
-  background: white;
-  max-width: 420px;
-  margin: 80px auto;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  text-align: center;
+header {
+    background: var(--card);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
-.card input {
-  width: 100%;
-  margin: 8px 0;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
+h1 {
+    font-weight: 600;
+    font-size: 20px;
+    color: var(--accent);
+}
+
+.controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+input, select, button {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    background: #fff;
 }
 
 button {
-  background: var(--azul);
-  color: white;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  margin: 6px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
-button:hover { background: var(--azul-oscuro); }
-button.danger { background: var(--rojo); }
-
-.hidden { display: none; }
-
-header {
-  background: white;
-  padding: 1rem;
-  border-bottom: 2px solid var(--azul);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.8rem;
-}
-
-header h1 {
-  margin: 0;
-}
-
-header input, header select {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
+button:hover {
+    opacity: 0.9;
 }
 
 table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    background: var(--card);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 thead {
-  background: var(--azul);
-  color: white;
+    background: var(--accent);
+    color: #fff;
 }
 
 th, td {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
 }
 
-tr:hover {
-  background: #e9f3ff;
+tbody tr:hover {
+    background: #f0fdfb;
 }
 
-td[contenteditable="true"] {
-  background: #fffce0;
+tr:last-child td {
+    border-bottom: none;
+}
+
+#login-container {
+    max-width: 320px;
+    margin: 120px auto;
+    background: var(--card);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    text-align: center;
+}
+
+#login-container input {
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+#login-msg {
+    color: red;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+#panel {
+    padding: 24px;
+}
+
+/* 💡 Popup Detalle de Pedido */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.overlay.active {
+    display: flex;
+}
+
+.detail-card {
+    background: #fff;
+    padding: 24px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    animation: fadeIn 0.3s;
+}
+
+.detail-card h3 {
+    margin-top: 0;
+    color: var(--accent);
+}
+
+.productos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.producto {
+    display: flex;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 8px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.producto img {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-right: 10px;
+}
+
+.producto-info p {
+    margin: 0;
+    font-size: 14px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
