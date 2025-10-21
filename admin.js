@@ -271,18 +271,6 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
 
 
 
-
-async function editarCampo(row, name, type) {
-  const span = document.getElementById(`val-${row}-${name}`);
-  const oldValue = span.textContent;
-  const nuevo = prompt(`Editar ${name}:`, oldValue);
-  if (nuevo !== null) {
-    span.textContent = nuevo;
-    await postData({ action: "updateCell", rowIndex: row, columnName: name, value: nuevo });
-    loadOrders();
-  }
-}
-
 async function agregarProducto(row) {
   const codigo = prompt("Código del producto:");
   const nombre = prompt("Nombre del producto:");
