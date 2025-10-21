@@ -80,12 +80,8 @@ function verDetalle(i) {
   const productos = (o.Productos || "")
     .split(", ")
     .map(p => {
-      const match = p.match(/^(.*?) x(\d+) \(\$(\d+)\)$/);
-      if (!match) return null;
-      const nombre = match[1];
-      const unidades = match[2];
-      const precio = match[3];
-      const codigo = nombre.split(" ")[0]; // primer palabra = código
+      const [codigo, nombre, unidades, precio] = p.split("|");
+      if (!codigo) return null;
       const img = `/media/PRODUCTOS/${codigo}.jpg`;
       return `
         <div class="producto">
@@ -99,6 +95,7 @@ function verDetalle(i) {
     })
     .filter(Boolean)
     .join("");
+
 
   detalle.innerHTML = `
     <p><strong>📅 Fecha:</strong> ${new Date(o["Hora de envio"]).toLocaleString()}</p>
