@@ -78,6 +78,48 @@ async function toggleCheck(i, field, checked) {
   await postData({ action: "updateCell", rowIndex: i, columnName: field, value: checked ? "TRUE" : "FALSE" });
 }
 
+function parseProductos(str) {
+  if (!str) return [];
+
+  // Formato viejo (sin |)
+  if (!str.includes("|")) {
+    return str.split(", ").map(p => {
+      const match = p.match(/(.+?) x(\d+) \(\$(\d+)\)/);
+      if (!match) return null;
+      return { codigo: "", nombre: match[1], unidades: match[2], total: match[3] };
+    }).filter(Boolean);
+  }
+
+  // Formato nuevo con posibles errores
+  return str.split(",").map(p => {
+    let parts = p.trim().split("|").map(x => x.trim()).filter(Boolean);
+
+    if (parts.length < 4) {
+      // caso raro: precio y cantidad invertidos o faltantes
+      if (parts.length === 3) {
+        const [codigo, nombre, resto] = parts;
+        const nums = resto.match(/\d+/g) || [];
+        return {
+          codigo,
+          nombre,
+          unidades: nums[1] || nums[0] || "1",
+          total: nums[0] || "0"
+        };
+      }
+      return null;
+    }
+
+    let [codigo, nombre, unidades, total] = parts;
+
+    // Detectar si precio y unidades están invertidos
+    if (parseInt(unidades) > 1000 && parseInt(total) <= 10) {
+      [unidades, total] = [total, unidades];
+    }
+
+    return { codigo, nombre, unidades, total };
+  }).filter(Boolean);
+}
+
 function verDetalle(i) {
   const o = currentOrders[i];
   overlay.classList.add("active");
@@ -98,84 +140,41 @@ function verDetalle(i) {
     </div>
   `).join("");
 
-detalle.innerHTML = `
-  <button class="cerrar" onclick="cerrarDetalle()">❌</button>
+  detalle.innerHTML = `
+    <button class="cerrar" onclick="cerrarDetalle()">❌</button>
 
-  <div class="detalle-scroll">
-    <h3>🛍️ Pedido de ${o.Nombre}</h3>
+    <div class="detalle-scroll">
+      <h3>🛍️ Pedido de ${o.Nombre}</h3>
 
-    <p><strong>📦 Fecha de envío:</strong> ${new Date(o["Hora de envio"]).toLocaleString()} &nbsp; • &nbsp; <strong>🚚 Fecha de entrega:</strong> ${o["dia de entrega"] || "No especificada"}</p>
+      <p><strong>📦 Fecha de envío:</strong> ${new Date(o["Hora de envio"]).toLocaleString()} &nbsp; • &nbsp;
+      <strong>🚚 Fecha de entrega:</strong> ${o["dia de entrega"] || "No especificada"}</p>
 
-    ${editableField(i, "Nombre", o.Nombre)}
-    ${editableField(i, "Email", o.Email)}
-    ${editableField(i, "Telefono", o.Telefono)}
-    ${editableField(i, "Direccion", o.Direccion)}
-    ${editableField(i, "Comentario", o.Comentario || "-")}
+      ${editableField(i, "Nombre", o.Nombre)}
+      ${editableField(i, "Email", o.Email)}
+      ${editableField(i, "Telefono", o.Telefono)}
+      ${editableField(i, "Direccion", o.Direccion)}
+      ${editableField(i, "Comentario", o.Comentario || "-")}
 
-    <h4>💵 Resumen del Pedido</h4>
-    <table class="resumen-precios" style="width:100%; border-collapse:collapse;">
-      <tr>
-        <td>💰 <strong>Subtotal:</strong></td>
-        <td style="text-align:right;">$${o.Subtotal}</td>
-      </tr>
-      <tr>
-        <td>🚗 <strong>Envío cobrado:</strong></td>
-        <td style="text-align:right;">$${o.Envio}</td>
-      </tr>
-      <tr>
-        <td>📦 <strong>Costo envío (real):</strong></td>
-        <td style="text-align:right;">$${o["COSTO ENVIO"] || 0}</td>
-      </tr>
-      <tr>
-        <td>💵 <strong>Total:</strong></td>
-        <td style="text-align:right;"><strong>$${o.total}</strong></td>
-      </tr>
-    </table>
+      <h4>💵 Resumen del Pedido</h4>
+      <table class="resumen-precios" style="width:100%; border-collapse:collapse;">
+        <tr><td>💰 Subtotal:</td><td style="text-align:right;">$${o.Subtotal}</td></tr>
+        <tr><td>🚗 Envío cobrado:</td><td style="text-align:right;">$${o.Envio}</td></tr>
+        <tr><td>📦 Costo envío (real):</td><td style="text-align:right;">$${o["COSTO ENVIO"] || 0}</td></tr>
+        <tr><td>💵 Total:</td><td style="text-align:right;"><strong>$${o.total}</strong></td></tr>
+      </table>
 
-    <h4>🧺 Productos</h4>
-    <div class="productos-grid">
-      ${productos}
+      <h4>🧺 Productos</h4>
+      <div class="productos-grid">${productosHTML}</div>
+
+      <div style="margin-top:12px;">
+        <button onclick="agregarProducto(${i})">➕ Agregar producto</button>
+      </div>
     </div>
-
-    <div style="margin-top:12px;">
-      <button onclick="agregarProducto(${i})">➕ Agregar producto</button>
-    </div>
-  </div>
-
-  <div class="order-status-buttons" style="padding:16px;">
-    <button class="btn-confirm ${o["confirmado y pagado"] === "TRUE" ? "active" : ""}"
-      onclick="toggleStatus(${i}, 'confirmado y pagado', this)">
-      ${o["confirmado y pagado"] === "TRUE" ? "✅ Confirmado y pagado" : "☐ Confirmar pago"}
-    </button>
-
-    <button class="btn-delivered ${o["entregado"] === "TRUE" ? "active" : ""}"
-      onclick="setDelivered(${i}, this)">
-      ${o["entregado"] === "TRUE" ? "🚚 Entregado" : "☐ Marcar como entregado"}
-    </button>
-  </div>
-`;
-
+  `;
 }
-
 
 function cerrarDetalle() {
   overlay.classList.remove("active");
-}
-
-function parseProductos(str) {
-  if (!str) return [];
-  // Detecta si es formato viejo
-  if (!str.includes("|")) {
-    return str.split(", ").map(p => {
-      const match = p.match(/(.+?) x(\d+) \(\$(\d+)\)/);
-      if (!match) return null;
-      return { codigo: "", nombre: match[1], unidades: match[2], total: match[3] };
-    }).filter(Boolean);
-  }
-  return str.split(", ").map(p => {
-    const [codigo, nombre, unidades, total] = p.split("|");
-    return { codigo, nombre, unidades, total };
-  });
 }
 
 function editableField(row, name, value, type = "text") {
@@ -211,10 +210,8 @@ async function agregarProducto(row) {
 
   await postData({ action: "updateProductos", rowIndex: row, productos });
   alert("Producto agregado");
-  setTimeout(() => {
   loadOrders();
   verDetalle(row);
-  }, 100);
 }
 
 async function editarProducto(row, idx) {
@@ -271,7 +268,6 @@ async function postData(payload) {
   return res.json();
 }
 
-// Auto-login
 if (localStorage.getItem("logged")) {
   loginContainer.classList.add("hidden");
   panel.classList.remove("hidden");
