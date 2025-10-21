@@ -213,20 +213,73 @@ function editableField(row, name, value, type = "text") {
     </p>
   `;
 }
+// 1) Generador de campo link + botón editar
 function editableLinkField(row, columnName, label, value, href, type = "text") {
-  // id seguro (sin espacios ni caracteres raros)
-  const safeId = `val-${row}-${String(columnName).replace(/[^a-z0-9_-]/gi, '_')}`;
+  // id seguro para el elemento (sin espacios ni emojis)
+  const safeId = `val_${row}_${String(columnName).replace(/[^a-z0-9_]/gi, '_')}`;
 
+  // Pasamos el safeId y hrefTemplate al onclick para que editarCampo pueda actualizar el enlace
   return `
     <p>
       <strong>${label}:</strong>
-      <a id="${safeId}" href="${href}" target="_blank" style="color: var(--accent); text-decoration: none;">
+      <a id="${safeId}" href="${href || '#'}" target="_blank" style="color: var(--accent); text-decoration: none;">
         ${value || '-'}
       </a>
-      <button class="buttom_edit" onclick="editarCampo(${row}, ${JSON.stringify(columnName)}, ${JSON.stringify(type)})">✏️</button>
+      <button class="buttom_edit" onclick="editarCampo(${row}, ${JSON.stringify(columnName)}, ${JSON.stringify(type)}, ${JSON.stringify(safeId)}, ${JSON.stringify(href)})">✏️</button>
     </p>
   `;
 }
+
+// 2) Función editarCampo que guarda y actualiza el DOM (texto + href) sin recargar
+async function editarCampo(row, columnName, type = "text", elementId = null, hrefTemplate = null) {
+  // elementId es el id del <span> o <a> en el DOM (generado por editableLinkField)
+  // hrefTemplate es el href actual (puede ser '#' o una plantilla; en la función recreamos el href según columnName)
+
+  // Si no hay elementId, le resolvemos uno por convención
+  if (!elementId) {
+    elementId = `val_${row}_${String(columnName).replace(/[^a-z0-9_]/gi, '_')}`;
+  }
+
+  const el = document.getElementById(elementId);
+  const oldValue = el ? el.textContent.trim() : "";
+
+  // Prompt para editar (podés reemplazar por modal o input inline si querés)
+  const nuevo = prompt(`Editar ${columnName}:`, oldValue === "-" ? "" : oldValue);
+  if (nuevo === null) return; // canceló
+
+  // Guardar en la hoja
+  try {
+    await postData({ action: "updateCell", rowIndex: row, columnName: columnName, value: nuevo });
+
+    // Actualizar el texto en el DOM
+    if (el) el.textContent = nuevo || "-";
+
+    // Si es uno de los campos especiales, actualizar también el href del <a>
+    // Detectamos por columnName exacto (asegurate que tus headers se llamen exactamente Email, Telefono, Direccion)
+    if (columnName === "Email") {
+      const href = nuevo ? `mailto:${encodeURIComponent(nuevo)}` : "#";
+      el.setAttribute("href", href);
+    } else if (columnName === "Telefono") {
+      const digits = String(nuevo || "").replace(/\D/g, "");
+      const href = digits ? `https://wa.me/${digits}` : "#";
+      el.setAttribute("href", href);
+    } else if (columnName === "Direccion") {
+      const href = nuevo ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nuevo)}` : "#";
+      el.setAttribute("href", href);
+    }
+
+    // Opcional: actualizar currentOrders en memoria para que la vista coincida sin recargar
+    if (currentOrders && currentOrders[row]) {
+      currentOrders[row][columnName] = nuevo;
+    }
+
+    // Mensaje corto
+    // alert("Guardado");
+  } catch (err) {
+    alert("Error al guardar: " + (err.message || err));
+  }
+}
+
 
 
 
