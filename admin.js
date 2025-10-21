@@ -97,25 +97,47 @@ function verDetalle(i) {
       </div>
     </div>
   `).join("");
+  
+detalle.innerHTML = `
+  <button class="close-btn" onclick="cerrarDetalle()">✖</button>
 
-  detalle.innerHTML = `
-    <button class="cerrar" onclick="cerrarDetalle()">❌</button>
-    <div class="detalle-scroll">
-      <p><strong>📅 Fecha:</strong> ${new Date(o["Hora de envio"]).toLocaleString()}</p>
-      ${editableField(i, "Nombre", o.Nombre)}
-      ${editableField(i, "Email", o.Email)}
-      ${editableField(i, "Telefono", o.Telefono)}
-      ${editableField(i, "Direccion", o.Direccion)}
-      ${editableField(i, "Comentario", o.Comentario || "-")}
-      <p><strong>💰 Subtotal:</strong> $${o.Subtotal}</p>
-      ${editableField(i, "Envio", o.Envio, "number")}
-      ${editableField(i, "COSTO ENVIO", o["COSTO ENVIO"], "number")}
-      <p><strong>💵 Total:</strong> $${o.total}</p>
-      <h4>🧺 Productos:</h4>
-      <div class="productos-grid">${productosHTML}</div>
-      <button onclick="agregarProducto(${i})">➕ Agregar producto</button>
-    </div>
-  `;
+  <div class="detalle-scroll">
+    <h3>🛍️ Pedido de ${o.Nombre}</h3>
+
+    <p><strong>📦 Fecha de envío:</strong> ${new Date(o["Hora de envio"]).toLocaleString()}</p>
+    <p><strong>🚚 Fecha de entrega:</strong> ${o["dia de entrega"] || "No especificada"}</p>
+
+    ${editableField(i, "Nombre", o.Nombre, "text", "🧍‍♂️ Nombre")}
+    ${editableField(i, "Email", o.Email, "email", "📧 Email")}
+    ${editableField(i, "Telefono", o.Telefono, "tel", "📞 Teléfono")}
+    ${editableField(i, "Direccion", o.Direccion, "text", "📍 Dirección")}
+    ${editableField(i, "Comentario", o.Comentario || "-", "text", "💬 Comentario")}
+
+    <h4>💵 Resumen del Pedido</h4>
+    <table class="resumen-precios">
+      <tr><td>💰 <strong>Subtotal:</strong></td><td>$${o.Subtotal}</td></tr>
+      <tr><td>🚗 ${editableField(i, "Envio", o.Envio, "number", "Envío")}</td></tr>
+      <tr><td>📦 ${editableField(i, "COSTO ENVIO", o["COSTO ENVIO"], "number", "Costo de envío")}</td></tr>
+      <tr><td>💵 <strong>Total:</strong></td><td><strong>$${o.total}</strong></td></tr>
+    </table>
+
+    <h4>🧺 Productos:</h4>
+    <div class="productos-grid">${productos}</div>
+  </div>
+
+  <div class="order-status-buttons">
+    <button class="btn-confirm ${o["confirmado y pagado"] === "TRUE" ? "active" : ""}"
+      onclick="toggleStatus(${i}, 'confirmado y pagado', this)">
+      ✅ Pedido confirmado y pagado
+    </button>
+
+    <button class="btn-delivered ${o["entregado"] === "TRUE" ? "active" : ""}"
+      onclick="toggleStatus(${i}, 'entregado', this)">
+      🚚 Pedido entregado
+    </button>
+  </div>
+`;
+
 }
 
 
@@ -172,8 +194,10 @@ async function agregarProducto(row) {
 
   await postData({ action: "updateProductos", rowIndex: row, productos });
   alert("Producto agregado");
+  setTimeout(() => {
   loadOrders();
   verDetalle(row);
+  }, 100);
 }
 
 async function editarProducto(row, idx) {
