@@ -57,7 +57,13 @@ function renderTable(orders) {
     <tr>
       <td>${new Date(o["Hora de envio"]).toLocaleString()}</td>
       <td>${o.Nombre}</td>
-      <td>${o.Direccion}</td>
+      <td>
+        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.Direccion)}" 
+          target="_blank" 
+          style="color: var(--accent); text-decoration: none;">
+          ${o.Direccion}
+        </a>
+      </td>
       <td>$${o.total}</td>
       <td>
         <input type="checkbox" ${o["confirmado y pagado"] === true || o["confirmado y pagado"] === "TRUE" ? "checked" : ""} 
@@ -146,7 +152,7 @@ detalle.innerHTML = `
   <div class="detalle-scroll">
     <h3>🛍️ Pedido de ${o.Nombre}</h3>
 
-    <p><strong>📦 Fecha de envío:</strong> ${new Date(o["Hora de envio"]).toLocaleString("es-AR")}</p>
+    <p><strong>📦 Envío de Pedido:</strong> ${new Date(o["Hora de envio"]).toLocaleString("es-AR")}</p>
     <p><strong>🚚 Fecha de entrega:</strong> ${
       o["dia de entrega"]
         ? new Date(o["dia de entrega"]).toLocaleDateString("es-AR")
@@ -154,9 +160,9 @@ detalle.innerHTML = `
     }</p>
 
     ${editableField(i, "🏷️ Nombre", o.Nombre, "text", "Nombre")}
-    ${editableField(i, "📧 Email", o.Email, "text", "Email")}
-    ${editableField(i, "📞 Telefono", o.Telefono, "text", "Teléfono")}
-    ${editableField(i, "📍 Direccion", o.Direccion, "text", "Dirección")}
+    ${editableLinkField(i, "📧 Email", o.Email, "mailto:" + o.Email)}
+    ${editableLinkField(i, "📞 Teléfono", o.Telefono, "https://wa.me/" + o.Telefono.replace(/\D/g, ""))}
+    ${editableLinkField(i, "📍 Dirección", o.Direccion, "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(o.Direccion))}
     ${editableField(i, "💬 Comentario", o.Comentario || "-", "text", "Comentario")}
 
     <h4>💵 Resumen del Pedido</h4>
@@ -193,6 +199,18 @@ function editableField(row, name, value, type = "text") {
     </p>
   `;
 }
+function editableLinkField(row, label, value, href, type = "text") {
+  return `
+    <p>
+      <strong>${label}:</strong>
+      <a id="val-${row}-${label}" href="${href}" target="_blank" style="color: var(--accent); text-decoration: none;">
+        ${value}
+      </a>
+      <button class="buttom_edit" onclick="editarCampo(${row}, '${label.replace(/[📧📞📍]/g,'').trim()}', '${type}')">✏️</button>
+    </p>
+  `;
+}
+
 
 async function editarCampo(row, name, type) {
   const span = document.getElementById(`val-${row}-${name}`);
