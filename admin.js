@@ -1,9 +1,11 @@
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec";
+
 const loginContainer = document.getElementById("login-container");
 const panel = document.getElementById("panel");
 const tableHead = document.querySelector("#orders-table thead");
 const tableBody = document.querySelector("#orders-table tbody");
 const overlay = document.getElementById("overlay");
-const productosList = document.getElementById("productos-list");
+const detalle = document.getElementById("detalle-contenido");
 
 document.getElementById("login-btn").onclick = login;
 document.getElementById("logout-btn").onclick = logout;
@@ -40,41 +42,27 @@ let currentOrders = [];
 
 function renderTable(orders) {
   currentOrders = orders;
-  const headers = Object.keys(orders[0]);
-  tableHead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join("")}<th>Acciones</th></tr>`;
+  tableHead.innerHTML = `
+    <tr>
+      <th>Fecha</th>
+      <th>Nombre</th>
+      <th>Dirección</th>
+      <th>Total</th>
+      <th>Acciones</th>
+    </tr>`;
+
   tableBody.innerHTML = orders.map((o, i) => `
     <tr>
-      ${headers.map(h => `<td>${h === "productos" ? 
-        `<button onclick="verProductos('${o[h]}')">👁️ Ver</button>` : 
-        `<div contenteditable="true" onblur="editCell(${i}, '${h}', this.textContent)">${o[h]}</div>`}</td>`).join("")}
-      <td><button onclick="markDelivered(${i})">✔️</button></td>
-    </tr>`).join("");
-}
-
-function verProductos(texto) {
-  const items = texto.split(", ").map(t => {
-    const [nombre, resto] = t.split(" ($");
-    const unidades = nombre.match(/x(\d+)/)?.[1] || "1";
-    const nombreLimpio = nombre.replace(/x\d+$/, "").trim();
-    const codigo = nombreLimpio.split(" ")[0]; // asume que el código está al inicio
-    const precio = resto?.replace(")", "") || "0";
-    return { codigo, nombre: nombreLimpio, unidades, precio };
-  });
-
-  productosList.innerHTML = items.map(p => `
-    <div class="producto">
-      <img src="/media/PRODUCTOS/${p.codigo}.jpg" onerror="this.src='/media/PRODUCTOS/default.jpg'">
-      <div class="producto-info">
-        <p><strong>${p.nombre}</strong></p>
-        <p>x${p.unidades} — $${p.precio}</p>
-      </div>
-    </div>
+      <td>${new Date(o["Hora de envio"]).toLocaleString()}</td>
+      <td>${o.Nombre}</td>
+      <td>${o.Direccion}</td>
+      <td>$${o.total}</td>
+      <td>
+        <button onclick="verDetalle(${i})">👁️ Ver</button>
+        <button onclick="markDelivered(${i})">✔️</button>
+      </td>
+    </tr>
   `).join("");
-  overlay.classList.add("active");
-}
-
-function cerrarDetalle() {
-  overlay.classList.remove("active");
 }
 
 async function markDelivered(i) {
@@ -85,8 +73,47 @@ async function markDelivered(i) {
   }
 }
 
-async function editCell(rowIndex, columnName, value) {
-  await postData({ action: "updateCell", rowIndex, columnName, value });
+function verDetalle(i) {
+  const o = currentOrders[i];
+  overlay.classList.add("active");
+
+  const productos = (o.Productos || "")
+    .split(", ")
+    .map(p => {
+      const match = p.match(/^(.*?) x(\d+) \(\$(\d+)\)$/);
+      if (!match) return null;
+      const nombre = match[1];
+      const unidades = match[2];
+      const precio = match[3];
+      const codigo = nombre.split(" ")[0]; // primer palabra = código
+      const img = `/media/PRODUCTOS/${codigo}.jpg`;
+      return `
+        <div class="producto">
+          <img src="${img}" onerror="this.src='/media/PRODUCTOS/default.jpg'">
+          <div class="producto-info">
+            <p><strong>${nombre}</strong></p>
+            <p>${unidades} x $${precio}</p>
+          </div>
+        </div>
+      `;
+    })
+    .filter(Boolean)
+    .join("");
+
+  detalle.innerHTML = `
+    <p><strong>📅 Fecha:</strong> ${new Date(o["Hora de envio"]).toLocaleString()}</p>
+    <p><strong>🧍‍♂️ Nombre:</strong> ${o.Nombre}</p>
+    <p><strong>📞 Teléfono:</strong> ${o.Telefono}</p>
+    <p><strong>📍 Dirección:</strong> ${o.Direccion}</p>
+    <p><strong>💬 Comentario:</strong> ${o.Comentario || '-'}</p>
+    <p><strong>💰 Total:</strong> $${o.total}</p>
+    <h4>🧺 Productos:</h4>
+    <div class="productos-grid">${productos}</div>
+  `;
+}
+
+function cerrarDetalle() {
+  overlay.classList.remove("active");
 }
 
 function filterOrders() {
@@ -114,14 +141,11 @@ function exportExcel() {
 async function postData(payload) {
   const formData = new URLSearchParams();
   formData.append('data', JSON.stringify(payload));
-
-  const res = await fetch(WEBAPP_URL, {
-    method: "POST",
-    body: formData
-  });
+  const res = await fetch(WEBAPP_URL, { method: "POST", body: formData });
   return res.json();
 }
 
+// Auto-login
 if (localStorage.getItem("logged")) {
   loginContainer.classList.add("hidden");
   panel.classList.remove("hidden");

@@ -14,6 +14,8 @@ body {
     color: var(--text);
 }
 
+.hidden { display: none; }
+
 header {
     background: var(--card);
     padding: 12px 24px;
@@ -54,9 +56,7 @@ button {
     transition: 0.2s;
 }
 
-button:hover {
-    opacity: 0.9;
-}
+button:hover { opacity: 0.9; }
 
 table {
     width: 100%;
@@ -79,13 +79,7 @@ th, td {
     border-bottom: 1px solid var(--border);
 }
 
-tbody tr:hover {
-    background: #f0fdfb;
-}
-
-tr:last-child td {
-    border-bottom: none;
-}
+tbody tr:hover { background: #f0fdfb; }
 
 #login-container {
     max-width: 320px;
@@ -97,10 +91,7 @@ tr:last-child td {
     text-align: center;
 }
 
-#login-container input {
-    width: 100%;
-    margin-bottom: 12px;
-}
+#login-container input { width: 100%; margin-bottom: 12px; }
 
 #login-msg {
     color: red;
@@ -108,9 +99,7 @@ tr:last-child td {
     margin-top: 4px;
 }
 
-#panel {
-    padding: 24px;
-}
+#panel { padding: 24px; }
 
 /* 💡 Popup Detalle de Pedido */
 .overlay {
@@ -124,9 +113,7 @@ tr:last-child td {
     z-index: 100;
 }
 
-.overlay.active {
-    display: flex;
-}
+.overlay.active { display: flex; }
 
 .detail-card {
     background: #fff;

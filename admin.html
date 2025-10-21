@@ -2,21 +2,24 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Panel Administrativo | Plutarco Almacén</title>
-  <link rel="stylesheet" href="admin.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"></head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Administrativo | Plutarco</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
 <body>
+  <!-- 🔒 LOGIN -->
   <div id="login-container">
-    <h1>Panel Plutarco</h1>
-    <input id="user" placeholder="Usuario">
-    <input id="password" type="password" placeholder="Contraseña">
-    <button id="login-btn">Entrar</button>
-    <div id="login-msg"></div>
+    <h1>Panel Plutarco 🌵</h1>
+    <input type="text" id="user" placeholder="Usuario">
+    <input type="password" id="password" placeholder="Contraseña">
+    <button id="login-btn">Ingresar</button>
+    <p id="login-msg"></p>
   </div>
 
+  <!-- 🧾 PANEL -->
   <div id="panel" class="hidden">
     <header>
-      <h1>Pedidos Plutarco 🌿</h1>
+      <h1>📦 Pedidos Recibidos</h1>
       <div class="controls">
         <input type="text" id="search" placeholder="Buscar...">
         <select id="filter-status">
@@ -24,32 +27,28 @@
           <option value="TRUE">Confirmados</option>
           <option value="FALSE">Pendientes</option>
         </select>
-        <button id="export-btn">📤 Exportar</button>
-        <button id="logout-btn">🚪 Salir</button>
+        <button id="export-btn">📤 Exportar CSV</button>
+        <button id="logout-btn">Salir</button>
       </div>
     </header>
 
-    <div id="table-container">
+    <main>
       <table id="orders-table">
         <thead></thead>
         <tbody></tbody>
       </table>
-    </div>
+    </main>
   </div>
 
+  <!-- 🪄 POPUP DETALLE -->
   <div class="overlay" id="overlay">
     <div class="detail-card">
-      <h3>🧾 Detalle de Pedido</h3>
-      <div id="productos-list" class="productos-grid"></div>
-      <div style="text-align:right; margin-top:16px;">
-        <button onclick="cerrarDetalle()">Cerrar</button>
-      </div>
+      <h3>Detalle del Pedido</h3>
+      <div id="detalle-contenido"></div>
+      <button onclick="cerrarDetalle()">Cerrar</button>
     </div>
   </div>
 
-  <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzXPqRns7UKWq_vr1ZpA98Dpj7DlLg7XvHiPcWu1usYqaFDY6iMgHgMPdnH_Jk04Qf_/exec"; 
-  </script>
-  <script src="panel.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>
