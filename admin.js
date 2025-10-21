@@ -140,37 +140,44 @@ function verDetalle(i) {
     </div>
   `).join("");
 
-  detalle.innerHTML = `
-    <button class="cerrar" onclick="cerrarDetalle()">❌</button>
+detalle.innerHTML = `
+  <button class="cerrar" onclick="cerrarDetalle()">❌</button>
 
-    <div class="detalle-scroll">
-      <h3>🛍️ Pedido de ${o.Nombre}</h3>
+  <div class="detalle-scroll">
+    <h3>🛍️ Pedido de ${o.Nombre}</h3>
 
-      <p><strong>📦 Fecha de envío:</strong> ${new Date(o["Hora de envio"]).toLocaleString()} &nbsp; • &nbsp;
-      <strong>🚚 Fecha de entrega:</strong> ${o["dia de entrega"] || "No especificada"}</p>
+    <p><strong>📦 Fecha de envío:</strong> ${new Date(o["Hora de envio"]).toLocaleString("es-AR")} &nbsp; • &nbsp;
+    <strong>🚚 Fecha de entrega:</strong> ${
+      o["dia de entrega"]
+        ? new Date(o["dia de entrega"]).toLocaleDateString("es-AR")
+        : "No especificada"
+    }</p>
 
-      ${editableField(i, "Nombre", o.Nombre)}
-      ${editableField(i, "Email", o.Email)}
-      ${editableField(i, "Telefono", o.Telefono)}
-      ${editableField(i, "Direccion", o.Direccion)}
-      ${editableField(i, "Comentario", o.Comentario || "-")}
+    ${editableField(i, "Nombre", `🏷️ ${o.Nombre}`)}
+    ${editableField(i, "Email", `📧 ${o.Email}`)}
+    ${editableField(i, "Telefono", `📞 ${o.Telefono}`)}
+    ${editableField(i, "Direccion", `📍 ${o.Direccion}`)}
+    ${editableField(i, "Comentario", `💬 ${o.Comentario || "-"}`)}
 
-      <h4>💵 Resumen del Pedido</h4>
-      <table class="resumen-precios" style="width:100%; border-collapse:collapse;">
-        <tr><td>💰 Subtotal:</td><td style="text-align:right;">$${o.Subtotal}</td></tr>
-        <tr><td>🚗 Envío cobrado:</td><td style="text-align:right;">$${o.Envio}</td></tr>
-        <tr><td>📦 Costo envío (real):</td><td style="text-align:right;">$${o["COSTO ENVIO"] || 0}</td></tr>
-        <tr><td>💵 Total:</td><td style="text-align:right;"><strong>$${o.total}</strong></td></tr>
-      </table>
+    <h4>💵 Resumen del Pedido</h4>
+    <table class="resumen-precios" style="width:100%; border-collapse:collapse;">
+      <tr><td>💰 Subtotal:</td><td style="text-align:right;">$${o.Subtotal}</td></tr>
+      <tr><td>🚗 Envío cobrado:</td><td style="text-align:right;">$${o.Envio}</td></tr>
+      <tr><td>📦 Costo envío (real):</td><td style="text-align:right;">$${o["COSTO ENVIO"] || 0}</td></tr>
+      <tr><td>💵 Total:</td><td style="text-align:right;"><strong>$${o.total}</strong></td></tr>
+    </table>
 
-      <h4>🧺 Productos</h4>
-      <div class="productos-grid">${productosHTML}</div>
-
-      <div style="margin-top:12px;">
-        <button onclick="agregarProducto(${i})">➕ Agregar producto</button>
-      </div>
+    <h4>🧺 Productos</h4>
+    <div class="productos-grid">
+      ${productosHTML}
     </div>
-  `;
+
+    <div style="margin-top:12px;">
+      <button onclick="agregarProducto(${i})">➕ Agregar producto</button>
+    </div>
+  </div>
+`;
+
 }
 
 function cerrarDetalle() {
