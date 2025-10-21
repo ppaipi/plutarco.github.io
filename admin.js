@@ -160,10 +160,8 @@ detalle.innerHTML = `
     }</p>
 
     ${editableField(i, "🏷️ Nombre", o.Nombre, "text", "Nombre")}
-    // Email
     ${editableLinkField(i, "Email", "📧 Email", o.Email, o.Email ? "mailto:" + encodeURIComponent(o.Email) : "#")}
 
-    // Teléfono (WhatsApp)
     ${editableLinkField(
       i,
       "Telefono",
@@ -172,7 +170,6 @@ detalle.innerHTML = `
       o.Telefono ? "https://wa.me/" + String(o.Telefono).replace(/\D/g, "") : "#"
     )}
 
-    // Dirección (Google Maps)
     ${editableLinkField(
       i,
       "Direccion",
