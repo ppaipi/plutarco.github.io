@@ -84,13 +84,17 @@ function exportExcel() {
 }
 
 async function postData(payload) {
+  const formData = new URLSearchParams();
+  formData.append('data', JSON.stringify(payload));
+
   const res = await fetch(WEBAPP_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: formData
   });
+
   return res.json();
 }
+
 
 // Auto-login
 if (localStorage.getItem("logged")) {
