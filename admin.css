@@ -121,9 +121,9 @@ tbody tr:hover { background: #f0fdfb; }
 
 #detalle-contenido {
   background: var(--card);
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
+  width: 95%;              
+  max-width: 850px;        
+  max-height: 92vh;        
   border-radius: 10px;
   position: relative;
   display: flex;
@@ -132,6 +132,7 @@ tbody tr:hover { background: #f0fdfb; }
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   animation: fadeIn 0.3s;
 }
+
 
 .detalle-scroll {
   overflow-y: auto;
