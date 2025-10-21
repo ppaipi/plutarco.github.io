@@ -161,7 +161,12 @@ detalle.innerHTML = `
 
     ${editableField(i, "🏷️ Nombre", o.Nombre, "text", "Nombre")}
     ${editableLinkField(i, "📧 Email", o.Email, "mailto:" + o.Email)}
-    ${editableLinkField(i, "📞 Teléfono", o.Telefono, "https://wa.me/" + o.Telefono.replace(/\D/g, ""))}
+    ${editableLinkField(
+      i,
+      "📞 Teléfono",
+      o.Telefono || "-",
+      o.Telefono ? "https://wa.me/" + String(o.Telefono).replace(/\D/g, "") : "#"
+    )}
     ${editableLinkField(i, "📍 Dirección", o.Direccion, "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(o.Direccion))}
     ${editableField(i, "💬 Comentario", o.Comentario || "-", "text", "Comentario")}
 
