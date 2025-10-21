@@ -219,9 +219,8 @@ function editableLinkField(row, columnName, label, value, href, type = "text") {
   `;
 }
 
-// 2) Función editarCampo que guarda y actualiza el DOM (texto + href) sin recargar
-// ✅ Función única y correcta para editar texto o links
 async function editarCampo(row, columnName, type = "text", elementId = null, hrefTemplate = null) {
+  // Generar ID seguro si no se pasó uno
   if (!elementId) {
     elementId = `val_${row}_${String(columnName).replace(/[^a-z0-9_]/gi, '_')}`;
   }
@@ -229,27 +228,41 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
   const el = document.getElementById(elementId);
   const oldValue = el ? el.textContent.trim() : "";
   const nuevo = prompt(`Editar ${columnName}:`, oldValue === "-" ? "" : oldValue);
-  if (nuevo === null) return;
+  if (nuevo === null) return; // canceló
 
   try {
-    await postData({ action: "updateCell", rowIndex: row, columnName, value: nuevo });
+    await postData({
+      action: "updateCell",
+      rowIndex: row,
+      columnName: columnName,
+      value: nuevo
+    });
+
+    // Actualizar texto en el DOM
     if (el) el.textContent = nuevo || "-";
 
-    // actualizar href si es email, teléfono o dirección
+    // Actualizar href si corresponde
     if (columnName === "Email") {
       el.href = nuevo ? `mailto:${encodeURIComponent(nuevo)}` : "#";
     } else if (columnName === "Telefono") {
       const digits = String(nuevo || "").replace(/\D/g, "");
       el.href = digits ? `https://wa.me/${digits}` : "#";
     } else if (columnName === "Direccion") {
-      el.href = nuevo ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nuevo)}` : "#";
+      el.href = nuevo
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nuevo)}`
+        : "#";
     }
 
-    if (currentOrders[row]) currentOrders[row][columnName] = nuevo;
+    // Actualizar en memoria
+    if (currentOrders && currentOrders[row]) {
+      currentOrders[row][columnName] = nuevo;
+    }
+
   } catch (err) {
-    alert("Error al guardar: " + err.message);
+    alert("Error al guardar: " + (err.message || err));
   }
 }
+
 
 
 
