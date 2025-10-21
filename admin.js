@@ -36,10 +36,9 @@ function logout() {
 
 async function loadOrders() {
   const res = await postData({ action: "getOrders" });
-  if (res.ok) {
-    currentOrders = res.orders;
-    renderTable(currentOrders);
-  }
+  if (!res.ok) return alert("Error al cargar pedidos");
+  currentOrders = res.orders;
+  renderTable(res.orders);
 }
 
 function renderTable(orders) {
@@ -49,126 +48,166 @@ function renderTable(orders) {
       <th>Nombre</th>
       <th>Dirección</th>
       <th>Total</th>
-      <th>Ver</th>
+      <th>Confirmado</th>
+      <th>Entregado</th>
+      <th>Acciones</th>
     </tr>`;
 
   tableBody.innerHTML = orders.map((o, i) => `
-    <tr class="${o.entregado === "TRUE" ? "entregado" : ""}">
+    <tr>
       <td>${new Date(o["Hora de envio"]).toLocaleString()}</td>
       <td>${o.Nombre}</td>
       <td>${o.Direccion}</td>
       <td>$${o.total}</td>
-      <td><button onclick="verDetalle(${i})">👁️</button></td>
+      <td>
+        <input type="checkbox" ${o["confirmado y pagado"] === true || o["confirmado y pagado"] === "TRUE" ? "checked" : ""} 
+        onchange="toggleCheck(${i}, 'confirmado y pagado', this.checked)">
+      </td>
+      <td>
+        <input type="checkbox" ${o["entregado"] === true || o["entregado"] === "TRUE" ? "checked" : ""} 
+        onchange="toggleCheck(${i}, 'entregado', this.checked)">
+      </td>
+      <td>
+        <button onclick="verDetalle(${i})">👁️ Ver</button>
+      </td>
     </tr>
   `).join("");
+}
+
+async function toggleCheck(i, field, checked) {
+  await postData({ action: "updateCell", rowIndex: i, columnName: field, value: checked ? "TRUE" : "FALSE" });
 }
 
 function verDetalle(i) {
   const o = currentOrders[i];
   overlay.classList.add("active");
 
-  const productos = (o.Productos || "")
-    .split(", ")
-    .map(p => {
-      const parts = p.includes("|") ? p.split("|") : null;
-      if (parts) {
-        const [codigo, nombre, unidades, precio] = parts;
-        const img = `/media/PRODUCTOS/${codigo}.jpg`;
-        return `
-          <div class="producto">
-            <img src="${img}" onerror="this.src='/media/PRODUCTOS/placeholder.jpg'">
-            <div class="producto-info">
-              <p><strong>${nombre}</strong></p>
-              <p>${unidades} x $${precio}</p>
-            </div>
-          </div>`;
-      } else {
-        return `<div class="producto"><div class="producto-info"><p>${p}</p></div></div>`;
-      }
-    })
-    .join("");
+  const productos = parseProductos(o.Productos);
+
+  const productosHTML = productos.map((p, idx) => `
+    <div class="producto">
+      <img src="/media/PRODUCTOS/${p.codigo}.jpg" onerror="this.src='/media/PRODUCTOS/placeholder.jpg'">
+      <div class="producto-info">
+        <p><strong>${p.nombre}</strong></p>
+        <p>${p.unidades} x $${p.total}</p>
+      </div>
+      <div class="producto-actions">
+        <button onclick="editarProducto(${i}, ${idx})">✏️</button>
+        <button onclick="eliminarProducto(${i}, '${p.codigo}')">🗑️</button>
+      </div>
+    </div>
+  `).join("");
 
   detalle.innerHTML = `
-    <button class="close-btn" onclick="cerrarDetalle()">✖</button>
-
+    <button class="cerrar" onclick="cerrarDetalle()">❌</button>
     <div class="detalle-scroll">
-      <h3>🧾 Pedido de ${o.Nombre}</h3>
-      ${editableField("Nombre", o.Nombre, i)}
-      ${editableField("Email", o.Email, i)}
-      ${editableField("Telefono", o.Telefono, i)}
-      ${editableField("Direccion", o.Direccion, i)}
-      ${editableField("Comentario", o.Comentario || '-', i)}
-
+      <p><strong>📅 Fecha:</strong> ${new Date(o["Hora de envio"]).toLocaleString()}</p>
+      ${editableField(i, "Nombre", o.Nombre)}
+      ${editableField(i, "Email", o.Email)}
+      ${editableField(i, "Telefono", o.Telefono)}
+      ${editableField(i, "Direccion", o.Direccion)}
+      ${editableField(i, "Comentario", o.Comentario || "-")}
       <p><strong>💰 Subtotal:</strong> $${o.Subtotal}</p>
-      <p><strong>🚚 Envío:</strong> $${o.Envio}</p>
-      <p><strong>💸 Costo Envío:</strong> $${o["COSTO ENVIO"] || 0}</p>
-      <p><strong>🧾 Total:</strong> $${o.total}</p>
-
+      ${editableField(i, "Envio", o.Envio, "number")}
+      ${editableField(i, "COSTO ENVIO", o["COSTO ENVIO"], "number")}
+      <p><strong>💵 Total:</strong> $${o.total}</p>
       <h4>🧺 Productos:</h4>
-      <div class="productos-grid">${productos}</div>
-      <button class="add-product" onclick="agregarProducto(${i})">➕ Agregar producto</button>
-    </div>
-
-    <div class="order-status-buttons">
-      <button class="btn-confirm ${o["confirmado y pagado"] === "TRUE" ? "active" : ""}"
-        onclick="toggleStatus(${i}, 'confirmado y pagado', this)">✅ Confirmar pago</button>
-
-      <button class="btn-delivered ${o.entregado === "TRUE" ? "active" : ""}"
-        onclick="setDelivered(${i}, this)">🚚 Pedido entregado</button>
+      <div class="productos-grid">${productosHTML}</div>
+      <button onclick="agregarProducto(${i})">➕ Agregar producto</button>
     </div>
   `;
-}
-
-function editableField(label, value, i) {
-  return `
-    <p><strong>${label}:</strong>
-    <span contenteditable="true" onblur="saveField(${i}, '${label}', this)">${value}</span>
-    </p>`;
-}
-
-async function saveField(rowIndex, label, el) {
-  await postData({ action: "updateCell", rowIndex, columnName: label, value: el.textContent.trim() });
-}
-
-async function toggleStatus(i, column, btn) {
-  const newValue = btn.classList.toggle("active") ? "TRUE" : "FALSE";
-  await postData({ action: "updateCell", rowIndex: i, columnName: column, value: newValue });
-  loadOrders();
-}
-
-async function setDelivered(i, btn) {
-  const costoEnvio = prompt("💰 Ingresá el costo de envío:");
-  if (costoEnvio !== null) {
-    btn.classList.add("active");
-    await postData({ action: "updateEnvio", rowIndex: i, costoEnvio });
-    await postData({ action: "updateCell", rowIndex: i, columnName: "entregado", value: "TRUE" });
-    loadOrders();
-  }
-}
-
-function agregarProducto(i) {
-  const codigo = prompt("Código del producto:");
-  const nombre = prompt("Nombre del producto:");
-  const unidades = prompt("Cantidad:");
-  const precio = prompt("Precio unitario:");
-  if (!codigo || !nombre || !precio) return;
-  const o = currentOrders[i];
-  const nuevo = `${codigo}|${nombre}|${unidades}|${precio}`;
-  const productosActualizados = (o.Productos ? o.Productos + ", " : "") + nuevo;
-  postData({ action: "updateCell", rowIndex: i, columnName: "Productos", value: productosActualizados });
-  alert("✅ Producto agregado");
-  loadOrders();
 }
 
 function cerrarDetalle() {
   overlay.classList.remove("active");
 }
 
+function parseProductos(str) {
+  if (!str) return [];
+  // Detecta si es formato viejo
+  if (!str.includes("|")) {
+    return str.split(", ").map(p => {
+      const match = p.match(/(.+?) x(\d+) \(\$(\d+)\)/);
+      if (!match) return null;
+      return { codigo: "", nombre: match[1], unidades: match[2], total: match[3] };
+    }).filter(Boolean);
+  }
+  return str.split(", ").map(p => {
+    const [codigo, nombre, unidades, total] = p.split("|");
+    return { codigo, nombre, unidades, total };
+  });
+}
+
+function editableField(row, name, value, type = "text") {
+  return `
+    <p><strong>${name}:</strong> 
+      <span id="val-${row}-${name}">${value}</span>
+      <button onclick="editarCampo(${row}, '${name}', '${type}')">✏️</button>
+    </p>
+  `;
+}
+
+async function editarCampo(row, name, type) {
+  const span = document.getElementById(`val-${row}-${name}`);
+  const oldValue = span.textContent;
+  const nuevo = prompt(`Editar ${name}:`, oldValue);
+  if (nuevo !== null) {
+    span.textContent = nuevo;
+    await postData({ action: "updateCell", rowIndex: row, columnName: name, value: nuevo });
+    loadOrders();
+  }
+}
+
+async function agregarProducto(row) {
+  const codigo = prompt("Código del producto:");
+  const nombre = prompt("Nombre del producto:");
+  const unidades = prompt("Cantidad:", 1);
+  const total = prompt("Precio total:");
+  if (!codigo || !nombre || !total) return;
+
+  const pedido = currentOrders[row];
+  const productos = parseProductos(pedido.Productos);
+  productos.push({ codigo, nombre, unidades, total });
+
+  await postData({ action: "updateProductos", rowIndex: row, productos });
+  alert("Producto agregado");
+  loadOrders();
+  verDetalle(row);
+}
+
+async function editarProducto(row, idx) {
+  const pedido = currentOrders[row];
+  const productos = parseProductos(pedido.Productos);
+  const p = productos[idx];
+
+  const nuevoNombre = prompt("Nuevo nombre:", p.nombre);
+  const nuevasUnidades = prompt("Cantidad:", p.unidades);
+  const nuevoPrecio = prompt("Precio total:", p.total);
+  if (!nuevoNombre || !nuevoPrecio) return;
+
+  productos[idx] = { ...p, nombre: nuevoNombre, unidades: nuevasUnidades, total: nuevoPrecio };
+  await postData({ action: "updateProductos", rowIndex: row, productos });
+  alert("Producto editado");
+  loadOrders();
+  verDetalle(row);
+}
+
+async function eliminarProducto(row, codigo) {
+  if (!confirm("¿Eliminar este producto?")) return;
+  await postData({ action: "deleteProducto", rowIndex: row, codigo });
+  alert("Producto eliminado");
+  loadOrders();
+  verDetalle(row);
+}
+
 function filterOrders() {
   const query = document.getElementById("search").value.toLowerCase();
-  const filtered = currentOrders.filter(o =>
-    Object.values(o).some(v => String(v).toLowerCase().includes(query))
-  );
+  const status = document.getElementById("filter-status").value;
+  const filtered = currentOrders.filter(o => {
+    const matchesText = Object.values(o).some(v => String(v).toLowerCase().includes(query));
+    const matchesStatus = status === "all" || String(o["confirmado y pagado"]) === status;
+    return matchesText && matchesStatus;
+  });
   renderTable(filtered);
 }
 
@@ -185,7 +224,7 @@ function exportExcel() {
 
 async function postData(payload) {
   const formData = new URLSearchParams();
-  formData.append("data", JSON.stringify(payload));
+  formData.append('data', JSON.stringify(payload));
   const res = await fetch(WEBAPP_URL, { method: "POST", body: formData });
   return res.json();
 }

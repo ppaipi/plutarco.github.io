@@ -299,3 +299,56 @@ tbody tr:hover { background: #f0fdfb; }
   background: #388e3c;
   color: white;
 }
+#overlay.active {
+  display: flex;
+}
+#overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+}
+#detalle-contenido {
+  background: white;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  border-radius: 10px;
+  padding: 20px;
+}
+.detalle-scroll {
+  overflow-y: auto;
+  max-height: 80vh;
+}
+button.cerrar {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+}
+.producto {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+.producto img {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  margin-right: 10px;
+}
+.producto-info {
+  flex: 1;
+}
+.producto-actions button {
+  margin-left: 5px;
+}
