@@ -204,20 +204,23 @@ function editableField(row, name, value, type = "text") {
 }
 // 1) Generador de campo link + botón editar
 function editableLinkField(row, columnName, label, value, href, type = "text") {
-  // id seguro para el elemento (sin espacios ni emojis)
   const safeId = `val_${row}_${String(columnName).replace(/[^a-z0-9_]/gi, '_')}`;
+  const safeHref = href ? href.replace(/'/g, "\\'") : '#';
+  const safeColumn = String(columnName).replace(/'/g, "\\'");
+  const safeType = String(type).replace(/'/g, "\\'");
+  const safeLabel = String(label).replace(/'/g, "\\'");
 
-  // Pasamos el safeId y hrefTemplate al onclick para que editarCampo pueda actualizar el enlace
   return `
     <p>
-      <strong>${label}:</strong>
-      <a id="${safeId}" href="${href || '#'}" target="_blank" style="color: var(--accent); text-decoration: none;">
+      <strong>${safeLabel}:</strong>
+      <a id="${safeId}" href="${safeHref}" target="_blank" style="color: var(--accent); text-decoration: none;">
         ${value || '-'}
       </a>
-      <button class="buttom_edit" onclick="editarCampo(${row}, ${JSON.stringify(columnName)}, ${JSON.stringify(type)}, ${JSON.stringify(safeId)}, ${JSON.stringify(href)})">✏️</button>
+      <button class="buttom_edit" onclick="editarCampo(${row}, '${safeColumn}', '${safeType}', '${safeId}', '${safeHref}')">✏️</button>
     </p>
   `;
 }
+
 
 async function editarCampo(row, columnName, type = "text", elementId = null, hrefTemplate = null) {
   // Generar ID seguro si no se pasó uno
