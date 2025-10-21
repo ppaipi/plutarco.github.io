@@ -48,29 +48,18 @@ function renderTable(orders) {
       <th>Nombre</th>
       <th>Dirección</th>
       <th>Total</th>
-      <th>Acciones</th>
+      <th>Ver</th>
     </tr>`;
 
   tableBody.innerHTML = orders.map((o, i) => `
-    <tr>
+    <tr class="${o.entregado === "TRUE" ? "entregado" : ""}">
       <td>${new Date(o["Hora de envio"]).toLocaleString()}</td>
       <td>${o.Nombre}</td>
       <td>${o.Direccion}</td>
       <td>$${o.total}</td>
-      <td>
-        <button onclick="verDetalle(${i})">👁️ Ver</button>
-        <button onclick="markDelivered(${i})">✔️</button>
-      </td>
+      <td><button onclick="verDetalle(${i})">👁️ Ver</button></td>
     </tr>
   `).join("");
-}
-
-async function markDelivered(i) {
-  const res = await postData({ action: "markDelivered", rowIndex: i });
-  if (res.ok) {
-    alert("Marcado como entregado");
-    loadOrders();
-  }
 }
 
 function verDetalle(i) {
@@ -80,8 +69,10 @@ function verDetalle(i) {
   const productos = (o.Productos || "")
     .split(", ")
     .map(p => {
-      const [codigo, nombre, unidades, precio] = p.split("|");
-      if (!codigo) return null;
+      const match = p.match(/^(.*?) x(\d+) \(\$(\d+)\)$/);
+      if (!match) return null;
+      const [_, nombre, unidades, precio] = match;
+      const codigo = nombre.split(" ")[0];
       const img = `/media/PRODUCTOS/${codigo}.jpg`;
       return `
         <div class="producto">
@@ -90,27 +81,49 @@ function verDetalle(i) {
             <p><strong>${nombre}</strong></p>
             <p>${unidades} x $${precio}</p>
           </div>
-        </div>
-      `;
+        </div>`;
     })
     .filter(Boolean)
     .join("");
 
-
   detalle.innerHTML = `
+    <button class="close-btn" onclick="cerrarDetalle()">✖</button>
+    <h3>🧾 Pedido de ${o.Nombre}</h3>
     <p><strong>📅 Fecha:</strong> ${new Date(o["Hora de envio"]).toLocaleString()}</p>
-    <p><strong>🧍‍♂️ Nombre:</strong> ${o.Nombre}</p>
     <p><strong>📞 Teléfono:</strong> ${o.Telefono}</p>
     <p><strong>📍 Dirección:</strong> ${o.Direccion}</p>
     <p><strong>💬 Comentario:</strong> ${o.Comentario || '-'}</p>
     <p><strong>💰 Total:</strong> $${o.total}</p>
     <h4>🧺 Productos:</h4>
     <div class="productos-grid">${productos}</div>
+
+    <div class="order-status">
+      <label>
+        <input type="checkbox" ${o["confirmado y pagado"] === "TRUE" ? "checked" : ""} 
+          onchange="toggleStatus(${i}, 'confirmado y pagado', this.checked)">
+        Pedido confirmado
+      </label>
+
+      <label>
+        <input type="checkbox" ${o["entregado"] === "TRUE" ? "checked" : ""} 
+          onchange="toggleStatus(${i}, 'entregado', this.checked)">
+        Pedido entregado
+      </label>
+    </div>
   `;
 }
 
 function cerrarDetalle() {
   overlay.classList.remove("active");
+}
+
+function toggleStatus(rowIndex, columnName, checked) {
+  postData({
+    action: "updateCell",
+    rowIndex,
+    columnName,
+    value: checked ? "TRUE" : "FALSE"
+  }).then(() => loadOrders());
 }
 
 function filterOrders() {
