@@ -275,3 +275,27 @@ tbody tr:hover { background: #f0fdfb; }
 .entregado td {
   opacity: 0.75;
 }
+.resumen-precios td {
+  padding: 6px 4px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.resumen-precios td:last-child {
+  font-weight: 600;
+}
+
+.order-status-buttons button {
+  font-size: 15px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.btn-confirm.active {
+  background: #009688;
+  color: white;
+}
+.btn-delivered.active {
+  background: #388e3c;
+  color: white;
+}

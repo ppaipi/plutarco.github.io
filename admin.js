@@ -13,6 +13,8 @@ document.getElementById("export-btn").onclick = exportExcel;
 document.getElementById("filter-status").onchange = loadOrders;
 document.getElementById("search").oninput = filterOrders;
 
+let currentOrders = [];
+
 async function login() {
   const user = document.getElementById("user").value;
   const password = document.getElementById("password").value;
@@ -38,8 +40,6 @@ async function loadOrders() {
   currentOrders = res.orders;
   renderTable(currentOrders);
 }
-
-let currentOrders = [];
 
 function renderTable(orders) {
   tableHead.innerHTML = `
@@ -67,23 +67,29 @@ function verDetalle(i) {
   overlay.classList.add("active");
 
   const productos = (o.Productos || "")
-  .split(", ")
-  .map(p => {
-    const [codigo, nombre, unidades, precio] = p.split("|");
-    if (!codigo) return null;
-    const img = `/media/PRODUCTOS/${codigo}.jpg`;
-    return `
-      <div class="producto">
-        <img src="${img}" onerror="this.src='/media/PRODUCTOS/placeholder.jpg'">
-        <div class="producto-info">
-          <p><strong>${nombre}</strong></p>
-          <p>${unidades} x $${precio}</p>
-        </div>
-      </div>
-    `;
-  })
-  .filter(Boolean)
-  .join("");
+    .split(", ")
+    .map(p => {
+      const match = p.match(/^(.*?) x(\d+) \(\$(\d+)\)$/);
+      if (!match) return null;
+      const [_, nombre, unidades, precio] = match;
+      const codigo = nombre.split(" ")[0];
+      const img = `/media/PRODUCTOS/${codigo}.jpg`;
+      return `
+        <div class="producto">
+          <img src="${img}" onerror="this.src='/media/PRODUCTOS/placeholder.jpg'">
+          <div class="producto-info">
+            <p><strong>${nombre}</strong></p>
+            <p>${unidades} x $${precio}</p>
+          </div>
+        </div>`;
+    })
+    .filter(Boolean)
+    .join("");
+
+  const subtotal = parseFloat(o.subtotal || 0);
+  const envio = parseFloat(o.envio || 0);
+  const total = subtotal + envio;
+  const costoEnvio = o["COSTO ENVIO"] || "-";
 
   detalle.innerHTML = `
     <button class="close-btn" onclick="cerrarDetalle()">✖</button>
@@ -94,20 +100,29 @@ function verDetalle(i) {
       <p><strong>📞 Teléfono:</strong> ${o.Telefono}</p>
       <p><strong>📍 Dirección:</strong> ${o.Direccion}</p>
       <p><strong>💬 Comentario:</strong> ${o.Comentario || '-'}</p>
-      <p><strong>💰 Total:</strong> $${o.total}</p>
+
       <h4>🧺 Productos:</h4>
       <div class="productos-grid">${productos}</div>
+
+      <div class="resumen-precios">
+        <table style="width:100%; border-collapse: collapse; margin-top:10px;">
+          <tr><td>Subtotal:</td><td style="text-align:right;">$${subtotal}</td></tr>
+          <tr><td>Envío cobrado:</td><td style="text-align:right;">$${envio}</td></tr>
+          <tr><td><strong>Total:</strong></td><td style="text-align:right;"><strong>$${total}</strong></td></tr>
+          <tr><td>Costo real envío:</td><td style="text-align:right;">$${costoEnvio}</td></tr>
+        </table>
+      </div>
     </div>
 
     <div class="order-status-buttons">
       <button class="btn-confirm ${o["confirmado y pagado"] === "TRUE" ? "active" : ""}"
         onclick="toggleStatus(${i}, 'confirmado y pagado', this)">
-        ✅ Confirmar pago
+        ${o["confirmado y pagado"] === "TRUE" ? "✅ Pago confirmado" : "☐ Confirmar pago"}
       </button>
 
       <button class="btn-delivered ${o["entregado"] === "TRUE" ? "active" : ""}"
-        onclick="toggleStatus(${i}, 'entregado', this)">
-        🚚 Pedido entregado
+        onclick="setDelivered(${i}, this)">
+        ${o["entregado"] === "TRUE" ? "🚚 Entregado" : "☐ Pedido entregado"}
       </button>
     </div>
   `;
@@ -117,15 +132,46 @@ function cerrarDetalle() {
   overlay.classList.remove("active");
 }
 
+// 🟢 Toggle confirmado y pagado
 async function toggleStatus(rowIndex, columnName, btn) {
   const isActive = btn.classList.contains("active");
   const newValue = isActive ? "FALSE" : "TRUE";
   btn.classList.toggle("active");
+  btn.innerText = newValue === "TRUE" ? "✅ Pago confirmado" : "☐ Confirmar pago";
 
   await postData({
     action: "updateCell",
     rowIndex,
     columnName,
+    value: newValue
+  });
+  await loadOrders();
+}
+
+// 🚚 Pedido entregado + popup costo envío
+async function setDelivered(rowIndex, btn) {
+  const isActive = btn.classList.contains("active");
+  let newValue = isActive ? "FALSE" : "TRUE";
+
+  if (!isActive) {
+    const costo = prompt("💰 Ingrese el costo real del envío:");
+    if (costo !== null && costo.trim() !== "") {
+      await postData({
+        action: "updateCell",
+        rowIndex,
+        columnName: "COSTO ENVIO",
+        value: costo
+      });
+    }
+  }
+
+  btn.classList.toggle("active");
+  btn.innerText = newValue === "TRUE" ? "🚚 Entregado" : "☐ Pedido entregado";
+
+  await postData({
+    action: "updateCell",
+    rowIndex,
+    columnName: "entregado",
     value: newValue
   });
   await loadOrders();
