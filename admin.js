@@ -97,43 +97,60 @@ function verDetalle(i) {
       </div>
     </div>
   `).join("");
-  
+
 detalle.innerHTML = `
-  <button class="close-btn" onclick="cerrarDetalle()">✖</button>
+  <button class="cerrar" onclick="cerrarDetalle()">❌</button>
 
   <div class="detalle-scroll">
     <h3>🛍️ Pedido de ${o.Nombre}</h3>
 
-    <p><strong>📦 Fecha de envío:</strong> ${new Date(o["Hora de envio"]).toLocaleString()}</p>
-    <p><strong>🚚 Fecha de entrega:</strong> ${o["dia de entrega"] || "No especificada"}</p>
+    <p><strong>📦 Fecha de envío:</strong> ${new Date(o["Hora de envio"]).toLocaleString()} &nbsp; • &nbsp; <strong>🚚 Fecha de entrega:</strong> ${o["dia de entrega"] || "No especificada"}</p>
 
-    ${editableField(i, "Nombre", o.Nombre, "text", "🧍‍♂️ Nombre")}
-    ${editableField(i, "Email", o.Email, "email", "📧 Email")}
-    ${editableField(i, "Telefono", o.Telefono, "tel", "📞 Teléfono")}
-    ${editableField(i, "Direccion", o.Direccion, "text", "📍 Dirección")}
-    ${editableField(i, "Comentario", o.Comentario || "-", "text", "💬 Comentario")}
+    ${editableField(i, "Nombre", o.Nombre)}
+    ${editableField(i, "Email", o.Email)}
+    ${editableField(i, "Telefono", o.Telefono)}
+    ${editableField(i, "Direccion", o.Direccion)}
+    ${editableField(i, "Comentario", o.Comentario || "-")}
 
     <h4>💵 Resumen del Pedido</h4>
-    <table class="resumen-precios">
-      <tr><td>💰 <strong>Subtotal:</strong></td><td>$${o.Subtotal}</td></tr>
-      <tr><td>🚗 ${editableField(i, "Envio", o.Envio, "number", "Envío")}</td></tr>
-      <tr><td>📦 ${editableField(i, "COSTO ENVIO", o["COSTO ENVIO"], "number", "Costo de envío")}</td></tr>
-      <tr><td>💵 <strong>Total:</strong></td><td><strong>$${o.total}</strong></td></tr>
+    <table class="resumen-precios" style="width:100%; border-collapse:collapse;">
+      <tr>
+        <td>💰 <strong>Subtotal:</strong></td>
+        <td style="text-align:right;">$${o.Subtotal}</td>
+      </tr>
+      <tr>
+        <td>🚗 <strong>Envío cobrado:</strong></td>
+        <td style="text-align:right;">$${o.Envio}</td>
+      </tr>
+      <tr>
+        <td>📦 <strong>Costo envío (real):</strong></td>
+        <td style="text-align:right;">$${o["COSTO ENVIO"] || 0}</td>
+      </tr>
+      <tr>
+        <td>💵 <strong>Total:</strong></td>
+        <td style="text-align:right;"><strong>$${o.total}</strong></td>
+      </tr>
     </table>
 
-    <h4>🧺 Productos:</h4>
-    <div class="productos-grid">${productos}</div>
+    <h4>🧺 Productos</h4>
+    <div class="productos-grid">
+      ${productos}
+    </div>
+
+    <div style="margin-top:12px;">
+      <button onclick="agregarProducto(${i})">➕ Agregar producto</button>
+    </div>
   </div>
 
-  <div class="order-status-buttons">
+  <div class="order-status-buttons" style="padding:16px;">
     <button class="btn-confirm ${o["confirmado y pagado"] === "TRUE" ? "active" : ""}"
       onclick="toggleStatus(${i}, 'confirmado y pagado', this)">
-      ✅ Pedido confirmado y pagado
+      ${o["confirmado y pagado"] === "TRUE" ? "✅ Confirmado y pagado" : "☐ Confirmar pago"}
     </button>
 
     <button class="btn-delivered ${o["entregado"] === "TRUE" ? "active" : ""}"
-      onclick="toggleStatus(${i}, 'entregado', this)">
-      🚚 Pedido entregado
+      onclick="setDelivered(${i}, this)">
+      ${o["entregado"] === "TRUE" ? "🚚 Entregado" : "☐ Marcar como entregado"}
     </button>
   </div>
 `;
