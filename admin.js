@@ -143,7 +143,7 @@ function editableField(row, name, value, type = "text") {
   return `
     <p><strong>${name}:</strong> 
       <span id="val-${row}-${name}">${value}</span>
-      <button onclick="editarCampo(${row}, '${name}', '${type}')">✏️</button>
+      <button class="buttom_edit" onclick="editarCampo(${row}, '${name}', '${type}')">✏️</button>
     </p>
   `;
 }
