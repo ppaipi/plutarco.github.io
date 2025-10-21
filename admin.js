@@ -162,21 +162,10 @@ detalle.innerHTML = `
     ${editableField(i, "🏷️ Nombre", o.Nombre, "text", "Nombre")}
     ${editableLinkField(i, "Email", "📧 Email", o.Email, o.Email ? "mailto:" + encodeURIComponent(o.Email) : "#")}
 
-    ${editableLinkField(
-      i,
-      "Telefono",
-      "📞 Teléfono",
-      o.Telefono || "-",
-      o.Telefono ? "https://wa.me/" + String(o.Telefono).replace(/\D/g, "") : "#"
-    )}
+    ${editableLinkField(i, "Telefono", "📞 Teléfono", o.Telefono || "-", o.Telefono ? "https://wa.me/" + String(o.Telefono).replace(/\D/g, "") : "#")}
 
-    ${editableLinkField(
-      i,
-      "Direccion",
-      "📍 Dirección",
-      o.Direccion || "-",
-      o.Direccion ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(o.Direccion) : "#"
-    )}
+    ${editableLinkField(i, "Direccion", "📍 Dirección", o.Direccion || "-", o.Direccion ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(o.Direccion) : "#")}
+
     ${editableField(i, "💬 Comentario", o.Comentario || "-", "text", "Comentario")}
 
     <h4>💵 Resumen del Pedido</h4>
