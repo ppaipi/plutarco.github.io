@@ -35,13 +35,13 @@ function logout() {
 async function loadOrders() {
   const res = await postData({ action: "getOrders" });
   if (!res.ok) return alert("Error al cargar pedidos");
-  renderTable(res.orders);
+  currentOrders = res.orders;
+  renderTable(currentOrders);
 }
 
 let currentOrders = [];
 
 function renderTable(orders) {
-  currentOrders = orders;
   tableHead.innerHTML = `
     <tr>
       <th>Fecha</th>
@@ -85,30 +85,30 @@ function verDetalle(i) {
   .filter(Boolean)
   .join("");
 
-
   detalle.innerHTML = `
     <button class="close-btn" onclick="cerrarDetalle()">✖</button>
-    <h3>🧾 Pedido de ${o.Nombre}</h3>
-    <p><strong>📅 Fecha:</strong> ${new Date(o["Hora de envio"]).toLocaleString()}</p>
-    <p><strong>📞 Teléfono:</strong> ${o.Telefono}</p>
-    <p><strong>📍 Dirección:</strong> ${o.Direccion}</p>
-    <p><strong>💬 Comentario:</strong> ${o.Comentario || '-'}</p>
-    <p><strong>💰 Total:</strong> $${o.total}</p>
-    <h4>🧺 Productos:</h4>
-    <div class="productos-grid">${productos}</div>
 
-    <div class="order-status">
-      <label>
-        <input type="checkbox" ${o["confirmado y pagado"] === "TRUE" ? "checked" : ""} 
-          onchange="toggleStatus(${i}, 'confirmado y pagado', this.checked)">
-        Pedido confirmado
-      </label>
+    <div class="detalle-scroll">
+      <h3>🧾 Pedido de ${o.Nombre}</h3>
+      <p><strong>📅 Fecha:</strong> ${new Date(o["Hora de envio"]).toLocaleString()}</p>
+      <p><strong>📞 Teléfono:</strong> ${o.Telefono}</p>
+      <p><strong>📍 Dirección:</strong> ${o.Direccion}</p>
+      <p><strong>💬 Comentario:</strong> ${o.Comentario || '-'}</p>
+      <p><strong>💰 Total:</strong> $${o.total}</p>
+      <h4>🧺 Productos:</h4>
+      <div class="productos-grid">${productos}</div>
+    </div>
 
-      <label>
-        <input type="checkbox" ${o["entregado"] === "TRUE" ? "checked" : ""} 
-          onchange="toggleStatus(${i}, 'entregado', this.checked)">
-        Pedido entregado
-      </label>
+    <div class="order-status-buttons">
+      <button class="btn-confirm ${o["confirmado y pagado"] === "TRUE" ? "active" : ""}"
+        onclick="toggleStatus(${i}, 'confirmado y pagado', this)">
+        ✅ Confirmar pago
+      </button>
+
+      <button class="btn-delivered ${o["entregado"] === "TRUE" ? "active" : ""}"
+        onclick="toggleStatus(${i}, 'entregado', this)">
+        🚚 Pedido entregado
+      </button>
     </div>
   `;
 }
@@ -117,13 +117,18 @@ function cerrarDetalle() {
   overlay.classList.remove("active");
 }
 
-function toggleStatus(rowIndex, columnName, checked) {
-  postData({
+async function toggleStatus(rowIndex, columnName, btn) {
+  const isActive = btn.classList.contains("active");
+  const newValue = isActive ? "FALSE" : "TRUE";
+  btn.classList.toggle("active");
+
+  await postData({
     action: "updateCell",
     rowIndex,
     columnName,
-    value: checked ? "TRUE" : "FALSE"
-  }).then(() => loadOrders());
+    value: newValue
+  });
+  await loadOrders();
 }
 
 function filterOrders() {
