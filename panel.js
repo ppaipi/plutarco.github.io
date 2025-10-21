@@ -4,6 +4,7 @@ const tableHead = document.querySelector("#orders-table thead");
 const tableBody = document.querySelector("#orders-table tbody");
 const overlay = document.getElementById("overlay");
 const productosList = document.getElementById("productos-list");
+
 document.getElementById("login-btn").onclick = login;
 document.getElementById("logout-btn").onclick = logout;
 document.getElementById("export-btn").onclick = exportExcel;
