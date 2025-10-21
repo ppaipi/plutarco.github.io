@@ -220,54 +220,37 @@ function editableLinkField(row, columnName, label, value, href, type = "text") {
 }
 
 // 2) Función editarCampo que guarda y actualiza el DOM (texto + href) sin recargar
+// ✅ Función única y correcta para editar texto o links
 async function editarCampo(row, columnName, type = "text", elementId = null, hrefTemplate = null) {
-  // elementId es el id del <span> o <a> en el DOM (generado por editableLinkField)
-  // hrefTemplate es el href actual (puede ser '#' o una plantilla; en la función recreamos el href según columnName)
-
-  // Si no hay elementId, le resolvemos uno por convención
   if (!elementId) {
     elementId = `val_${row}_${String(columnName).replace(/[^a-z0-9_]/gi, '_')}`;
   }
 
   const el = document.getElementById(elementId);
   const oldValue = el ? el.textContent.trim() : "";
-
-  // Prompt para editar (podés reemplazar por modal o input inline si querés)
   const nuevo = prompt(`Editar ${columnName}:`, oldValue === "-" ? "" : oldValue);
-  if (nuevo === null) return; // canceló
+  if (nuevo === null) return;
 
-  // Guardar en la hoja
   try {
-    await postData({ action: "updateCell", rowIndex: row, columnName: columnName, value: nuevo });
-
-    // Actualizar el texto en el DOM
+    await postData({ action: "updateCell", rowIndex: row, columnName, value: nuevo });
     if (el) el.textContent = nuevo || "-";
 
-    // Si es uno de los campos especiales, actualizar también el href del <a>
-    // Detectamos por columnName exacto (asegurate que tus headers se llamen exactamente Email, Telefono, Direccion)
+    // actualizar href si es email, teléfono o dirección
     if (columnName === "Email") {
-      const href = nuevo ? `mailto:${encodeURIComponent(nuevo)}` : "#";
-      el.setAttribute("href", href);
+      el.href = nuevo ? `mailto:${encodeURIComponent(nuevo)}` : "#";
     } else if (columnName === "Telefono") {
       const digits = String(nuevo || "").replace(/\D/g, "");
-      const href = digits ? `https://wa.me/${digits}` : "#";
-      el.setAttribute("href", href);
+      el.href = digits ? `https://wa.me/${digits}` : "#";
     } else if (columnName === "Direccion") {
-      const href = nuevo ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nuevo)}` : "#";
-      el.setAttribute("href", href);
+      el.href = nuevo ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nuevo)}` : "#";
     }
 
-    // Opcional: actualizar currentOrders en memoria para que la vista coincida sin recargar
-    if (currentOrders && currentOrders[row]) {
-      currentOrders[row][columnName] = nuevo;
-    }
-
-    // Mensaje corto
-    // alert("Guardado");
+    if (currentOrders[row]) currentOrders[row][columnName] = nuevo;
   } catch (err) {
-    alert("Error al guardar: " + (err.message || err));
+    alert("Error al guardar: " + err.message);
   }
 }
+
 
 
 
