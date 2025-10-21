@@ -153,11 +153,11 @@ detalle.innerHTML = `
         : "No especificada"
     }</p>
 
-    ${editableField(i, "Nombre", o.Nombre, "text", "🏷️ Nombre")}
-    ${editableField(i, "Email", o.Email, "text", "📧 Email")}
-    ${editableField(i, "Telefono", o.Telefono, "text", "📞 Teléfono")}
-    ${editableField(i, "Direccion", o.Direccion, "text", "📍 Dirección")}
-    ${editableField(i, "Comentario", o.Comentario || "-", "text", "💬 Comentario")}
+    ${editableField(i, "🏷️ Nombre", o.Nombre, "text", "Nombre")}
+    ${editableField(i, "📧 Email", o.Email, "text", "Email")}
+    ${editableField(i, "📞 Telefono", o.Telefono, "text", "Teléfono")}
+    ${editableField(i, "📍 Direccion", o.Direccion, "text", "Dirección")}
+    ${editableField(i, "💬 Comentario", o.Comentario || "-", "text", "Comentario")}
 
     <h4>💵 Resumen del Pedido</h4>
     <table class="resumen-precios" style="width:100%; border-collapse:collapse;">
@@ -243,8 +243,11 @@ async function eliminarProducto(row, codigo) {
   if (!confirm("¿Eliminar este producto?")) return;
   await postData({ action: "deleteProducto", rowIndex: row, codigo });
   alert("Producto eliminado");
-  loadOrders();
-  verDetalle(row);
+  setTimeout(() => {
+    loadOrders();
+    verDetalle(row);
+  }, 100);
+
 }
 
 function filterOrders() {
