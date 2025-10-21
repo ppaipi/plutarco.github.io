@@ -1180,7 +1180,7 @@ function enviarPedido() {
     body: formData
   })
   .finally(() => {
-    alert('Pedido enviado con éxito! Recibiar al mail instrucciones de pago.');
+    alert('Pedido enviado con éxito! Recibirá al mail instrucciones de pago.');
     gtag('event', 'conversion', { 'send_to': 'AW-17595623865/7ZfJCJrl1aAbELnTn8ZB', 'transaction_id': '' });
     // --- VACIAR TODO EL CARRITO ---
     cart = {};                      // borra los productos seleccionados
