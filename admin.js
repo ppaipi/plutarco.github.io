@@ -245,7 +245,6 @@ function editableLinkField(row, columnName, label, value, href, type = "text") {
 
 
 async function editarCampo(row, columnName, type = "text", elementId = null, hrefTemplate = null) {
-  // Generar ID seguro si no se pasó uno
   if (!elementId) {
     elementId = `val_${row}_${String(columnName).replace(/[^a-z0-9_]/gi, '_')}`;
   }
@@ -255,7 +254,14 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
   const nuevo = prompt(`Editar ${columnName}:`, oldValue === "-" ? "" : oldValue);
   if (nuevo === null) return; // canceló
 
+  // Validar número si corresponde
+  if (type === "number" && isNaN(nuevo)) {
+    alert("Por favor ingresa un número válido");
+    return;
+  }
+
   try {
+    // Actualizar en Google Sheets
     await postData({
       action: "updateCell",
       rowIndex: row,
@@ -263,10 +269,36 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
       value: nuevo
     });
 
-    // Actualizar texto en el DOM
+    // Actualizar valor mostrado
     if (el) el.textContent = nuevo || "-";
 
-    // Actualizar href si corresponde
+    // 🔄 Actualizar en memoria
+    if (currentOrders && currentOrders[row]) {
+      currentOrders[row][columnName] = nuevo;
+    }
+
+    // 🧮 Si cambió el envío, recalcular total
+    if (columnName === "Envio" || columnName === "Subtotal") {
+      const sub = parseFloat(currentOrders[row].Subtotal) || 0;
+      const envio = parseFloat(currentOrders[row].Envio) || 0;
+      const nuevoTotal = sub + envio;
+
+      currentOrders[row].total = nuevoTotal;
+
+      // Actualizar visualmente el total en pantalla si existe
+      const totalEl = document.querySelector(`#detalle-contenido strong`);
+      if (totalEl) totalEl.textContent = `$${nuevoTotal.toFixed(2)}`;
+
+      // También actualizar en Google Sheets (opcional)
+      await postData({
+        action: "updateCell",
+        rowIndex: row,
+        columnName: "total",
+        value: nuevoTotal
+      });
+    }
+
+    // Actualizar hrefs si son campos especiales
     if (columnName === "Email") {
       el.href = nuevo ? `mailto:${encodeURIComponent(nuevo)}` : "#";
     } else if (columnName === "Telefono") {
@@ -276,11 +308,6 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
       el.href = nuevo
         ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nuevo)}`
         : "#";
-    }
-
-    // Actualizar en memoria
-    if (currentOrders && currentOrders[row]) {
-      currentOrders[row][columnName] = nuevo;
     }
 
   } catch (err) {
