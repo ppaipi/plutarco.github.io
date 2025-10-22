@@ -14,27 +14,12 @@ document.getElementById("export-btn").onclick = exportExcel;
 document.getElementById("filter-status").onchange = applyFiltersAndRender;
 document.getElementById("search").oninput = applyFiltersAndRender;
 
-// --- NEW: bind new controls ---
+// --- NEW: bind new controls (simplificado) ---
 const filterEntregadoEl = document.getElementById("filter-entregado"); // "all"|"TRUE"|"FALSE"
-const sortConfirmEl = document.getElementById("sort-confirm");
-const sortEntregadoEl = document.getElementById("sort-entregado");
-const sortConfirmWrap = document.getElementById("sort-confirm-wrap");
-const sortEntregadoWrap = document.getElementById("sort-entregado-wrap");
+const sortOrderEl = document.getElementById("sort-order"); // único selector siempre visible
 
-// show/hide wrappers and re-render when filters change
-function updateSortControlsVisibility() {
-  const statusVal = document.getElementById("filter-status") ? document.getElementById("filter-status").value : "all";
-  const entregadoVal = filterEntregadoEl ? filterEntregadoEl.value : "all";
-
-  if (sortConfirmWrap) sortConfirmWrap.classList.toggle("hidden", statusVal === "all");
-  if (sortEntregadoWrap) sortEntregadoWrap.classList.toggle("hidden", entregadoVal === "all");
-}
-
-if (filterEntregadoEl) {
-  filterEntregadoEl.onchange = () => { updateSortControlsVisibility(); applyFiltersAndRender(); };
-}
-if (sortConfirmEl) sortConfirmEl.onchange = applyFiltersAndRender;
-if (sortEntregadoEl) sortEntregadoEl.onchange = applyFiltersAndRender;
+if (filterEntregadoEl) filterEntregadoEl.onchange = applyFiltersAndRender;
+if (sortOrderEl) sortOrderEl.onchange = applyFiltersAndRender;
 
 let currentOrders = [];
 
@@ -61,8 +46,16 @@ async function loadOrders() {
   const res = await postData({ action: "getOrders" });
   if (!res.ok) return alert("Error al cargar pedidos");
   currentOrders = res.orders || [];
-  updateSortControlsVisibility();
   applyFiltersAndRender();
+}
+
+// helper: normalizar y comparar flags (TRUE/FALSE/true/false/boolean)
+function matchesFlagField(value, filter) {
+  if (filter === "all") return true;
+  if (value === true || String(value).toUpperCase() === "TRUE") return filter === "TRUE";
+  if (value === false || String(value).toUpperCase() === "FALSE") return filter === "FALSE";
+  // fallback: compare uppercase string
+  return String(value || "").toUpperCase() === filter;
 }
 
 function applyFiltersAndRender() {
@@ -70,22 +63,14 @@ function applyFiltersAndRender() {
   const status = document.getElementById("filter-status") ? document.getElementById("filter-status").value : "all";
   const entregado = filterEntregadoEl ? filterEntregadoEl.value : "all";
 
-  // Determinar orden: prioridad a select específico según filtro activo
-  let sortOrder = 'desc';
-  if (status !== "all" && sortConfirmEl) {
-    sortOrder = sortConfirmEl.value || 'desc';
-  } else if (entregado !== "all" && sortEntregadoEl) {
-    sortOrder = sortEntregadoEl.value || 'desc';
-  } else {
-    // fallback: si existiera un selector global lo podríamos usar, mantengo 'desc' por defecto
-    sortOrder = 'desc';
-  }
+  // usar selector global de orden siempre visible
+  const sortOrder = sortOrderEl ? sortOrderEl.value : 'desc';
 
   let filtered = currentOrders.map((o, idx) => ({ o, originalIndex: idx }))
     .filter(({ o }) => {
       const matchesText = query === "" || Object.values(o).some(v => String(v).toLowerCase().includes(query));
-      const matchesStatus = status === "all" || String(o["confirmado y pagado"]) === status;
-      const matchesEntregado = entregado === "all" || String(o["entregado"]) === entregado;
+      const matchesStatus = matchesFlagField(o["confirmado y pagado"], status);
+      const matchesEntregado = matchesFlagField(o["entregado"], entregado);
       return matchesText && matchesStatus && matchesEntregado;
     });
 
