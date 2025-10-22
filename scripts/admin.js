@@ -13,6 +13,13 @@ document.getElementById("export-btn").onclick = exportExcel;
 document.getElementById("filter-status").onchange = loadOrders;
 document.getElementById("search").oninput = filterOrders;
 
+// --- NEW: try to bind new controls if present ---
+const filterEntregadoEl = document.getElementById("filter-entregado"); // expected values: "all", "TRUE", "FALSE"
+const sortOrderEl = document.getElementById("sort-order"); // expected values: "desc" (newest) or "asc" (oldest)
+
+if (filterEntregadoEl) filterEntregadoEl.onchange = loadOrders;
+if (sortOrderEl) sortOrderEl.onchange = loadOrders;
+
 let currentOrders = [];
 
 async function login() {
@@ -37,11 +44,39 @@ function logout() {
 async function loadOrders() {
   const res = await postData({ action: "getOrders" });
   if (!res.ok) return alert("Error al cargar pedidos");
-  currentOrders = res.orders;
-  renderTable(res.orders);
+  currentOrders = res.orders || [];
+  applyFiltersAndRender();
 }
 
-function renderTable(orders) {
+function applyFiltersAndRender() {
+  // obtiene valores de filtros/orden
+  const query = document.getElementById("search") ? document.getElementById("search").value.toLowerCase() : "";
+  const status = document.getElementById("filter-status") ? document.getElementById("filter-status").value : "all";
+  const entregado = filterEntregadoEl ? filterEntregadoEl.value : "all";
+  const sortOrder = sortOrderEl ? sortOrderEl.value : "desc"; // default newest first
+
+  // Filtrar
+  let filtered = currentOrders.map((o, idx) => ({ o, originalIndex: idx }))
+    .filter(({ o }) => {
+      const matchesText = query === "" || Object.values(o).some(v => String(v).toLowerCase().includes(query));
+      const matchesStatus = status === "all" || String(o["confirmado y pagado"]) === status;
+      const matchesEntregado = entregado === "all" || String(o["entregado"]) === entregado;
+      return matchesText && matchesStatus && matchesEntregado;
+    });
+
+  // Ordenar por fecha de envío (Hora de envio). Si no hay fecha, caerá a 0.
+  filtered.sort((a, b) => {
+    const ta = new Date(a.o["Hora de envio"]).getTime() || 0;
+    const tb = new Date(b.o["Hora de envio"]).getTime() || 0;
+    return sortOrder === "asc" ? ta - tb : tb - ta;
+  });
+
+  // pasar solo los objetos pedidos (pero preservando originalIndex en cada elemento)
+  renderTable(filtered);
+}
+
+function renderTable(items) {
+  // items: array de { o: orderObject, originalIndex: number }
   tableHead.innerHTML = `
     <tr>
       <th>Fecha</th>
@@ -53,7 +88,7 @@ function renderTable(orders) {
       <th>Acciones</th>
     </tr>`;
 
-  tableBody.innerHTML = orders.map((o, i) => `
+  tableBody.innerHTML = items.map(({ o, originalIndex }, i) => `
     <tr>
       <td>${new Date(o["Hora de envio"]).toLocaleString()}</td>
       <td>${o.Nombre}</td>
@@ -67,15 +102,15 @@ function renderTable(orders) {
       <td>$${o.total}</td>
       <td>
         <input class="check" type="checkbox" ${o["confirmado y pagado"] === true || o["confirmado y pagado"] === "TRUE" ? "checked" : ""} 
-        onchange="toggleCheck(${i}, 'confirmado y pagado', this.checked)">
+        onchange="toggleCheck(${originalIndex}, 'confirmado y pagado', this.checked)">
       </td>
       <td>
         <input class="check" type="checkbox" ${o["entregado"] === true || o["entregado"] === "TRUE" ? "checked" : ""} 
-        onchange="toggleCheck(${i}, 'entregado', this.checked)">
+        onchange="toggleCheck(${originalIndex}, 'entregado', this.checked)">
       </td>
       <td class="acciones">
-        <button class="btn-ver" onclick="verDetalle(${i})">👁️ Ver</button>
-        <button class="btn-eliminar" onclick="eliminarPedido(${i})">🗑️ Eliminar</button>
+        <button class="btn-ver" onclick="verDetalle(${originalIndex})">👁️ Ver</button>
+        <button class="btn-eliminar" onclick="eliminarPedido(${originalIndex})">🗑️ Eliminar</button>
       </td>
     </tr>
   `).join("");
@@ -378,14 +413,8 @@ async function eliminarProducto(row, codigo) {
 }
 
 function filterOrders() {
-  const query = document.getElementById("search").value.toLowerCase();
-  const status = document.getElementById("filter-status").value;
-  const filtered = currentOrders.filter(o => {
-    const matchesText = Object.values(o).some(v => String(v).toLowerCase().includes(query));
-    const matchesStatus = status === "all" || String(o["confirmado y pagado"]) === status;
-    return matchesText && matchesStatus;
-  });
-  renderTable(filtered);
+  // ahora solo reaplica filtros locales sin volver a consultar al backend
+  applyFiltersAndRender();
 }
 
 function exportExcel() {
