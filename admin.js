@@ -175,8 +175,8 @@ detalle.innerHTML = `
       <tr>
         <td>📦 Costo envío (real):</td>
         <td style="text-align:right;">
+            <button class="buttom_edit" onclick="editarCampo(${i}, 'COSTO ENVIO', 'number')">✏️</button>
           $<span id="val_${i}_COSTO_ENVIO">${o["COSTO ENVIO"] || 0}</span>
-          <button class="buttom_edit" onclick="editarCampo(${i}, 'COSTO ENVIO', 'number')">✏️</button>
         </td>
       </tr>
       <tr><td>💵 Total:</td><td style="text-align:right;"><strong>$${o.total}</strong></td></tr>
