@@ -58,6 +58,18 @@
     </div>
   </div>
 
+  <!-- UI MODALS / TOASTS (custom alerts / prompts / forms) -->
+  <div id="ui-modal" class="ui-modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="ui-backdrop" onclick="uiModalClose()"></div>
+    <div class="ui-dialog" role="document">
+      <header class="ui-dialog-header"><h3 id="ui-modal-title"></h3></header>
+      <div id="ui-modal-body" class="ui-dialog-body"></div>
+      <footer class="ui-dialog-footer" id="ui-modal-actions"></footer>
+    </div>
+  </div>
+
+  <div id="ui-toast-container" class="ui-toast-container" aria-live="polite" aria-atomic="true"></div>
+
   <script src="../scripts/admin.js"></script>
 </body>
 </html>

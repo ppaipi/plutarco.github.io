@@ -7,13 +7,6 @@ const tableBody = document.querySelector("#orders-table tbody");
 const overlay = document.getElementById("overlay");
 const detalle = document.getElementById("detalle-contenido");
 
-document.getElementById("login-btn").onclick = login;
-document.getElementById("logout-btn").onclick = logout;
-document.getElementById("export-btn").onclick = exportExcel;
-// usar el filtrado local para respuestas instantáneas
-document.getElementById("filter-status").onchange = applyFiltersAndRender;
-document.getElementById("search").oninput = applyFiltersAndRender;
-
 // --- NEW: bind new controls (simplificado) ---
 const filterEntregadoEl = document.getElementById("filter-entregado"); // "all"|"TRUE"|"FALSE"
 const sortOrderEl = document.getElementById("sort-order"); // único selector siempre visible
@@ -44,7 +37,7 @@ function logout() {
 
 async function loadOrders() {
   const res = await postData({ action: "getOrders" });
-  if (!res.ok) return alert("Error al cargar pedidos");
+  if (!res.ok) { uiAlert("Error al cargar pedidos", { type: "error" }); return; }
   currentOrders = res.orders || [];
   applyFiltersAndRender();
 }
@@ -128,14 +121,16 @@ async function toggleCheck(i, field, checked) {
   await postData({ action: "updateCell", rowIndex: i, columnName: field, value: checked ? "TRUE" : "FALSE" });
 }
 
+// actualizar eliminarPedido -> usar uiConfirm y uiNotify
 async function eliminarPedido(i) {
-  if (!confirm("¿Seguro que deseas eliminar este pedido completo?")) return;
+  const ok = await uiConfirm("¿Seguro que deseas eliminar este pedido completo?");
+  if (!ok) return;
   const res = await postData({ action: "deleteOrder", rowIndex: i });
   if (res.ok) {
-    alert("Pedido eliminado correctamente");
+    uiNotify("Pedido eliminado correctamente", "success");
     loadOrders();
   } else {
-    alert("Error al eliminar pedido");
+    uiAlert("Error al eliminar pedido", { type: "error" });
   }
 }
 
@@ -186,7 +181,7 @@ function verDetalle(i) {
   const o = currentOrders[i];
   overlay.classList.add("active");
 
-  const productos = parseProductos(o.Productos);
+  const productos = parseProductos(o.Productos || "");
 
   const productosHTML = productos.map((p, idx) => `
     <div class="producto">
@@ -265,17 +260,21 @@ detalle.innerHTML = `
   </div>
 `;
 
-
 }
 
 function cerrarDetalle() {
   overlay.classList.remove("active");
 }
 
+// editableField: ahora render inline-edit contenteditable con commitInlineEdit (blur/Enter)
 function editableField(row, name, value, type = "text") {
+  const safeId = `val-${row}-${String(name).replace(/[^a-z0-9_]/gi, '_')}`;
+  // contenteditable span; onblur -> commitInlineEdit
   return `
-    <p><strong>${name}:</strong> 
-      <span id="val-${row}-${name}">${value}</span>
+    <p><strong>${name.replace(/🏷️ /, "")}:</strong> 
+      <span id="${safeId}" class="inline-edit" contenteditable="true" 
+        onblur="commitInlineEdit(${row}, '${name}', '${type}', this)"
+        onkeydown="if(event.key === 'Enter'){ event.preventDefault(); this.blur(); }">${value}</span>
       <button class="buttom_edit" onclick="editarCampo(${row}, '${name}', '${type}')">✏️</button>
     </p>
   `;
@@ -300,24 +299,31 @@ function editableLinkField(row, columnName, label, value, href, type = "text") {
 }
 
 
-async function editarCampo(row, columnName, type = "text", elementId = null, hrefTemplate = null) {
+async function editarCampo(row, columnName, type = "text", elementId = null, hrefTemplate = null, nuevoValor) {
   if (!elementId) {
     elementId = `val_${row}_${String(columnName).replace(/[^a-z0-9_]/gi, '_')}`;
   }
 
   const el = document.getElementById(elementId);
   const oldValue = el ? el.textContent.trim() : "";
-  const nuevo = prompt(`Editar ${columnName}:`, oldValue === "-" ? "" : oldValue);
-  if (nuevo === null) return; // canceló
 
-  // Validar número si corresponde
-  if (type === "number" && isNaN(nuevo)) {
-    alert("Por favor ingresa un número válido");
+  let nuevo = typeof nuevoValor !== "undefined" ? nuevoValor : null;
+
+  if (nuevo === null) {
+    // si no se pasó valor, usamos modal prompt ligero
+    const res = await uiForm(`Editar ${columnName}`, [
+      { name: "value", label: columnName, value: oldValue === "-" ? "" : oldValue, type: type === "number" ? "number" : "text", required: false }
+    ]);
+    if (!res) return; // canceló
+    nuevo = res.value;
+  }
+
+  if (type === "number" && nuevo !== "" && isNaN(nuevo)) {
+    uiNotify("Por favor ingresa un número válido", "error");
     return;
   }
 
   try {
-    // Actualizar en Google Sheets
     await postData({
       action: "updateCell",
       rowIndex: row,
@@ -325,15 +331,12 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
       value: nuevo
     });
 
-    // Actualizar valor mostrado
     if (el) el.textContent = nuevo || "-";
 
-    // 🔄 Actualizar en memoria
     if (currentOrders && currentOrders[row]) {
       currentOrders[row][columnName] = nuevo;
     }
 
-    // 🧮 Si cambió el envío, recalcular total
     if (columnName === "Envio" || columnName === "Subtotal") {
       const sub = parseFloat(currentOrders[row].Subtotal) || 0;
       const envio = parseFloat(currentOrders[row].Envio) || 0;
@@ -341,11 +344,9 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
 
       currentOrders[row].total = nuevoTotal;
 
-      // Actualizar visualmente el total en pantalla si existe
       const totalEl = document.querySelector(`#detalle-contenido strong`);
       if (totalEl) totalEl.textContent = `$${nuevoTotal.toFixed(2)}`;
 
-      // También actualizar en Google Sheets (opcional)
       await postData({
         action: "updateCell",
         rowIndex: row,
@@ -354,107 +355,104 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
       });
     }
 
-    // Actualizar hrefs si son campos especiales
     if (columnName === "Email") {
-      el.href = nuevo ? `mailto:${encodeURIComponent(nuevo)}` : "#";
+      if (el && el.tagName === "A") el.href = nuevo ? `mailto:${encodeURIComponent(nuevo)}` : "#";
     } else if (columnName === "Telefono") {
       const digits = String(nuevo || "").replace(/\D/g, "");
-      el.href = digits ? `https://wa.me/${digits}` : "#";
+      if (el && el.tagName === "A") el.href = digits ? `https://wa.me/${digits}` : "#";
     } else if (columnName === "Direccion") {
-      el.href = nuevo
+      if (el && el.tagName === "A") el.href = nuevo
         ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nuevo)}`
         : "#";
     }
 
+    uiNotify("Guardado correctamente", "success");
   } catch (err) {
-    alert("Error al guardar: " + (err.message || err));
+    uiAlert("Error al guardar: " + (err.message || err), { type: "error" });
   }
 }
 
-
-
-
-
 async function agregarProducto(row) {
-  const codigo = prompt("Código del producto:");
-  const nombre = prompt("Nombre del producto:");
-  const unidades = prompt("Cantidad:", 1);
-  const total = prompt("Precio total:");
-  if (!codigo || !nombre || !total) return;
+  const form = await uiForm("Agregar producto", [
+    { name: "codigo", label: "Código", value: "", required: true },
+    { name: "nombre", label: "Nombre", value: "", required: true },
+    { name: "unidades", label: "Cantidad", value: "1", type: "number", required: true },
+    { name: "total", label: "Precio total", value: "", type: "number", required: true },
+  ]);
+  if (!form) return;
 
   const pedido = currentOrders[row];
-  const productos = parseProductos(pedido.Productos);
-  productos.push({ codigo, nombre, unidades, total });
+  const productos = parseProductos(pedido.Productos || "");
+  productos.push({ codigo: form.codigo, nombre: form.nombre, unidades: form.unidades, total: form.total });
 
   await postData({ action: "updateProductos", rowIndex: row, productos });
-  alert("Producto agregado");
+  uiNotify("Producto agregado", "success");
   loadOrders();
   verDetalle(row);
 }
 
 async function editarProducto(row, idx) {
   const pedido = currentOrders[row];
-  const productos = parseProductos(pedido.Productos);
+  const productos = parseProductos(pedido.Productos || "");
   const p = productos[idx];
 
-  const nuevoNombre = prompt("Nuevo nombre:", p.nombre);
-  const nuevasUnidades = prompt("Cantidad:", p.unidades);
-  const nuevoPrecio = prompt("Precio total:", p.total);
-  if (!nuevoNombre || !nuevoPrecio) return;
+  const form = await uiForm("Editar producto", [
+    { name: "codigo", label: "Código", value: p.codigo || "", required: true },
+    { name: "nombre", label: "Nombre", value: p.nombre || "", required: true },
+    { name: "unidades", label: "Cantidad", value: p.unidades || "", type: "number", required: true },
+    { name: "total", label: "Precio total", value: p.total || "", type: "number", required: true },
+  ]);
+  if (!form) return;
 
-  productos[idx] = { ...p, nombre: nuevoNombre, unidades: nuevasUnidades, total: nuevoPrecio };
+  productos[idx] = { codigo: form.codigo, nombre: form.nombre, unidades: form.unidades, total: form.total };
   await postData({ action: "updateProductos", rowIndex: row, productos });
-  alert("Producto editado");
+  uiNotify("Producto editado", "success");
   loadOrders();
   verDetalle(row);
 }
 
 async function eliminarProducto(row, codigo) {
-  if (!confirm("¿Eliminar este producto?")) return;
+  const ok = await uiConfirm("¿Eliminar este producto?");
+  if (!ok) return;
   await postData({ action: "deleteProducto", rowIndex: row, codigo });
-  alert("Producto eliminado");
+  uiNotify("Producto eliminado", "info");
   setTimeout(() => {
     loadOrders();
     verDetalle(row);
-  }, 100);
-
+  }, 150);
 }
 
-function filterOrders() {
-  // ahora solo reaplica filtros locales sin volver a consultar al backend
-  applyFiltersAndRender();
-}
 // === CREAR NUEVO PEDIDO ===
 document.getElementById("new-order-btn").onclick = crearNuevoPedido;
 
 async function crearNuevoPedido() {
-  const nombre = prompt("Nombre del cliente:");
-  if (!nombre) return;
-
-  const direccion = prompt("Dirección de entrega:");
-  const telefono = prompt("Teléfono:");
-  const mail = prompt("Email:");
-  const comentario = prompt("Comentario u observación:") || "";
+  const res = await uiForm("Nuevo pedido", [
+    { name: "nombre", label: "Nombre del cliente", value: "", required: true },
+    { name: "direccion", label: "Dirección de entrega", value: "", required: true },
+    { name: "telefono", label: "Teléfono", value: "", required: false },
+    { name: "mail", label: "Email", value: "", required: false },
+    { name: "comentario", label: "Comentario u observación", value: "", type: "textarea", required: false },
+  ]);
+  if (!res) return;
 
   const nuevoPedido = {
     action: "createOrder",
-    nombre,
-    direccion,
-    telefono,
-    mail,
-    comentario
+    nombre: res.nombre,
+    direccion: res.direccion,
+    telefono: res.telefono,
+    mail: res.mail,
+    comentario: res.comentario
   };
 
-  const res = await postData(nuevoPedido);
+  const r = await postData(nuevoPedido);
 
-  if (res.ok) {
-    alert("✅ Pedido creado correctamente");
+  if (r.ok) {
+    uiNotify("✅ Pedido creado correctamente", "success");
     loadOrders();
   } else {
-    alert("❌ Error al crear el pedido");
+    uiAlert("❌ Error al crear el pedido", { type: "error" });
   }
 }
-
 
 function exportExcel() {
   const csv = [Object.keys(currentOrders[0]).join(",")].concat(
@@ -480,3 +478,4 @@ if (localStorage.getItem("logged")) {
   panel.classList.remove("hidden");
   loadOrders();
 }
+
