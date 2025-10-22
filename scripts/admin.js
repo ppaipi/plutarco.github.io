@@ -73,8 +73,9 @@ function renderTable(orders) {
         <input class="check" type="checkbox" ${o["entregado"] === true || o["entregado"] === "TRUE" ? "checked" : ""} 
         onchange="toggleCheck(${i}, 'entregado', this.checked)">
       </td>
-      <td>
-        <button onclick="verDetalle(${i})">👁️ Ver</button>
+      <td class="acciones">
+        <button class="btn-ver" onclick="verDetalle(${i})">👁️ Ver</button>
+        <button class="btn-eliminar" onclick="eliminarPedido(${i})">🗑️ Eliminar</button>
       </td>
     </tr>
   `).join("");
@@ -82,6 +83,27 @@ function renderTable(orders) {
 
 async function toggleCheck(i, field, checked) {
   await postData({ action: "updateCell", rowIndex: i, columnName: field, value: checked ? "TRUE" : "FALSE" });
+}
+
+async function eliminarPedido(row) {
+  if (!confirm("⚠️ ¿Seguro que querés eliminar este pedido? Esta acción no se puede deshacer.")) return;
+
+  try {
+    const res = await postData({
+      action: "deleteOrder",
+      rowIndex: row
+    });
+
+    if (res.ok) {
+      alert("🗑️ Pedido eliminado correctamente");
+      loadOrders(); // refresca la tabla
+      overlay.classList.remove("active"); // cierra detalle si estaba abierto
+    } else {
+      alert("❌ Error al eliminar pedido");
+    }
+  } catch (err) {
+    alert("Error: " + (err.message || err));
+  }
 }
 
 function parseProductos(str) {
@@ -134,7 +156,7 @@ function verDetalle(i) {
 
   const productosHTML = productos.map((p, idx) => `
     <div class="producto">
-      <img src="/media/PRODUCTOS/${p.codigo}.jpg" onerror="this.src='/media/PRODUCTOS/placeholder.jpg'">
+      <img src="../media/PRODUCTOS/${p.codigo}.jpg" onerror="this.src='../media/PRODUCTOS/placeholder.jpg'">
       <div class="producto-info">
         <p><strong>${p.nombre}</strong></p>
         <p>${p.unidades} x $${p.total}</p>
