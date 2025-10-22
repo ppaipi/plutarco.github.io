@@ -424,6 +424,37 @@ function filterOrders() {
   // ahora solo reaplica filtros locales sin volver a consultar al backend
   applyFiltersAndRender();
 }
+// === CREAR NUEVO PEDIDO ===
+document.getElementById("new-order-btn").onclick = crearNuevoPedido;
+
+async function crearNuevoPedido() {
+  const nombre = prompt("Nombre del cliente:");
+  if (!nombre) return;
+
+  const direccion = prompt("Dirección de entrega:");
+  const telefono = prompt("Teléfono:");
+  const mail = prompt("Email:");
+  const comentario = prompt("Comentario u observación:") || "";
+
+  const nuevoPedido = {
+    action: "createOrder",
+    nombre,
+    direccion,
+    telefono,
+    mail,
+    comentario
+  };
+
+  const res = await postData(nuevoPedido);
+
+  if (res.ok) {
+    alert("✅ Pedido creado correctamente");
+    loadOrders();
+  } else {
+    alert("❌ Error al crear el pedido");
+  }
+}
+
 
 function exportExcel() {
   const csv = [Object.keys(currentOrders[0]).join(",")].concat(

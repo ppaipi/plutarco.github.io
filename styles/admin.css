@@ -624,3 +624,13 @@ button.cerrar:hover {
     font-size: 18px;
   }
 }
+#new-order-btn {
+  background-color: #4caf50;
+  color: white;
+  font-weight: 600;
+  border: none;
+}
+
+#new-order-btn:hover {
+  background-color: #43a047;
+}
