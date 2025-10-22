@@ -10,15 +10,31 @@ const detalle = document.getElementById("detalle-contenido");
 document.getElementById("login-btn").onclick = login;
 document.getElementById("logout-btn").onclick = logout;
 document.getElementById("export-btn").onclick = exportExcel;
-document.getElementById("filter-status").onchange = loadOrders;
-document.getElementById("search").oninput = filterOrders;
+// usar el filtrado local para respuestas instantáneas
+document.getElementById("filter-status").onchange = applyFiltersAndRender;
+document.getElementById("search").oninput = applyFiltersAndRender;
 
-// --- NEW: try to bind new controls if present ---
-const filterEntregadoEl = document.getElementById("filter-entregado"); // expected values: "all", "TRUE", "FALSE"
-const sortOrderEl = document.getElementById("sort-order"); // expected values: "desc" (newest) or "asc" (oldest)
+// --- NEW: bind new controls ---
+const filterEntregadoEl = document.getElementById("filter-entregado"); // "all"|"TRUE"|"FALSE"
+const sortConfirmEl = document.getElementById("sort-confirm");
+const sortEntregadoEl = document.getElementById("sort-entregado");
+const sortConfirmWrap = document.getElementById("sort-confirm-wrap");
+const sortEntregadoWrap = document.getElementById("sort-entregado-wrap");
 
-if (filterEntregadoEl) filterEntregadoEl.onchange = loadOrders;
-if (sortOrderEl) sortOrderEl.onchange = loadOrders;
+// show/hide wrappers and re-render when filters change
+function updateSortControlsVisibility() {
+  const statusVal = document.getElementById("filter-status") ? document.getElementById("filter-status").value : "all";
+  const entregadoVal = filterEntregadoEl ? filterEntregadoEl.value : "all";
+
+  if (sortConfirmWrap) sortConfirmWrap.classList.toggle("hidden", statusVal === "all");
+  if (sortEntregadoWrap) sortEntregadoWrap.classList.toggle("hidden", entregadoVal === "all");
+}
+
+if (filterEntregadoEl) {
+  filterEntregadoEl.onchange = () => { updateSortControlsVisibility(); applyFiltersAndRender(); };
+}
+if (sortConfirmEl) sortConfirmEl.onchange = applyFiltersAndRender;
+if (sortEntregadoEl) sortEntregadoEl.onchange = applyFiltersAndRender;
 
 let currentOrders = [];
 
@@ -45,17 +61,26 @@ async function loadOrders() {
   const res = await postData({ action: "getOrders" });
   if (!res.ok) return alert("Error al cargar pedidos");
   currentOrders = res.orders || [];
+  updateSortControlsVisibility();
   applyFiltersAndRender();
 }
 
 function applyFiltersAndRender() {
-  // obtiene valores de filtros/orden
   const query = document.getElementById("search") ? document.getElementById("search").value.toLowerCase() : "";
   const status = document.getElementById("filter-status") ? document.getElementById("filter-status").value : "all";
   const entregado = filterEntregadoEl ? filterEntregadoEl.value : "all";
-  const sortOrder = sortOrderEl ? sortOrderEl.value : "desc"; // default newest first
 
-  // Filtrar
+  // Determinar orden: prioridad a select específico según filtro activo
+  let sortOrder = 'desc';
+  if (status !== "all" && sortConfirmEl) {
+    sortOrder = sortConfirmEl.value || 'desc';
+  } else if (entregado !== "all" && sortEntregadoEl) {
+    sortOrder = sortEntregadoEl.value || 'desc';
+  } else {
+    // fallback: si existiera un selector global lo podríamos usar, mantengo 'desc' por defecto
+    sortOrder = 'desc';
+  }
+
   let filtered = currentOrders.map((o, idx) => ({ o, originalIndex: idx }))
     .filter(({ o }) => {
       const matchesText = query === "" || Object.values(o).some(v => String(v).toLowerCase().includes(query));
@@ -64,14 +89,12 @@ function applyFiltersAndRender() {
       return matchesText && matchesStatus && matchesEntregado;
     });
 
-  // Ordenar por fecha de envío (Hora de envio). Si no hay fecha, caerá a 0.
   filtered.sort((a, b) => {
     const ta = new Date(a.o["Hora de envio"]).getTime() || 0;
     const tb = new Date(b.o["Hora de envio"]).getTime() || 0;
     return sortOrder === "asc" ? ta - tb : tb - ta;
   });
 
-  // pasar solo los objetos pedidos (pero preservando originalIndex en cada elemento)
   renderTable(filtered);
 }
 
@@ -435,8 +458,11 @@ async function postData(payload) {
   return res.json();
 }
 
+// Asegurarse de mostrar/ocultar controles al iniciar si ya está logueado
 if (localStorage.getItem("logged")) {
   loginContainer.classList.add("hidden");
   panel.classList.remove("hidden");
+  // actualizar visibilidad antes de cargar
+  updateSortControlsVisibility();
   loadOrders();
 }

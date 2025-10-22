@@ -5,6 +5,80 @@
   --text: #333;
   --muted: #777;
   --border: #e5e7eb;
+
+  /* nuevas variables para consistencia y accesibilidad */
+  --radius: 10px;
+  --gap: 12px;
+  --transition: 200ms;
+  --focus-ring: 3px rgba(0,150,136,0.18);
+}
+
+/* Mejor focus / keyboard visibility */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-ring);
+  border-radius: var(--radius);
+}
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-ring);
+}
+
+/* Pequeños toques para botones de acción y edición */
+.buttom_edit {
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform var(--transition), opacity var(--transition);
+  opacity: 0.6;
+}
+.buttom_edit:hover,
+.buttom_edit:focus {
+  transform: translateY(-2px);
+  opacity: 1;
+}
+
+/* Ajustes a botones principales para mejor hit target y feedback */
+.btn-ver,
+.btn-eliminar {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: transform var(--transition), background var(--transition), box-shadow var(--transition);
+  line-height: 1;
+}
+.btn-ver:hover,
+.btn-eliminar:hover,
+.btn-ver:focus,
+.btn-eliminar:focus {
+  transform: translateY(-2px);
+}
+
+/* Utilidad: contenedor responsive para tablas */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius);
+}
+
+/* Helper para accesibilidad (visually hidden) */
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+/* Respetar preferencias de movimiento */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+  }
 }
 
 /* ===== BASE ===== */
@@ -57,15 +131,6 @@ button {
   cursor: pointer;
   transition: 0.2s;
 }
-.buttom_edit {
-    background: none;
-    border: none;
-  cursor: pointer;
-  transition: 0.2s;
-  opacity: 0.5;
-}
-
-button:hover { opacity: 0.9; }
 
 /* ===== TABLA ===== */
 table {
@@ -307,13 +372,19 @@ button.cerrar:hover {
   box-shadow: 0 0 0 3px rgba(0, 150, 136, 0.25);
 }
 /* ===== BOTONES DE ACCIÓN ===== */
+.acciones {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center; /* centra horizontalmente los botones dentro de la celda */
+}
+
 .acciones button {
-  border: none;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 6px 10px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: 0.2s;
+  border-radius: 6px;
 }
 
 .btn-ver {
@@ -324,12 +395,19 @@ button.cerrar:hover {
 .btn-eliminar {
   background-color: #e53935;
   color: white;
-  margin-left: 6px;
+  margin-left: 0;
 }
 
 .btn-eliminar:hover {
   background-color: #c62828;
 }
+
+/* pequeños estilos para los wrappers de orden */
+.sort-control {
+  display: inline-block;
+}
+.sort-control.hidden { display: none; }
+
 /* ============================= */
 /* 📱 RESPONSIVE DESIGN */
 /* ============================= */

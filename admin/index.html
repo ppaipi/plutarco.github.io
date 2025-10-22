@@ -27,6 +27,23 @@
           <option value="TRUE">Confirmados</option>
           <option value="FALSE">Pendientes</option>
         </select>
+        <select id="filter-entregado">
+          <option value="all">Todos</option>
+          <option value="TRUE">Entregados</option>
+          <option value="FALSE">No entregados</option>
+        </select>
+        <div class="sort-control hidden" id="sort-confirm-wrap">
+          <select id="sort-confirm" aria-label="Ordenar por fecha cuando filtro confirmado">
+            <option value="desc">Más recientes</option>
+            <option value="asc">Más antiguos</option>
+          </select>
+        </div>
+        <div class="sort-control hidden" id="sort-entregado-wrap">
+          <select id="sort-entregado" aria-label="Ordenar por fecha cuando filtro entregado">
+            <option value="desc">Más recientes</option>
+            <option value="asc">Más antiguos</option>
+          </select>
+        </div>
         <button id="export-btn">📤 Exportar CSV</button>
         <button id="logout-btn">Salir</button>
       </div>
