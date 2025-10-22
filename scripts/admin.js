@@ -447,7 +447,5 @@ async function postData(payload) {
 if (localStorage.getItem("logged")) {
   loginContainer.classList.add("hidden");
   panel.classList.remove("hidden");
-  // actualizar visibilidad antes de cargar
-  updateSortControlsVisibility();
   loadOrders();
 }
