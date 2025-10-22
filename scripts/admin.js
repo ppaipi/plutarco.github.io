@@ -7,6 +7,146 @@ const tableBody = document.querySelector("#orders-table tbody");
 const overlay = document.getElementById("overlay");
 const detalle = document.getElementById("detalle-contenido");
 
+// --- UI HELPERS: modal / confirm / prompt / form / toast ---
+// Se añaden aquí para evitar ReferenceError (uiForm no definido)
+
+function uiModalOpen({ title = "", body = "", actions = [] } = {}) {
+  const modal = document.getElementById("ui-modal");
+  if (!modal) return;
+  document.getElementById("ui-modal-title").textContent = title;
+  const bodyEl = document.getElementById("ui-modal-body");
+  const actionsEl = document.getElementById("ui-modal-actions");
+  bodyEl.innerHTML = "";
+  actionsEl.innerHTML = "";
+  if (typeof body === "string") bodyEl.innerHTML = body;
+  else if (body instanceof Node) bodyEl.appendChild(body);
+
+  actions.forEach(a => {
+    const btn = document.createElement("button");
+    btn.className = `ui-btn ${a.class || ""}`.trim();
+    btn.textContent = a.label;
+    btn.onclick = () => { if (typeof a.onClick === "function") a.onClick(); };
+    actionsEl.appendChild(btn);
+  });
+
+  modal.classList.remove("hidden");
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function uiModalClose() {
+  const modal = document.getElementById("ui-modal");
+  if (!modal) return;
+  modal.classList.add("hidden");
+  modal.setAttribute("aria-hidden", "true");
+  const bodyEl = document.getElementById("ui-modal-body");
+  const actionsEl = document.getElementById("ui-modal-actions");
+  if (bodyEl) bodyEl.innerHTML = "";
+  if (actionsEl) actionsEl.innerHTML = "";
+}
+
+// Toast simple
+function uiNotify(text, type = "info", timeout = 3500) {
+  const container = document.getElementById("ui-toast-container");
+  if (!container) return;
+  const t = document.createElement("div");
+  t.className = `ui-toast ${type}`;
+  t.textContent = text;
+  container.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = 0;
+    setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, 220);
+  }, timeout);
+}
+
+// Alert-like (awaitable)
+function uiAlert(message, opts = {}) {
+  return new Promise(res => {
+    uiModalOpen({
+      title: opts.title || (opts.type === "error" ? "Error" : "Aviso"),
+      body: `<p style="margin:0 0 8px;">${message}</p>`,
+      actions: [
+        { label: opts.okLabel || "Aceptar", class: "primary", onClick: () => { uiModalClose(); res(true); } },
+      ]
+    });
+  });
+}
+
+// Confirm-like (awaitable)
+function uiConfirm(message, opts = {}) {
+  return new Promise(res => {
+    uiModalOpen({
+      title: opts.title || "Confirmar",
+      body: `<p style="margin:0 0 8px;">${message}</p>`,
+      actions: [
+        { label: opts.cancelLabel || "Cancelar", class: "secondary", onClick: () => { uiModalClose(); res(false); } },
+        { label: opts.okLabel || "Sí", class: "primary", onClick: () => { uiModalClose(); res(true); } },
+      ]
+    });
+  });
+}
+
+// Form helper (awaitable). fields: [{ name, label, type, value, placeholder, required }]
+function uiForm(title, fields = []) {
+  return new Promise(res => {
+    const form = document.createElement("div");
+    fields.forEach(f => {
+      const label = document.createElement("label");
+      label.style.display = "block";
+      label.style.marginBottom = "6px";
+      label.textContent = f.label || f.name;
+
+      let input;
+      if (f.type === "textarea") {
+        input = document.createElement("textarea");
+        input.className = "ui-textarea";
+        input.value = f.value || "";
+        input.placeholder = f.placeholder || "";
+      } else {
+        input = document.createElement("input");
+        input.type = f.type || "text";
+        input.className = "ui-input";
+        input.value = f.value || "";
+        input.placeholder = f.placeholder || "";
+      }
+      input.id = `ui-field-${Math.random().toString(36).slice(2)}`;
+      label.appendChild(input);
+      form.appendChild(label);
+      f._el = input;
+    });
+
+    uiModalOpen({
+      title: title || "Formulario",
+      body: form,
+      actions: [
+        { label: "Cancelar", class: "secondary", onClick: () => { uiModalClose(); res(null); } },
+        { label: "Guardar", class: "primary", onClick: () => {
+            const result = {};
+            let valid = true;
+            fields.forEach(f => {
+              const v = f._el.value.trim();
+              if (f.required && !v) valid = false;
+              result[f.name] = v;
+            });
+            if (!valid) {
+              uiNotify("Completa los campos requeridos", "error");
+              return;
+            }
+            uiModalClose();
+            res(result);
+          } },
+      ]
+    });
+  });
+}
+
+// Commit inline edits desde contenteditable
+function commitInlineEdit(row, columnName, type, el) {
+  const nuevo = (el.textContent || "").trim();
+  const valueToSend = nuevo === "" ? "-" : nuevo;
+  // llamar editarCampo pasando el id del elemento y el nuevo valor para evitar prompt
+  editarCampo(row, columnName, type, el.id, null, valueToSend);
+}
+
 // --- NEW: bind new controls (simplificado) ---
 const filterEntregadoEl = document.getElementById("filter-entregado"); // "all"|"TRUE"|"FALSE"
 const sortOrderEl = document.getElementById("sort-order"); // único selector siempre visible
