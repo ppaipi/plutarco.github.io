@@ -330,3 +330,130 @@ button.cerrar:hover {
 .btn-eliminar:hover {
   background-color: #c62828;
 }
+/* ============================= */
+/* 📱 RESPONSIVE DESIGN */
+/* ============================= */
+
+/* --- Pantallas medianas (tablets, < 992px) --- */
+@media (max-width: 992px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .controls {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .controls input,
+  .controls select,
+  .controls button {
+    flex: 1 1 48%;
+  }
+
+  #detalle-contenido {
+    max-width: 95%;
+    max-height: 90vh;
+  }
+
+  table {
+    font-size: 14px;
+  }
+}
+
+/* --- Pantallas pequeñas (celulares, < 768px) --- */
+@media (max-width: 768px) {
+  header {
+    padding: 10px 16px;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controls input,
+  .controls select,
+  .controls button {
+    width: 100%;
+  }
+
+  #panel {
+    padding: 12px;
+  }
+
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody tr {
+    background: var(--card);
+    margin-bottom: 12px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    padding: 10px;
+  }
+
+  td {
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+  }
+
+  td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .btn-ver, .btn-eliminar {
+    width: 48%;
+    text-align: center;
+    padding: 8px 0;
+  }
+
+  .producto img {
+    width: 50px;
+    height: 50px;
+  }
+
+  .producto-info p {
+    font-size: 13px;
+  }
+}
+
+/* --- Pantallas muy pequeñas (< 480px) --- */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 16px;
+  }
+
+  button, input, select {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  .btn-ver, .btn-eliminar {
+    font-size: 13px;
+  }
+
+  .resumen-precios td {
+    font-size: 13px;
+  }
+}
