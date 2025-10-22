@@ -85,26 +85,17 @@ async function toggleCheck(i, field, checked) {
   await postData({ action: "updateCell", rowIndex: i, columnName: field, value: checked ? "TRUE" : "FALSE" });
 }
 
-async function eliminarPedido(row) {
-  if (!confirm("⚠️ ¿Seguro que querés eliminar este pedido? Esta acción no se puede deshacer.")) return;
-
-  try {
-    const res = await postData({
-      action: "deleteOrder",
-      rowIndex: row
-    });
-
-    if (res.ok) {
-      alert("🗑️ Pedido eliminado correctamente");
-      loadOrders(); // refresca la tabla
-      overlay.classList.remove("active"); // cierra detalle si estaba abierto
-    } else {
-      alert("❌ Error al eliminar pedido");
-    }
-  } catch (err) {
-    alert("Error: " + (err.message || err));
+async function eliminarPedido(i) {
+  if (!confirm("¿Seguro que deseas eliminar este pedido completo?")) return;
+  const res = await postData({ action: "deleteOrder", rowIndex: i });
+  if (res.ok) {
+    alert("Pedido eliminado correctamente");
+    loadOrders();
+  } else {
+    alert("Error al eliminar pedido");
   }
 }
+
 
 function parseProductos(str) {
   if (!str) return [];
