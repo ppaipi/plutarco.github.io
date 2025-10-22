@@ -172,7 +172,13 @@ detalle.innerHTML = `
     <table class="resumen-precios" style="width:100%; border-collapse:collapse;">
       <tr><td>💰 Subtotal:</td><td style="text-align:right;">$${o.Subtotal}</td></tr>
       <tr><td>🚗 Envío cobrado:</td><td style="text-align:right;">$${o.Envio}</td></tr>
-      <tr><td>📦 Costo envío (real):</td><td style="text-align:right;">$${o["COSTO ENVIO"] || 0}</td></tr>
+      <tr>
+        <td>📦 Costo envío (real):</td>
+        <td style="text-align:right;">
+          $<span id="val_${i}_COSTO_ENVIO">${o["COSTO ENVIO"] || 0}</span>
+          <button class="buttom_edit" onclick="editarCampo(${i}, 'COSTO ENVIO', 'number')">✏️</button>
+        </td>
+      </tr>
       <tr><td>💵 Total:</td><td style="text-align:right;"><strong>$${o.total}</strong></td></tr>
     </table>
 
