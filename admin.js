@@ -66,11 +66,11 @@ function renderTable(orders) {
       </td>
       <td>$${o.total}</td>
       <td>
-        <input class="checks" type="checkbox" ${o["confirmado y pagado"] === true || o["confirmado y pagado"] === "TRUE" ? "checked" : ""} 
+        <input class="check" type="checkbox" ${o["confirmado y pagado"] === true || o["confirmado y pagado"] === "TRUE" ? "checked" : ""} 
         onchange="toggleCheck(${i}, 'confirmado y pagado', this.checked)">
       </td>
       <td>
-        <input class="checks" type="checkbox" ${o["entregado"] === true || o["entregado"] === "TRUE" ? "checked" : ""} 
+        <input class="check" type="checkbox" ${o["entregado"] === true || o["entregado"] === "TRUE" ? "checked" : ""} 
         onchange="toggleCheck(${i}, 'entregado', this.checked)">
       </td>
       <td>
