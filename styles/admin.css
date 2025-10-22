@@ -308,3 +308,27 @@ checkbox{
   outline: none;
   box-shadow: 0 0 0 3px rgba(0, 150, 136, 0.25);
 }
+/* ===== BOTONES DE ACCIÓN ===== */
+.acciones button {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-ver {
+  background-color: var(--accent);
+  color: white;
+}
+
+.btn-eliminar {
+  background-color: #e53935;
+  color: white;
+  margin-left: 6px;
+}
+
+.btn-eliminar:hover {
+  background-color: #c62828;
+}
