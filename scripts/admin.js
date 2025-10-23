@@ -149,9 +149,11 @@ function commitInlineEdit(row, columnName, type, el) {
 
 // --- NEW: bind new controls (simplificado) ---
 const filterEntregadoEl = document.getElementById("filter-entregado"); // "all"|"TRUE"|"FALSE"
+const filterStatusEl = document.getElementById("filter-status"); // "all"|"TRUE"|"FALSE"
 const sortOrderEl = document.getElementById("sort-order"); // único selector siempre visible
 
 if (filterEntregadoEl) filterEntregadoEl.onchange = applyFiltersAndRender;
+if (filterStatusEl) filterStatusEl.onchange = applyFiltersAndRender;
 if (sortOrderEl) sortOrderEl.onchange = applyFiltersAndRender;
 
 let currentOrders = [];
