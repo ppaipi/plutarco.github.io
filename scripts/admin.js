@@ -161,16 +161,33 @@ if (sortOrderEl) sortOrderEl.onchange = applyFiltersAndRender;
 let currentOrders = [];
 
 async function login() {
-  const user = document.getElementById("user").value;
-  const password = document.getElementById("password").value;
-  const res = await postData({ action: "login", user, password });
-  if (res.ok) {
-    localStorage.setItem("logged", "1");
-    loginContainer.classList.add("hidden");
-    panel.classList.remove("hidden");
-    loadOrders();
-  } else {
-    document.getElementById("login-msg").textContent = "Usuario o contraseña incorrectos";
+  try {
+    const userEl = document.getElementById("user");
+    const passEl = document.getElementById("password");
+    const msgEl = document.getElementById("login-msg");
+    if (msgEl) msgEl.textContent = "";
+
+    const user = userEl ? userEl.value : "";
+    const password = passEl ? passEl.value : "";
+
+    const res = await postData({ action: "login", user, password });
+    console.log("login response:", res);
+
+    if (res && res.ok) {
+      localStorage.setItem("logged", "1");
+      if (loginContainer) loginContainer.classList.add("hidden");
+      if (panel) panel.classList.remove("hidden");
+      loadOrders();
+    } else {
+      const reason = (res && (res.error || res.message)) ? (res.error || res.message) : "Usuario o contraseña incorrectos";
+      if (msgEl) msgEl.textContent = reason;
+      else uiAlert(reason, { type: "error" });
+    }
+  } catch (err) {
+    console.error("login error:", err);
+    const msgEl = document.getElementById("login-msg");
+    if (msgEl) msgEl.textContent = "Error al conectar con el servidor";
+    else uiAlert("Error al conectar con el servidor", { type: "error" });
   }
 }
 
@@ -354,14 +371,14 @@ detalle.innerHTML = `
         : "No especificada"
     }</p>
 
-    ${editableField(i, "🏷️ Nombre", o.Nombre, "text", "Nombre")}
+    ${editableField(i, "🏷️ Nombre", o.Nombre, "text")}
     ${editableLinkField(i, "Email", "📧 Email", o.Email, o.Email ? "mailto:" + encodeURIComponent(o.Email) : "#")}
 
     ${editableLinkField(i, "Telefono", "📞 Teléfono", o.Telefono || "-", o.Telefono ? "https://wa.me/" + String(o.Telefono).replace(/\D/g, "") : "#")}
 
     ${editableLinkField(i, "Direccion", "📍 Dirección", o.Direccion || "-", o.Direccion ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(o.Direccion) : "#")}
 
-    ${editableField(i, "💬 Comentario", o.Comentario || "-", "text", "Comentario")}
+    ${editableField(i, "💬 Comentario", o.Comentario || "-", "text")}
 
     <h4>💵 Resumen del Pedido</h4>
     <table class="resumen-precios" style="width:100%; border-collapse:collapse;">
@@ -403,7 +420,6 @@ detalle.innerHTML = `
     </div>
   </div>
 `;
-
 }
 
 function cerrarDetalle() {
@@ -415,8 +431,19 @@ function cerrarDetalle() {
 function editableField(row, name, value, type = "text") {
   const safeKey = String(name).replace(/[^a-z0-9_]/gi, '_');
   const safeId = `val_${row}_${safeKey}`;
-  // contenteditable span; onblur -> commitInlineEdit
-  return `<p><strong>${String(name).replace(/🏷️\s?/,'')}:</strong><span id="${safeId}" class="inline-edit" contenteditable="true" onblur="commitInlineEdit(${row}, '${name}', '${type}', this)" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); this.blur(); }">${value}</span><button class="buttom_edit" onclick="editarCampo(${row}, '${name}', '${type}', '${safeId}')">✏️</button></p>`;
+  const display = (value === undefined || value === null || value === "") ? "-" : value;
+  const safeNameEsc = String(name).replace(/'/g, "\\'");
+  const safeType = String(type).replace(/'/g, "\\'");
+  return `
+    <p>
+      <strong>${String(name).replace(/🏷️\s?/,'')}:</strong>
+      <span id="${safeId}" class="inline-edit" contenteditable="true"
+        onblur="commitInlineEdit(${row}, '${safeNameEsc}', '${safeType}', this)"
+        onkeydown="if(event.key==='Enter'){ event.preventDefault(); this.blur(); }"
+        >${display}</span>
+      <button class="buttom_edit" onclick="editarCampo(${row}, '${safeNameEsc}', '${safeType}', '${safeId}')">✏️</button>
+    </p>
+  `;
 }
 // 1) Generador de campo link + botón editar
 function editableLinkField(row, columnName, label, value, href, type = "text") {
@@ -562,7 +589,8 @@ async function eliminarProducto(row, codigo) {
 }
 
 // === CREAR NUEVO PEDIDO ===
-document.getElementById("new-order-btn").onclick = crearNuevoPedido;
+const newOrderBtn = document.getElementById("new-order-btn");
+if (newOrderBtn) newOrderBtn.onclick = crearNuevoPedido;
 
 async function crearNuevoPedido() {
   const res = await uiForm("Nuevo pedido", [
@@ -594,6 +622,10 @@ async function crearNuevoPedido() {
 }
 
 function exportExcel() {
+  if (!currentOrders || !currentOrders.length) {
+    uiNotify("No hay pedidos para exportar", "info");
+    return;
+  }
   const csv = [Object.keys(currentOrders[0]).join(",")].concat(
     currentOrders.map(o => Object.values(o).join(","))
   ).join("\n");
@@ -607,14 +639,26 @@ function exportExcel() {
 async function postData(payload) {
   const formData = new URLSearchParams();
   formData.append('data', JSON.stringify(payload));
-  const res = await fetch(WEBAPP_URL, { method: "POST", body: formData });
-  return res.json();
+  try {
+    const res = await fetch(WEBAPP_URL, { method: "POST", body: formData });
+    // try to parse JSON, but guard against invalid JSON
+    const text = await res.text();
+    try {
+      const json = JSON.parse(text);
+      return json;
+    } catch (e) {
+      console.error("Invalid JSON from server:", text);
+      return { ok: false, error: "Respuesta inválida del servidor", raw: text };
+    }
+  } catch (err) {
+    console.error("postData error", err);
+    return { ok: false, error: err.message || String(err) };
+  }
 }
 
 
 if (localStorage.getItem("logged")) {
-  loginContainer.classList.add("hidden");
-  panel.classList.remove("hidden");
+  if (loginContainer) loginContainer.classList.add("hidden");
+  if (panel) panel.classList.remove("hidden");
   loadOrders();
 }
-
