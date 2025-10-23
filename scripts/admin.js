@@ -151,7 +151,9 @@ function commitInlineEdit(row, columnName, type, el) {
 const filterEntregadoEl = document.getElementById("filter-entregado"); // "all"|"TRUE"|"FALSE"
 const filterStatusEl = document.getElementById("filter-status"); // "all"|"TRUE"|"FALSE"
 const sortOrderEl = document.getElementById("sort-order"); // único selector siempre visible
+const searchBar = document.getElementById("searchBar"); // único selector siempre visible
 
+if (searchBar) searchBar.onchange = applyFiltersAndRender;
 if (filterEntregadoEl) filterEntregadoEl.onchange = applyFiltersAndRender;
 if (filterStatusEl) filterStatusEl.onchange = applyFiltersAndRender;
 if (sortOrderEl) sortOrderEl.onchange = applyFiltersAndRender;
