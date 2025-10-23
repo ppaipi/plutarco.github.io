@@ -660,7 +660,7 @@ button.cerrar:hover {
   box-shadow: 0 8px 30px rgba(0,0,0,0.25);
   overflow: hidden;
   transform-origin: center;
-  animation: fadeIn 180ms ease-out;
+  animation: fadeIn 30ms ease-out;
 }
 .ui-dialog-header { padding: 14px 18px; border-bottom: 1px solid var(--border); }
 .ui-dialog-header h3 { margin:0; font-size:16px; color:var(--accent); }
@@ -704,7 +704,7 @@ button.cerrar:hover {
   font-size:14px;
   color:var(--text);
   border-left: 4px solid var(--accent);
-  animation: slideUp 240ms ease-out;
+  animation: slideUp 50ms ease-out;
 }
 .ui-toast.success { border-left-color: #4caf50; }
 .ui-toast.error { border-left-color: #e53935; }
