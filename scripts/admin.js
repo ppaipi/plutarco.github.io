@@ -411,17 +411,12 @@ function cerrarDetalle() {
 }
 
 // editableField: ahora render inline-edit contenteditable con commitInlineEdit (blur/Enter)
+// Se usa el mismo formato de id que espera editarCampo: val_{row}_{col}
 function editableField(row, name, value, type = "text") {
-  const safeId = `val-${row}-${String(name).replace(/[^a-z0-9_]/gi, '_')}`;
+  const safeKey = String(name).replace(/[^a-z0-9_]/gi, '_');
+  const safeId = `val_${row}_${safeKey}`;
   // contenteditable span; onblur -> commitInlineEdit
-  return `
-    <p><strong>${name.replace(/🏷️ /, "")}:</strong> 
-      <span id="${safeId}" class="inline-edit" contenteditable="true" 
-        onblur="commitInlineEdit(${row}, '${name}', '${type}', this)"
-        onkeydown="if(event.key === 'Enter'){ event.preventDefault(); this.blur(); }">${value}</span>
-      <button class="buttom_edit" onclick="editarCampo(${row}, '${name}', '${type}')">✏️</button>
-    </p>
-  `;
+  return `<p><strong>${String(name).replace(/🏷️\s?/,'')}:</strong><span id="${safeId}" class="inline-edit" contenteditable="true" onblur="commitInlineEdit(${row}, '${name}', '${type}', this)" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); this.blur(); }">${value}</span><button class="buttom_edit" onclick="editarCampo(${row}, '${name}', '${type}', '${safeId}')">✏️</button></p>`;
 }
 // 1) Generador de campo link + botón editar
 function editableLinkField(row, columnName, label, value, href, type = "text") {
@@ -616,7 +611,7 @@ async function postData(payload) {
   return res.json();
 }
 
-// Asegurarse de mostrar/ocultar controles al iniciar si ya está logueado
+
 if (localStorage.getItem("logged")) {
   loginContainer.classList.add("hidden");
   panel.classList.remove("hidden");
