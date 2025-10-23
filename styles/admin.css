@@ -668,8 +668,8 @@ button.cerrar:hover {
 .ui-dialog-footer { padding: 12px 16px; display:flex; gap:8px; justify-content:flex-end; border-top:1px solid var(--border); }
 
 /* Inputs inside modal */
-.ui-input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; margin-bottom:10px; font-size:14px; }
-.ui-textarea { width:100%; min-height:80px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; resize:vertical; }
+.ui-input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; margin-bottom:10px; font-size:14px; box-sizing: border-box; }
+.ui-textarea { width:100%; min-height:80px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; resize:vertical; box-sizing: border-box; }
 
 /* Buttons used in modal */
 .ui-btn { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; font-weight:600; }
@@ -712,12 +712,12 @@ button.cerrar:hover {
 
 /* Inline editable styling */
 .inline-edit {
-  display:inline-block;
-  padding:4px 6px;
-  border-radius:6px;
+  display: inline-block;
+  padding: 4px 6px;
+  border-radius: 6px;
 }
 .inline-edit[contenteditable="true"] {
-  border:1px dashed transparent;
+  border: 1px dashed transparent;
 }
 .inline-edit:focus {
   outline: none;
@@ -728,5 +728,74 @@ button.cerrar:hover {
 /* keep responsiveness */
 @media (max-width: 480px) {
   .ui-dialog { width: 96%; max-width: 420px; border-radius: 14px 14px 0 0; align-self: flex-end; margin-bottom: 8px; }
-  .ui-dialog-header { text-align:center; }
+  .ui-dialog-header { text-align: center; }
+}
+
+/* Global box-sizing para evitar cálculos de ancho inesperados */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Inline editable styling - mejor comportamiento en contenedores flex y móviles */
+.inline-edit {
+  display: inline-block;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: transparent;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-wrap;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+/* Contenedor de cada campo en detalle: usar flex para controlar el tamaño y evitar overflow */
+.detalle-scroll p {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0;
+  flex-wrap: wrap; /* permite que en pantallas pequeñas el botón baje si hace falta */
+}
+
+/* etiqueta / label (strong) ocupa su espacio mínimo */
+.detalle-scroll p strong {
+  flex: 0 0 auto;
+  margin-right: 4px;
+  min-width: 80px; /* ajustable según gusto */
+}
+
+/* span editable se puede reducir; min-width:0 importante para que flex items no desborden */
+.detalle-scroll p .inline-edit {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: calc(100% - 110px); /* reserva espacio para el botón; ajusta si cambias ancho de botón */
+}
+
+/* Botón de edición se mantiene a la derecha (no empuja el input) */
+.detalle-scroll p .buttom_edit {
+  flex: 0 0 auto;
+  margin-left: 4px;
+}
+
+/* Asegurar que en móvil el layout sea cómodo: label encima, campo ocupando 100% */
+@media (max-width: 480px) {
+  .detalle-scroll p {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .detalle-scroll p strong {
+    min-width: 0;
+    margin-bottom: 6px;
+  }
+  .detalle-scroll p .inline-edit {
+    max-width: 100%;
+  }
+  .detalle-scroll p .buttom_edit {
+    align-self: flex-end;
+    margin-top: 6px;
+  }
 }
