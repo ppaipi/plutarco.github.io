@@ -770,6 +770,7 @@ button.cerrar:hover {
 
 /* span editable se puede reducir; min-width:0 importante para que flex items no desborden */
 .detalle-scroll p .inline-edit {
+  display: flex;
   flex: 1 1 auto;
   min-width: 0;
   max-width: calc(100% - 110px); /* reserva espacio para el botón; ajusta si cambias ancho de botón */
