@@ -159,7 +159,8 @@ if (filterEntregadoEl) filterEntregadoEl.onchange = applyFiltersAndRender;
 if (filterStatusEl) filterStatusEl.onchange = applyFiltersAndRender;
 if (sortOrderEl) sortOrderEl.onchange = applyFiltersAndRender;
 
-document.getElementById("login-container").addEventListener("submit", function(event) {
+loginContainer.addEventListener("submit", function(event) {
+  event.preventDefault()
     login()
 });
 
