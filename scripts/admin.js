@@ -585,7 +585,7 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
     }
 
     uiNotify("Guardado correctamente", "success");
-    await refreshDetalle(row);
+    await refreshOrders(row);
   } catch (err) {
     uiAlert("Error al guardar: " + (err.message || err), { type: "error" });
   }
@@ -833,11 +833,9 @@ async function eliminarProducto(row, codigo) {
   if (!ok) return;
   await postData({ action: "deleteProducto", rowIndex: row, codigo });
   uiNotify("Producto eliminado", "info");
-  await loadOrders();
-  verDetalle(row);
+  await refreshOrders(row);
 }
-async function refreshDetalle(row) {
-  if (row == null) return;
+async function refreshOrders(row) {
 
   // 🔹 Mostrar un loader visual mientras se actualiza
   detalle.innerHTML = `
@@ -847,16 +845,15 @@ async function refreshDetalle(row) {
     </div>
   `;
 
-  const res = await postData({ action: "getOrderByIndex", rowIndex: row });
+  // 🔹 Recargar los pedidos completos
+  await loadOrders();
 
-  if (res.ok && res.order) {
-    currentOrders[row] = res.order;
-    verDetalle(row);
-  } else {
-    uiNotify("Error al refrescar el detalle", "error");
-    console.log("refreshDetalle error:", res);
-  }
+  // 🔹 Reabrir el detalle del pedido
+  if (row != null) verDetalle(row);
+  
 }
+
+
 
 
 
@@ -887,7 +884,7 @@ async function crearNuevoPedido() {
 
   if (r.ok) {
     uiNotify("✅ Pedido creado correctamente", "success");
-    await loadOrders();
+    await refreshOrders();
   } else {
     uiAlert("❌ Error al crear el pedido", { type: "error" });
   }
