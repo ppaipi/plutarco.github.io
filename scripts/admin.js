@@ -721,8 +721,10 @@ async function UiFormProduct(buscando) {
     };
     // Si hay búsqueda inicial, dispararla
     if (buscando) {
-      const event = new Event('input', { bubbles: true });
-      searchInput.dispatchEvent(event);
+      selected = Products.find(p => p.Codigo === buscando) || null;
+      if (selected) {
+        renderDetails(selected);
+      }
     }
     // --- Crear modal principal ---
     uiModalOpen({
