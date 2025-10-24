@@ -674,17 +674,27 @@ async function UiFormProduct(buscando) {
       if (!newProd) return;
 
       newProd.Precio = parseFloat(newProd.Precio) || 0;
-
       Products.push(newProd);
-
       selected = newProd;
 
       renderDetails(newProd);
-
       suggestions.style.display = "none";
-
       uiNotify(`Producto "${newProd.Nombre}" creado`, "success");
+
+      // 🔹 Simular que el usuario apretó "Aceptar"
+      const unidades = parseInt(qtyInput.value) || 1;
+      const total = unidades * parseFloat(selected.Precio || 0);
+      uiModalClose();
+
+      res({
+        codigo: selected.Codigo,
+        nombre: selected.Nombre,
+        unidades,
+        total,
+        precioUnitario: selected.Precio
+      });
     }
+
 
 
     async function editarProductoExistente(prod) {
