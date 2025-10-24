@@ -707,7 +707,12 @@ async function UiFormProduct(buscando) {
     }
 
     // --- Evento de búsqueda dinámica ---
+    buscarProducto(buscando ? { target: { value: buscando } } : { target: { value: "" } });
     searchInput.oninput = e => {
+      buscarProducto(e);
+    };
+    
+    function buscarProducto(e) {
       const q = e.target.value.toLowerCase().trim();
       if (!q) {
         suggestions.style.display = "none";
@@ -718,7 +723,7 @@ async function UiFormProduct(buscando) {
         p.Codigo.toLowerCase().includes(q)
       ).slice(0, 6);
       renderSuggestions(matches, q);
-    };
+    }
 
     // --- Crear modal principal ---
     uiModalOpen({
