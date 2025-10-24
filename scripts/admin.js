@@ -638,9 +638,8 @@ async function UiFormProduct(buscando) {
         const createNew = document.createElement("div");
         createNew.className = "ui-suggestion-item new";
         createNew.innerHTML = `➕ Crear producto <strong>"${query}"</strong>`;
-        let newProd;
         createNew.onclick = async () => {
-          newProd = await uiForm("Nuevo producto", [
+          const newProd = await uiForm("Nuevo producto", [
             { name: "Codigo", label: "Código", value: query, required: true },
             { name: "Nombre", label: "Nombre", value: query, required: true },
             { name: "Precio", label: "Precio unitario", type: "number", value: "", required: true },
@@ -653,10 +652,10 @@ async function UiFormProduct(buscando) {
           renderDetails(newProd);
           suggestions.style.display = "none";
           uiNotify("Producto creado temporalmente", "success");
+          suggestions.appendChild(createNew);
+          suggestions.style.display = "block";
+          return UiFormProduct(newProd.Nombre); // reiniciar búsqueda
         };
-        suggestions.appendChild(createNew);
-        suggestions.style.display = "block";
-        return UiFormProduct(newProd.Nombre); // reiniciar búsqueda
       }
 
       list.forEach(prod => {
