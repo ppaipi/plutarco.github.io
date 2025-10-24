@@ -152,15 +152,12 @@ const filterEntregadoEl = document.getElementById("filter-entregado"); // "all"|
 const filterStatusEl = document.getElementById("filter-status"); // "all"|"TRUE"|"FALSE"
 const sortOrderEl = document.getElementById("sort-order"); // único selector siempre visible
 const searchBar = document.getElementById("searchBar"); // único selector siempre visible
-const loginButtom = document.getElementById("login-btn"); // único selector siempre visible
-const logoutButtom= document.getElementById("logout-btn"); // único selector siempre visible
+
 
 if (searchBar) searchBar.onchange = applyFiltersAndRender;
 if (filterEntregadoEl) filterEntregadoEl.onchange = applyFiltersAndRender;
 if (filterStatusEl) filterStatusEl.onchange = applyFiltersAndRender;
 if (sortOrderEl) sortOrderEl.onchange = applyFiltersAndRender;
-if (loginButtom) loginButtom.onclick = login();
-if (logoutButtom) logoutButtom.onclick = logout();
 
 let currentOrders = [];
 
