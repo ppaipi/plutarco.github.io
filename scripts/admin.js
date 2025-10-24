@@ -99,12 +99,12 @@ function uiNotify(text, type = "info", timeout = 3500) {
   }, timeout);
 }
 
-// Reemplazo de uiAlert: ahora usa clases CSS en lugar de inline styles
+// Alert-like (awaitable)
 function uiAlert(message, opts = {}) {
   return new Promise(res => {
     uiModalOpen({
       title: opts.title || (opts.type === "error" ? "Error" : "Aviso"),
-      body: `<p class="ui-alert-msg">${message}</p>`,
+      body: `<p style="margin:0 0 8px;">${message}</p>`,
       actions: [
         { label: opts.okLabel || "Aceptar", class: "primary", onClick: () => { uiModalClose(); res(true); } },
       ]
@@ -132,7 +132,8 @@ function uiForm(title, fields = []) {
     const form = document.createElement("div");
     fields.forEach(f => {
       const label = document.createElement("label");
-      label.className = "ui-form-label";
+      label.style.display = "block";
+      label.style.marginBottom = "6px";
       label.textContent = f.label || f.name;
 
       let input;
@@ -191,10 +192,10 @@ function commitInlineEdit(row, columnName, type, el) {
 const filterEntregadoEl = document.getElementById("filter-entregado"); // "all"|"TRUE"|"FALSE"
 const filterStatusEl = document.getElementById("filter-status"); // "all"|"TRUE"|"FALSE"
 const sortOrderEl = document.getElementById("sort-order"); // único selector siempre visible
-const searchBar = document.getElementById("search"); // corregido: id en el HTML es "search"
-const exportBtn = document.getElementById("export-btn");
+const searchBar = document.getElementById("searchBar"); // único selector siempre visible
 
-if (searchBar) searchBar.oninput = applyFiltersAndRender;
+
+if (searchBar) searchBar.onchange = applyFiltersAndRender;
 if (filterEntregadoEl) filterEntregadoEl.onchange = applyFiltersAndRender;
 if (filterStatusEl) filterStatusEl.onchange = applyFiltersAndRender;
 if (sortOrderEl) sortOrderEl.onchange = applyFiltersAndRender;
@@ -307,7 +308,8 @@ function renderTable(items) {
       <td>${o.Nombre}</td>
       <td>
         <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.Direccion)}" 
-          target="_blank" class="order-link">
+          target="_blank" 
+          style="color: var(--accent); text-decoration: none;">
           ${o.Direccion}
         </a>
       </td>
@@ -431,7 +433,7 @@ detalle.innerHTML = `
     ${editableField(i, "💬 Comentario", "Comentario", o.Comentario || "-", "text")}
 
     <h4>💵 Resumen del Pedido</h4>
-    <table class="resumen-precios">
+    <table class="resumen-precios" style="width:100%; border-collapse:collapse;">
       <tr>
         <td>💰 Subtotal:</td>
         <td style="text-align:right;">$${o.Subtotal}</td>
@@ -465,7 +467,7 @@ detalle.innerHTML = `
       ${productosHTML}
     </div>
 
-    <div class="mt-12">
+    <div style="margin-top:12px;">
       <button onclick="agregarProducto(${i})">➕ Agregar producto</button>
     </div>
   </div>
@@ -476,6 +478,8 @@ function cerrarDetalle() {
   overlay.classList.remove("active");
 }
 
+// editableField: ahora render inline-edit contenteditable con commitInlineEdit (blur/Enter)
+// Se usa el mismo formato de id que espera editarCampo: val_{row}_{col}
 function editableField(row, label, columnName, value, type = "text") {
   const safeKey = String(columnName).replace(/[^a-z0-9_]/gi, '_');
   const safeId = `val_${row}_${safeKey}`;
@@ -484,12 +488,14 @@ function editableField(row, label, columnName, value, type = "text") {
   return `
     <p>
       <strong>${label}:</strong>
-      <span id="${safeId}" class="inline-view">${display}</span>
+      <span id="${safeId}" class="inline-edit" contenteditable="true"
+        onblur="commitInlineEdit(${row}, '${columnName}', '${type}', this)"
+        onkeydown="if(event.key==='Enter'){ event.preventDefault(); this.blur(); }"
+      >${display}</span>
       <button class="buttom_edit" onclick="editarCampo(${row}, '${columnName}', '${type}', '${safeId}')">✏️</button>
     </p>
   `;
 }
-
 
 // 1) Generador de campo link + botón editar
 function editableLinkField(row, columnName, label, value, href, type = "text") {
@@ -502,7 +508,7 @@ function editableLinkField(row, columnName, label, value, href, type = "text") {
   return `
     <p>
       <strong>${safeLabel}:</strong>
-      <a id="${safeId}" href="${safeHref}" target="_blank">
+      <a id="${safeId}" href="${safeHref}" target="_blank" style="color: var(--accent); text-decoration: none;">
         ${value || '-'}
       </a>
       <button class="buttom_edit" onclick="editarCampo(${row}, '${safeColumn}', '${safeType}', '${safeId}', '${safeHref}')">✏️</button>
@@ -599,10 +605,11 @@ async function UiFormProduct(buscando) {
     row.appendChild(searchInput);
 
     const suggestions = document.createElement("div");
-    suggestions.className = "ui-suggestions hidden";
+    suggestions.className = "ui-suggestions";
 
     const details = document.createElement("div");
-    details.className = "ui-product-details hidden";
+    details.className = "ui-product-details";
+    details.style.display = "none";
 
     wrapper.append(row, suggestions, details);
     let selected = null;
@@ -610,6 +617,7 @@ async function UiFormProduct(buscando) {
     // ===============================
     // 🔹 SUBFUNCIONES
     // ===============================
+
     function createInput(type, placeholder, cls, value = "") {
       const input = document.createElement("input");
       input.type = type;
@@ -622,7 +630,7 @@ async function UiFormProduct(buscando) {
     function buscarProductos(q) {
       q = q.toLowerCase().trim();
       if (!q) {
-        suggestions.classList.add("hidden");
+        suggestions.style.display = "none";
         return;
       }
       const matches = Products.filter(p =>
@@ -642,7 +650,7 @@ async function UiFormProduct(buscando) {
         createNew.innerHTML = `➕ Crear producto <strong>"${query}"</strong>`;
         createNew.onclick = () => crearNuevoProducto(query);
         suggestions.appendChild(createNew);
-        suggestions.classList.remove("hidden");
+        suggestions.style.display = "block";
         return;
       }
 
@@ -654,11 +662,11 @@ async function UiFormProduct(buscando) {
           selected = prod;
           qtyInput.value = 1;
           renderDetails(prod);
-          suggestions.classList.add("hidden");
+          suggestions.style.display = "none";
         };
         suggestions.appendChild(item);
       });
-      suggestions.classList.remove("hidden");
+      suggestions.style.display = "block";
     }
 
     async function crearNuevoProducto(query) {
@@ -674,9 +682,10 @@ async function UiFormProduct(buscando) {
       selected = newProd;
 
       renderDetails(newProd);
-      suggestions.classList.add("hidden");
+      suggestions.style.display = "none";
       uiNotify(`Producto "${newProd.Nombre}" creado`, "success");
 
+      // 🔹 Simular que el usuario apretó "Aceptar"
       const unidades = parseInt(qtyInput.value) || 1;
       const total = unidades * parseFloat(selected.Precio || 0);
       uiModalClose();
@@ -689,6 +698,8 @@ async function UiFormProduct(buscando) {
         precioUnitario: selected.Precio
       });
     }
+
+
 
     async function editarProductoExistente(prod) {
       const editProd = await uiForm("Editar producto", [
@@ -710,11 +721,11 @@ async function UiFormProduct(buscando) {
         <p><strong>Código:</strong> ${prod.Codigo}</p>
         <p><strong>Producto:</strong> ${prod.Nombre}</p>
         <p><strong>Precio unitario:</strong> $${prod.Precio}</p>
-        <div class="ui-product-actions">
+        <div style="margin-top:10px;">
           <button class="btn-mini" id="edit-product">✏️ Editar antes de agregar</button>
         </div>
       `;
-      details.classList.remove("hidden");
+      details.style.display = "block";
 
       // Editar producto
       details.querySelector("#edit-product").onclick = () => editarProductoExistente(prod);
@@ -723,6 +734,7 @@ async function UiFormProduct(buscando) {
     // ===============================
     // 🔹 EVENTOS
     // ===============================
+
     searchInput.oninput = e => buscarProductos(e.target.value);
 
     if (buscando) {
@@ -733,6 +745,7 @@ async function UiFormProduct(buscando) {
     // ===============================
     // 🔹 MODAL PRINCIPAL
     // ===============================
+
     uiModalOpen({
       title: "Agregar producto",
       body: wrapper,
@@ -821,8 +834,9 @@ async function eliminarProducto(row, codigo) {
   await postData({ action: "deleteProducto", rowIndex: row, codigo });
   await loadOrders();
   uiNotify("Producto eliminado", "info");
-  verDetalle(row);
 }
+
+
 
 
 
