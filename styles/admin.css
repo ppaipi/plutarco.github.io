@@ -664,57 +664,74 @@ button.cerrar:hover {
 }
 .ui-dialog-header { padding: 14px 18px; border-bottom: 1px solid var(--border); }
 .ui-dialog-header h3 { margin:0; font-size:16px; color:var(--accent); }
-.ui-dialog-body { padding: 14px 18px; font-size:14px; color:var(--text); }
-.ui-dialog-footer { padding: 12px 16px; display:flex; gap:8px; justify-content:flex-end; border-top:1px solid var(--border); }
+.ui-dialog-body {
+  padding: 14px 18px;
+  font-size: 14px;
+  color: var(--text);
+}
+/* Asegurar márgenes dentro del body del modal (reemplaza inline styles desde JS) */
+.ui-dialog-body p { margin: 0 0 8px; }
 
-/* Inputs inside modal */
-.ui-input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; margin-bottom:10px; font-size:14px; box-sizing: border-box; }
+/* Labels en formularios creados por JS */
+.ui-form-label { display: block; margin-bottom: 6px; }
+
+/* Inputs inside modal - versión única y consolidada */
+.ui-input {
+  width:100%;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  margin-bottom:10px;
+  font-size:14px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+/* Textarea dentro del modal */
 .ui-textarea { width:100%; min-height:80px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; resize:vertical; box-sizing: border-box; }
 
-/* Buttons used in modal */
-.ui-btn { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; font-weight:600; }
-.ui-btn.primary { background:var(--accent); color:#fff; }
-.ui-btn.secondary { background:#f1f1f1; color:var(--text); border:1px solid var(--border); }
+/* Acciones dentro de detalles/product (reemplaza inline margin-top) */
+.ui-product-actions { margin-top: 10px; }
 
-/* Small context variants */
-.ui-btn.danger { background:#e53935; color:#fff; }
-.ui-btn.ghost { background:transparent; color:var(--accent); }
+/* Controles de mostrar/ocultar desde JS (uso en suggestions/details) */
+.hidden { display: none !important; }
 
-/* ===== TOASTS ===== */
-.ui-toast-container {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 1200;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  align-items:flex-end;
+/* Esconder por defecto sugerencias y detalles; JS alternará la clase hidden */
+.ui-suggestions { display: none; }
+.ui-product-details { display: block; } /* se ocultará con .hidden cuando corresponda */
+.ui-product-details.hidden { display: none; }
+
+/* Estilo para enlaces en la tabla de pedidos y en el detalle (reemplaza style inline) */
+#orders-table a,
+#detalle-contenido a {
+  color: var(--accent);
+  text-decoration: none;
 }
-.ui-toast {
-  min-width:200px;
-  max-width:320px;
-  background: #fff;
-  border-radius:10px;
-  padding:10px 14px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-  display:flex;
-  gap:10px;
-  align-items:center;
-  font-size:14px;
-  color:var(--text);
-  border-left: 4px solid var(--accent);
-  animation: slideUp 50ms ease-out;
-}
-.ui-toast.success { border-left-color: #4caf50; }
-.ui-toast.error { border-left-color: #e53935; }
-.ui-toast.info { border-left-color: var(--accent); }
 
-/* Inline editable styling */
+/* Resumen precios: consolidado sin inline styles */
+.resumen-precios {
+  width: 100%;
+  border-collapse: collapse;
+}
+/* mantener celdas y tipografía (ya definidos en otras reglas) */
+
+/* Utilidad sencilla de espaciado usada por el JS (reemplaza <div style="margin-top:12px">) */
+.mt-12 { margin-top: 12px; }
+
+/* ===== CLEANUP: reglas duplicadas consolidadas ===== */
+/* Se eliminó la duplicación de .inline-edit y .ui-input en el archivo original,
+   aquí queda sólo la versión final y optimizada de .inline-edit */
 .inline-edit {
   display: inline-block;
-  padding: 4px 6px;
+  padding: 6px 8px;
   border-radius: 6px;
+  background: transparent;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-wrap;
+  vertical-align: middle;
+  box-sizing: border-box;
 }
 .inline-edit[contenteditable="true"] {
   border: 1px dashed transparent;
