@@ -423,14 +423,14 @@ detalle.innerHTML = `
         : "No especificada"
     }</p>
 
-    ${editableField(i, "🏷️ Nombre", o.Nombre, "text")}
+    ${editableField(i, "🏷️ Nombre", "Nombre", o.Nombre, "text")}
     ${editableLinkField(i, "Email", "📧 Email", o.Email, o.Email ? "mailto:" + encodeURIComponent(o.Email) : "#")}
 
     ${editableLinkField(i, "Telefono", "📞 Teléfono", o.Telefono || "-", o.Telefono ? "https://wa.me/" + String(o.Telefono).replace(/\D/g, "") : "#")}
 
     ${editableLinkField(i, "Direccion", "📍 Dirección", o.Direccion || "-", o.Direccion ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(o.Direccion) : "#")}
 
-    ${editableField(i, "💬 Comentario", o.Comentario || "-", "text")}
+    ${editableField(i, "💬 Comentario", "Comentario", o.Comentario || "-", "text")}
 
     <h4>💵 Resumen del Pedido</h4>
     <table class="resumen-precios" style="width:100%; border-collapse:collapse;">
@@ -480,23 +480,23 @@ function cerrarDetalle() {
 
 // editableField: ahora render inline-edit contenteditable con commitInlineEdit (blur/Enter)
 // Se usa el mismo formato de id que espera editarCampo: val_{row}_{col}
-function editableField(row, name, value, type = "text") {
-  const safeKey = String(name).replace(/[^a-z0-9_]/gi, '_');
+function editableField(row, label, columnName, value, type = "text") {
+  const safeKey = String(columnName).replace(/[^a-z0-9_]/gi, '_');
   const safeId = `val_${row}_${safeKey}`;
   const display = (value === undefined || value === null || value === "") ? "-" : value;
-  const safeNameEsc = String(name).replace(/'/g, "\\'");
-  const safeType = String(type).replace(/'/g, "\\'");
+
   return `
     <p>
-      <strong>${String(name).replace(/🏷️\s?/,'')}:</strong>
+      <strong>${label}:</strong>
       <span id="${safeId}" class="inline-edit" contenteditable="true"
-        onblur="commitInlineEdit(${row}, '${safeNameEsc}', '${safeType}', this)"
+        onblur="commitInlineEdit(${row}, '${columnName}', '${type}', this)"
         onkeydown="if(event.key==='Enter'){ event.preventDefault(); this.blur(); }"
-        >${display}</span>
-      <button class="buttom_edit" onclick="editarCampo(${row}, '${safeNameEsc}', '${safeType}', '${safeId}')">✏️</button>
+      >${display}</span>
+      <button class="buttom_edit" onclick="editarCampo(${row}, '${columnName}', '${type}', '${safeId}')">✏️</button>
     </p>
   `;
 }
+
 // 1) Generador de campo link + botón editar
 function editableLinkField(row, columnName, label, value, href, type = "text") {
   const safeId = `val_${row}_${String(columnName).replace(/[^a-z0-9_]/gi, '_')}`;
