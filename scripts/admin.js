@@ -824,4 +824,5 @@ if (localStorage.getItem("logged")) {
   if (loginContainer) loginContainer.classList.add("hidden");
   if (panel) panel.classList.remove("hidden");
   loadOrders();
+  loadProducts();
 }
