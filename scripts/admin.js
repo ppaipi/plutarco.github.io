@@ -6,7 +6,15 @@ const tableHead = document.querySelector("#orders-table thead");
 const tableBody = document.querySelector("#orders-table tbody");
 const overlay = document.getElementById("overlay");
 const detalle = document.getElementById("detalle-contenido");
+const ordersTable = document.getElementById("orders-table");
+let currentRow = null;
 let Products = [];
+
+if (ordersTable && currentRow != null) {
+  ordersTable.onchange = function() {
+    verDetalle(currentRow);
+  };
+}
 
 
 async function loadProducts() {
@@ -388,6 +396,7 @@ function parseProductos(str) {
 }
 
 function verDetalle(i) {
+  currentRow = i;
   const o = currentOrders[i];
   overlay.classList.add("active");
 
@@ -472,6 +481,7 @@ detalle.innerHTML = `
 }
 
 function cerrarDetalle() {
+  currentRow = null;
   overlay.classList.remove("active");
 }
 
