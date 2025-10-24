@@ -12,7 +12,9 @@ let Products = [];
 
 if (ordersTable && currentRow != null) {
   ordersTable.onchange = function() {
+    setTimeout(() => {
     verDetalle(currentRow);
+    }, 100);
   };
 }
 
