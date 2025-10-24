@@ -834,6 +834,7 @@ async function eliminarProducto(row, codigo) {
   await postData({ action: "deleteProducto", rowIndex: row, codigo });
   await loadOrders();
   uiNotify("Producto eliminado", "info");
+  verDetalle(row);
 }
 
 
