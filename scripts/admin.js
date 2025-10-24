@@ -589,7 +589,7 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
 // ========================================================
 // 🧩 UiFormProduct - versión avanzada (crear/editar producto)
 // ========================================================
-async function UiFormProduct() {
+async function UiFormProduct(buscando) {
   return new Promise(res => {
     const wrapper = document.createElement("div");
     wrapper.className = "ui-form-product";
@@ -609,6 +609,7 @@ async function UiFormProduct() {
     searchInput.type = "text";
     searchInput.placeholder = "Buscar código o producto...";
     searchInput.className = "ui-input search-input";
+    searchInput.value = buscando || "";
 
     row.appendChild(qtyInput);
     row.appendChild(searchInput);
@@ -654,7 +655,7 @@ async function UiFormProduct() {
         };
         suggestions.appendChild(createNew);
         suggestions.style.display = "block";
-        return;
+        return UiFormProduct(newProd.Nombre); // reiniciar búsqueda
       }
 
       list.forEach(prod => {
