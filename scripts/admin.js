@@ -582,7 +582,8 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
     }
 
     uiNotify("Guardado correctamente", "success");
-
+    await loadOrders();
+    verDetalle(row);
   } catch (err) {
     uiAlert("Error al guardar: " + (err.message || err), { type: "error" });
   }
