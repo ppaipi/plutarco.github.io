@@ -854,6 +854,7 @@ async function refreshDetalle(row) {
     verDetalle(row);
   } else {
     uiNotify("Error al refrescar el detalle", "error");
+    console.log("refreshDetalle error:", res);
   }
 }
 
