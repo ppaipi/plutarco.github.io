@@ -7,16 +7,9 @@ const tableBody = document.querySelector("#orders-table tbody");
 const overlay = document.getElementById("overlay");
 const detalle = document.getElementById("detalle-contenido");
 const ordersTable = document.getElementById("orders-table");
-let currentRow = null;
 let Products = [];
 
-if (ordersTable && currentRow != null) {
-  ordersTable.onchange = function() {
-    setTimeout(() => {
-    verDetalle(currentRow);
-    }, 100);
-  };
-}
+
 
 
 async function loadProducts() {
@@ -236,7 +229,7 @@ async function login() {
       localStorage.setItem("logged", "1");
       if (loginContainer) loginContainer.classList.add("hidden");
       if (panel) panel.classList.remove("hidden");
-      loadOrders();
+      await loadOrders();
     } else {
       const reason = (res && (res.error || res.message)) ? (res.error || res.message) : "Usuario o contraseña incorrectos";
       if (msgEl) msgEl.textContent = reason;
@@ -398,7 +391,6 @@ function parseProductos(str) {
 }
 
 function verDetalle(i) {
-  currentRow = i;
   const o = currentOrders[i];
   overlay.classList.add("active");
 
@@ -483,7 +475,6 @@ detalle.innerHTML = `
 }
 
 function cerrarDetalle() {
-  currentRow = null;
   overlay.classList.remove("active");
 }
 
@@ -594,6 +585,7 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
     }
 
     uiNotify("Guardado correctamente", "success");
+    await refreshDetalle(row);
   } catch (err) {
     uiAlert("Error al guardar: " + (err.message || err), { type: "error" });
   }
@@ -794,13 +786,26 @@ async function agregarProducto(row) {
 
   const pedido = currentOrders[row];
   const productos = parseProductos(pedido.Productos || "");
+
+  // Agregar el nuevo producto a la lista
   productos.push(form);
 
+  // 🔹 Actualizar localmente el string de productos
+  pedido.Productos = productos.map(p => `${p.codigo}|${p.nombre}|${p.unidades}|${p.total}`).join(",");
+
+  // 🔹 Recalcular subtotal y total en memoria
+  const subtotal = productos.reduce((acc, p) => acc + parseFloat(p.total || 0), 0);
+  pedido.Subtotal = subtotal.toFixed(2);
+  pedido.total = (subtotal + (parseFloat(pedido.Envio) || 0)).toFixed(2);
+
+  // 🔹 Enviar los cambios al servidor (sin esperar recarga completa)
   await postData({ action: "updateProductos", rowIndex: row, productos });
+
+  // 🔹 Actualizar visualmente el detalle sin cerrar
   uiNotify("Producto agregado correctamente", "success");
-  loadOrders();
   verDetalle(row);
 }
+
 
 
 async function editarProducto(row, idx) {
@@ -819,7 +824,7 @@ async function editarProducto(row, idx) {
   productos[idx] = { codigo: form.codigo, nombre: form.nombre, unidades: form.unidades, total: form.total };
   await postData({ action: "updateProductos", rowIndex: row, productos });
   uiNotify("Producto editado", "success");
-  loadOrders();
+  await loadOrders();
   verDetalle(row);
 }
 
@@ -828,11 +833,31 @@ async function eliminarProducto(row, codigo) {
   if (!ok) return;
   await postData({ action: "deleteProducto", rowIndex: row, codigo });
   uiNotify("Producto eliminado", "info");
-  setTimeout(() => {
-    loadOrders();
-    verDetalle(row);
-  }, 150);
+  await loadOrders();
+  verDetalle(row);
 }
+async function refreshDetalle(row) {
+  if (row == null) return;
+
+  // 🔹 Mostrar un loader visual mientras se actualiza
+  detalle.innerHTML = `
+    <div style="text-align:center; padding:30px;">
+      <div class="loader"></div>
+      <p>Actualizando detalle...</p>
+    </div>
+  `;
+
+  const res = await postData({ action: "getOrderByIndex", rowIndex: row });
+
+  if (res.ok && res.order) {
+    currentOrders[row] = res.order;
+    verDetalle(row);
+  } else {
+    uiNotify("Error al refrescar el detalle", "error");
+  }
+}
+
+
 
 // === CREAR NUEVO PEDIDO ===
 const newOrderBtn = document.getElementById("new-order-btn");
@@ -861,7 +886,7 @@ async function crearNuevoPedido() {
 
   if (r.ok) {
     uiNotify("✅ Pedido creado correctamente", "success");
-    loadOrders();
+    await loadOrders();
   } else {
     uiAlert("❌ Error al crear el pedido", { type: "error" });
   }
@@ -906,6 +931,6 @@ async function postData(payload) {
 if (localStorage.getItem("logged")) {
   if (loginContainer) loginContainer.classList.add("hidden");
   if (panel) panel.classList.remove("hidden");
-  loadOrders();
+  await loadOrders();
   loadProducts();
 }
