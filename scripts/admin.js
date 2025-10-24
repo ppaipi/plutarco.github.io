@@ -674,13 +674,18 @@ async function UiFormProduct(buscando) {
       if (!newProd) return;
 
       newProd.Precio = parseFloat(newProd.Precio) || 0;
+
       Products.push(newProd);
+
       selected = newProd;
+
       renderDetails(newProd);
+
       suggestions.style.display = "none";
+
       uiNotify(`Producto "${newProd.Nombre}" creado`, "success");
-      UiFormProduct(newProd.Codigo);
     }
+
 
     async function editarProductoExistente(prod) {
       const editProd = await uiForm("Editar producto", [
