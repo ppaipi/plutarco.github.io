@@ -159,6 +159,9 @@ if (filterEntregadoEl) filterEntregadoEl.onchange = applyFiltersAndRender;
 if (filterStatusEl) filterStatusEl.onchange = applyFiltersAndRender;
 if (sortOrderEl) sortOrderEl.onchange = applyFiltersAndRender;
 
+document.getElementById("password").addEventListener("keypress", function(event) {
+    // Code to be executed when a key is pressed in the password field
+});
 let currentOrders = [];
 
 async function login() {
