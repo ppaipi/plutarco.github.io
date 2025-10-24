@@ -845,7 +845,8 @@ async function refreshOrders(row) {
       <p>Actualizando detalle...</p>
     </div>
   `;
-  cerrarDetalle();
+  if(row == null) cerrarDetalle();
+  
 
   // 🔹 Recargar los pedidos completos
   await loadOrders();
