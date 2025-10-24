@@ -564,7 +564,6 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
 
       const totalEl = document.querySelector(`#detalle-contenido strong`);
       if (totalEl) totalEl.textContent = `$${nuevoTotal.toFixed(2)}`;
-      mostrarDetalleCargando();
       await postData({
         action: "updateCell",
         rowIndex: row,
@@ -832,25 +831,11 @@ async function editarProducto(row, idx) {
 async function eliminarProducto(row, codigo) {
   const ok = await uiConfirm("¿Eliminar este producto?");
   if (!ok) return;
-  mostrarDetalleCargando(True);
   await postData({ action: "deleteProducto", rowIndex: row, codigo });
   await loadOrders();
   uiNotify("Producto eliminado", "info");
-  cerrarDetalle();
 }
-async function mostrarDetalleCargando(create) {
-  if(create == True) verDetalle(null);
 
-  // 🔹 Mostrar un loader visual mientras se actualiza
-  detalle.innerHTML = `
-    <div style="text-align:center; padding:30px;">
-      <div class="loader"></div>
-      <p>Actualizando detalle...</p>
-    </div>
-  `;
-  
-  
-}
 
 
 
@@ -879,16 +864,13 @@ async function crearNuevoPedido() {
     comentario: res.comentario
   };
 
-  mostrarDetalleCargando(True);
   const r = await postData(nuevoPedido);
 
   if (r.ok) {
     await loadOrders();
     uiNotify("✅ Pedido creado correctamente", "success");
-    cerrarDetalle();
   } else {
     uiAlert("❌ Error al crear el pedido", { type: "error" });
-    cerrarDetalle();
   }
 }
 
