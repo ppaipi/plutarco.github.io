@@ -642,8 +642,6 @@ async function UiFormProduct() {
             { name: "Codigo", label: "Código", value: query, required: true },
             { name: "Nombre", label: "Nombre", value: query, required: true },
             { name: "Precio", label: "Precio unitario", type: "number", value: "", required: true },
-            { name: "Categoria", label: "Categoría", value: "" },
-            { name: "SubCategoria", label: "Subcategoría", value: "" },
           ]);
           if (!newProd) return;
           newProd.Precio = parseFloat(newProd.Precio) || 0;
@@ -684,7 +682,6 @@ async function UiFormProduct() {
         <p><strong>Código:</strong> ${prod.Codigo}</p>
         <p><strong>Producto:</strong> ${prod.Nombre}</p>
         <p><strong>Precio unitario:</strong> $${prod.Precio}</p>
-        <p><strong>Categoría:</strong> ${prod.Categoria || "-"}</p>
         <div style="margin-top:10px;">
           <button class="btn-mini" id="edit-product">✏️ Editar antes de agregar</button>
         </div>
@@ -697,8 +694,6 @@ async function UiFormProduct() {
           { name: "Codigo", label: "Código", value: prod.Codigo, required: true },
           { name: "Nombre", label: "Nombre", value: prod.Nombre, required: true },
           { name: "Precio", label: "Precio unitario", type: "number", value: prod.Precio, required: true },
-          { name: "Categoria", label: "Categoría", value: prod.Categoria || "" },
-          { name: "SubCategoria", label: "Subcategoría", value: prod.SubCategoria || "" },
         ]);
         if (!editProd) return;
         editProd.Precio = parseFloat(editProd.Precio) || 0;
