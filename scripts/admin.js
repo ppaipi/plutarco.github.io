@@ -652,10 +652,11 @@ async function UiFormProduct(buscando) {
           renderDetails(newProd);
           suggestions.style.display = "none";
           uiNotify("Producto creado temporalmente", "success");
-          suggestions.appendChild(createNew);
-          suggestions.style.display = "block";
-          return UiFormProduct(newProd.Nombre); // reiniciar búsqueda
+          UiFormProduct(newProd.Codigo); // reabrir modal con el nuevo producto
         };
+        suggestions.appendChild(createNew);
+        suggestions.style.display = "block";
+        return;
       }
 
       list.forEach(prod => {
