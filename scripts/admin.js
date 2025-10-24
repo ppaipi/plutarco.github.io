@@ -638,8 +638,9 @@ async function UiFormProduct(buscando) {
         const createNew = document.createElement("div");
         createNew.className = "ui-suggestion-item new";
         createNew.innerHTML = `➕ Crear producto <strong>"${query}"</strong>`;
+        let newProd = { Nombre: query, Codigo: query, Precio: 0 };
         createNew.onclick = async () => {
-          const newProd = await uiForm("Nuevo producto", [
+          newProd = await uiForm("Nuevo producto", [
             { name: "Codigo", label: "Código", value: query, required: true },
             { name: "Nombre", label: "Nombre", value: query, required: true },
             { name: "Precio", label: "Precio unitario", type: "number", value: "", required: true },
