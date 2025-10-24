@@ -564,7 +564,7 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
 
       const totalEl = document.querySelector(`#detalle-contenido strong`);
       if (totalEl) totalEl.textContent = `$${nuevoTotal.toFixed(2)}`;
-
+      mostrarDetalleCargando();
       await postData({
         action: "updateCell",
         rowIndex: row,
@@ -585,7 +585,8 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
     }
 
     uiNotify("Guardado correctamente", "success");
-    await refreshOrders(row);
+    await loadOrders();
+    verDetalle(row);
   } catch (err) {
     uiAlert("Error al guardar: " + (err.message || err), { type: "error" });
   }
@@ -831,12 +832,14 @@ async function editarProducto(row, idx) {
 async function eliminarProducto(row, codigo) {
   const ok = await uiConfirm("¿Eliminar este producto?");
   if (!ok) return;
+  mostrarDetalleCargando(True);
   await postData({ action: "deleteProducto", rowIndex: row, codigo });
+  await loadOrders();
   uiNotify("Producto eliminado", "info");
-  await refreshOrders(row);
+  cerrarDetalle();
 }
-async function refreshOrders(row) {
-  if(row == null) verDetalle(null);
+async function mostrarDetalleCargando(create) {
+  if(create == True) verDetalle(null);
 
   // 🔹 Mostrar un loader visual mientras se actualiza
   detalle.innerHTML = `
@@ -845,14 +848,7 @@ async function refreshOrders(row) {
       <p>Actualizando detalle...</p>
     </div>
   `;
-  if(row == null) cerrarDetalle();
   
-
-  // 🔹 Recargar los pedidos completos
-  await loadOrders();
-
-  // 🔹 Reabrir el detalle del pedido
-  if (row != null) verDetalle(row);
   
 }
 
@@ -883,13 +879,16 @@ async function crearNuevoPedido() {
     comentario: res.comentario
   };
 
+  mostrarDetalleCargando(True);
   const r = await postData(nuevoPedido);
 
   if (r.ok) {
+    await loadOrders();
     uiNotify("✅ Pedido creado correctamente", "success");
-    await refreshOrders();
+    cerrarDetalle();
   } else {
     uiAlert("❌ Error al crear el pedido", { type: "error" });
+    cerrarDetalle();
   }
 }
 
