@@ -707,12 +707,7 @@ async function UiFormProduct(buscando) {
     }
 
     // --- Evento de búsqueda dinámica ---
-    buscarProducto(buscando ? { target: { value: buscando } } : { target: { value: "" } });
     searchInput.oninput = e => {
-      buscarProducto(e);
-    };
-    
-    function buscarProducto(e) {
       const q = e.target.value.toLowerCase().trim();
       if (!q) {
         suggestions.style.display = "none";
@@ -723,8 +718,12 @@ async function UiFormProduct(buscando) {
         p.Codigo.toLowerCase().includes(q)
       ).slice(0, 6);
       renderSuggestions(matches, q);
+    };
+    // Si hay búsqueda inicial, dispararla
+    if (buscando) {
+      const event = new Event('input', { bubbles: true });
+      searchInput.dispatchEvent(event);
     }
-
     // --- Crear modal principal ---
     uiModalOpen({
       title: "Agregar producto",
