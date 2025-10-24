@@ -587,7 +587,7 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
   }
 }
 // ========================================================
-// 🧩 UiFormProduct - formulario con búsqueda de productos
+// 🧩 UiFormProduct - versión avanzada (crear/editar producto)
 // ========================================================
 async function UiFormProduct() {
   return new Promise(res => {
@@ -628,13 +628,37 @@ async function UiFormProduct() {
 
     let selected = null;
 
-    // --- Función para renderizar sugerencias ---
-    function renderSuggestions(list) {
+    // --- Renderizar sugerencias ---
+    function renderSuggestions(list, query) {
       suggestions.innerHTML = "";
-      if (list.length === 0) {
-        suggestions.style.display = "none";
+
+      // Si no hay resultados, ofrecer crear nuevo
+      if (list.length === 0 && query) {
+        const createNew = document.createElement("div");
+        createNew.className = "ui-suggestion-item new";
+        createNew.innerHTML = `➕ Crear producto <strong>"${query}"</strong>`;
+        createNew.onclick = async () => {
+          const newProd = await uiForm("Nuevo producto", [
+            { name: "Codigo", label: "Código", value: query, required: true },
+            { name: "Nombre", label: "Nombre", value: query, required: true },
+            { name: "Precio", label: "Precio unitario", type: "number", value: "", required: true },
+            { name: "Categoria", label: "Categoría", value: "" },
+            { name: "SubCategoria", label: "Subcategoría", value: "" },
+          ]);
+          if (!newProd) return;
+          newProd.Precio = parseFloat(newProd.Precio) || 0;
+          Products.push(newProd); // guardamos temporalmente
+          selected = newProd;
+          qtyInput.value = 1;
+          renderDetails(newProd);
+          suggestions.style.display = "none";
+          uiNotify("Producto creado temporalmente", "success");
+        };
+        suggestions.appendChild(createNew);
+        suggestions.style.display = "block";
         return;
       }
+
       list.forEach(prod => {
         const item = document.createElement("div");
         item.className = "ui-suggestion-item";
@@ -650,18 +674,39 @@ async function UiFormProduct() {
         };
         suggestions.appendChild(item);
       });
+
       suggestions.style.display = "block";
     }
 
-    // --- Renderizar detalles al seleccionar ---
+    // --- Renderizar detalles + botón editar ---
     function renderDetails(prod) {
       details.innerHTML = `
         <p><strong>Código:</strong> ${prod.Codigo}</p>
         <p><strong>Producto:</strong> ${prod.Nombre}</p>
         <p><strong>Precio unitario:</strong> $${prod.Precio}</p>
         <p><strong>Categoría:</strong> ${prod.Categoria || "-"}</p>
+        <div style="margin-top:10px;">
+          <button class="btn-mini" id="edit-product">✏️ Editar antes de agregar</button>
+        </div>
       `;
       details.style.display = "block";
+
+      // --- Editar producto existente ---
+      details.querySelector("#edit-product").onclick = async () => {
+        const editProd = await uiForm("Editar producto", [
+          { name: "Codigo", label: "Código", value: prod.Codigo, required: true },
+          { name: "Nombre", label: "Nombre", value: prod.Nombre, required: true },
+          { name: "Precio", label: "Precio unitario", type: "number", value: prod.Precio, required: true },
+          { name: "Categoria", label: "Categoría", value: prod.Categoria || "" },
+          { name: "SubCategoria", label: "Subcategoría", value: prod.SubCategoria || "" },
+        ]);
+        if (!editProd) return;
+        editProd.Precio = parseFloat(editProd.Precio) || 0;
+        Object.assign(prod, editProd);
+        selected = prod;
+        renderDetails(prod);
+        uiNotify("Producto modificado", "info");
+      };
     }
 
     // --- Evento de búsqueda dinámica ---
@@ -674,11 +719,11 @@ async function UiFormProduct() {
       const matches = Products.filter(p =>
         p.Nombre.toLowerCase().includes(q) ||
         p.Codigo.toLowerCase().includes(q)
-      ).slice(0, 6); // máximo 6 resultados
-      renderSuggestions(matches);
+      ).slice(0, 6);
+      renderSuggestions(matches, q);
     };
 
-    // --- Crear modal del formulario ---
+    // --- Crear modal principal ---
     uiModalOpen({
       title: "Agregar producto",
       body: wrapper,
@@ -686,7 +731,7 @@ async function UiFormProduct() {
         { label: "Cancelar", class: "secondary", onClick: () => { uiModalClose(); res(null); } },
         { label: "Aceptar", class: "primary", onClick: () => {
             if (!selected) {
-              uiNotify("Selecciona un producto primero", "error");
+              uiNotify("Selecciona o crea un producto primero", "error");
               return;
             }
             const unidades = parseInt(qtyInput.value) || 1;

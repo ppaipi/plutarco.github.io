@@ -852,3 +852,23 @@ button.cerrar:hover {
   font-size: 14px;
   color: var(--text);
 }
+.ui-suggestion-item.new {
+  background: #e0f2f1;
+  color: #004d40;
+  font-weight: 500;
+}
+
+.btn-mini {
+  background: #009688;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-mini:hover {
+  opacity: 0.9;
+}
