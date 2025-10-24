@@ -6,6 +6,44 @@ const tableHead = document.querySelector("#orders-table thead");
 const tableBody = document.querySelector("#orders-table tbody");
 const overlay = document.getElementById("overlay");
 const detalle = document.getElementById("detalle-contenido");
+let Products = [];
+
+
+async function loadProducts() {
+  try {
+    const res = await fetch('../media/articulos.xlsx?cacheBust=' + Date.now());
+    const data = await res.arrayBuffer();
+
+    // Leer el Excel
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+
+    // Convertir la hoja a JSON
+    const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+    // Mapear a tu formato
+    Products = jsonData.map(row => ({
+      Codigo: (row["CODIGO BARRA"] || "").toString().trim(),
+      Nombre: row["DESCRIPCION LARGA"] || "",
+      Descripcion: row["DESCRIPCION ADICIONAL"] || "",
+      Categoria: row["RUBRO"] || "",
+      SubCategoria: row["SUBRUBRO"] || "",
+      Precio: parsePrecio(row["PRECIO VENTA C/IVA"]),
+      Proveedor: row["PROVEEDOR"] || "",
+    }));
+
+  } catch (err) {
+    console.error("Error cargando productos:", err);
+  }
+}
+function parsePrecio(str) {
+  if (!str) return 0;
+  // Quitar puntos de miles y reemplazar coma decimal por punto
+  const limpio = str.replace(/\./g, '').replace(',', '.');
+  return parseFloat(limpio) || 0;
+}
+
 
 // --- UI HELPERS: modal / confirm / prompt / form / toast ---
 // Se añaden aquí para evitar ReferenceError (uiForm no definido)
@@ -548,25 +586,139 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
     uiAlert("Error al guardar: " + (err.message || err), { type: "error" });
   }
 }
+// ========================================================
+// 🧩 UiFormProduct - formulario con búsqueda de productos
+// ========================================================
+async function UiFormProduct() {
+  return new Promise(res => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "ui-form-product";
+
+    // --- Fila inicial con cantidad y búsqueda ---
+    const row = document.createElement("div");
+    row.className = "ui-form-row";
+
+    const qtyInput = document.createElement("input");
+    qtyInput.type = "number";
+    qtyInput.min = 1;
+    qtyInput.value = 1;
+    qtyInput.placeholder = "Cantidad";
+    qtyInput.className = "ui-input qty-input";
+
+    const searchInput = document.createElement("input");
+    searchInput.type = "text";
+    searchInput.placeholder = "Buscar código o producto...";
+    searchInput.className = "ui-input search-input";
+
+    row.appendChild(qtyInput);
+    row.appendChild(searchInput);
+
+    // --- Lista de sugerencias ---
+    const suggestions = document.createElement("div");
+    suggestions.className = "ui-suggestions";
+
+    // --- Contenedor de detalles del producto seleccionado ---
+    const details = document.createElement("div");
+    details.className = "ui-product-details";
+    details.style.display = "none";
+
+    wrapper.appendChild(row);
+    wrapper.appendChild(suggestions);
+    wrapper.appendChild(details);
+
+    let selected = null;
+
+    // --- Función para renderizar sugerencias ---
+    function renderSuggestions(list) {
+      suggestions.innerHTML = "";
+      if (list.length === 0) {
+        suggestions.style.display = "none";
+        return;
+      }
+      list.forEach(prod => {
+        const item = document.createElement("div");
+        item.className = "ui-suggestion-item";
+        item.innerHTML = `
+          <strong>${prod.Nombre}</strong><br>
+          <small>${prod.Codigo} — $${prod.Precio}</small>
+        `;
+        item.onclick = () => {
+          selected = prod;
+          qtyInput.value = 1;
+          renderDetails(prod);
+          suggestions.style.display = "none";
+        };
+        suggestions.appendChild(item);
+      });
+      suggestions.style.display = "block";
+    }
+
+    // --- Renderizar detalles al seleccionar ---
+    function renderDetails(prod) {
+      details.innerHTML = `
+        <p><strong>Código:</strong> ${prod.Codigo}</p>
+        <p><strong>Producto:</strong> ${prod.Nombre}</p>
+        <p><strong>Precio unitario:</strong> $${prod.Precio}</p>
+        <p><strong>Categoría:</strong> ${prod.Categoria || "-"}</p>
+      `;
+      details.style.display = "block";
+    }
+
+    // --- Evento de búsqueda dinámica ---
+    searchInput.oninput = e => {
+      const q = e.target.value.toLowerCase().trim();
+      if (!q) {
+        suggestions.style.display = "none";
+        return;
+      }
+      const matches = Products.filter(p =>
+        p.Nombre.toLowerCase().includes(q) ||
+        p.Codigo.toLowerCase().includes(q)
+      ).slice(0, 6); // máximo 6 resultados
+      renderSuggestions(matches);
+    };
+
+    // --- Crear modal del formulario ---
+    uiModalOpen({
+      title: "Agregar producto",
+      body: wrapper,
+      actions: [
+        { label: "Cancelar", class: "secondary", onClick: () => { uiModalClose(); res(null); } },
+        { label: "Aceptar", class: "primary", onClick: () => {
+            if (!selected) {
+              uiNotify("Selecciona un producto primero", "error");
+              return;
+            }
+            const unidades = parseInt(qtyInput.value) || 1;
+            const total = unidades * parseFloat(selected.Precio || 0);
+            uiModalClose();
+            res({
+              codigo: selected.Codigo,
+              nombre: selected.Nombre,
+              unidades,
+              total
+            });
+          } },
+      ]
+    });
+  });
+}
+
 
 async function agregarProducto(row) {
-  const form = await uiForm("Agregar producto", [
-    { name: "codigo", label: "Código", value: "", required: true },
-    { name: "nombre", label: "Nombre", value: "", required: true },
-    { name: "unidades", label: "Cantidad", value: "1", type: "number", required: true },
-    { name: "total", label: "Precio total", value: "", type: "number", required: true },
-  ]);
+  const form = await UiFormProduct();
   if (!form) return;
 
   const pedido = currentOrders[row];
   const productos = parseProductos(pedido.Productos || "");
-  productos.push({ codigo: form.codigo, nombre: form.nombre, unidades: form.unidades, total: form.total });
+  productos.push(form);
 
   await postData({ action: "updateProductos", rowIndex: row, productos });
-  uiNotify("Producto agregado", "success");
+  uiNotify("Producto agregado correctamente", "success");
   loadOrders();
   verDetalle(row);
 }
+
 
 async function editarProducto(row, idx) {
   const pedido = currentOrders[row];

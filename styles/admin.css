@@ -800,3 +800,55 @@ button.cerrar:hover {
     margin-top: 6px;
   }
 }
+/* ============================= */
+/* 🧩 UI FORM PRODUCT */
+/* ============================= */
+.ui-form-product {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ui-form-row {
+  display: flex;
+  gap: 8px;
+}
+
+.ui-input {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.qty-input {
+  width: 90px;
+}
+
+.ui-suggestions {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 160px;
+  overflow-y: auto;
+  display: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.ui-suggestion-item {
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.ui-suggestion-item:hover {
+  background-color: #f0fdfb;
+}
+
+.ui-product-details {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  font-size: 14px;
+  color: var(--text);
+}
