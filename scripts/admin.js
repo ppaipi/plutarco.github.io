@@ -488,14 +488,12 @@ function editableField(row, label, columnName, value, type = "text") {
   return `
     <p>
       <strong>${label}:</strong>
-      <span id="${safeId}" class="inline-edit" contenteditable="true"
-        onblur="commitInlineEdit(${row}, '${columnName}', '${type}', this)"
-        onkeydown="if(event.key==='Enter'){ event.preventDefault(); this.blur(); }"
-      >${display}</span>
+      <span id="${safeId}" class="inline-view">${display}</span>
       <button class="buttom_edit" onclick="editarCampo(${row}, '${columnName}', '${type}', '${safeId}')">✏️</button>
     </p>
   `;
 }
+
 
 // 1) Generador de campo link + botón editar
 function editableLinkField(row, columnName, label, value, href, type = "text") {
