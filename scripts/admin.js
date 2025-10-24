@@ -679,6 +679,7 @@ async function UiFormProduct(buscando) {
       renderDetails(newProd);
       suggestions.style.display = "none";
       uiNotify(`Producto "${newProd.Nombre}" creado`, "success");
+      UiFormProduct(newProd.Codigo);
     }
 
     async function editarProductoExistente(prod) {
