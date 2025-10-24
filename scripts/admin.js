@@ -836,6 +836,7 @@ async function eliminarProducto(row, codigo) {
   await refreshOrders(row);
 }
 async function refreshOrders(row) {
+  verDetalle(null);
 
   // 🔹 Mostrar un loader visual mientras se actualiza
   detalle.innerHTML = `
@@ -844,6 +845,7 @@ async function refreshOrders(row) {
       <p>Actualizando detalle...</p>
     </div>
   `;
+  cerrarDetalle();
 
   // 🔹 Recargar los pedidos completos
   await loadOrders();
