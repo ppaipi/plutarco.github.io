@@ -341,7 +341,7 @@ async function eliminarPedido(i) {
   const res = await postData({ action: "deleteOrder", rowIndex: i });
   if (res.ok) {
     uiNotify("Pedido eliminado correctamente", "success");
-    loadOrders();
+    await loadOrders();
   } else {
     uiAlert("Error al eliminar pedido", { type: "error" });
   }
@@ -931,6 +931,6 @@ async function postData(payload) {
 if (localStorage.getItem("logged")) {
   if (loginContainer) loginContainer.classList.add("hidden");
   if (panel) panel.classList.remove("hidden");
-  await loadOrders();
+  loadOrders();
   loadProducts();
 }
