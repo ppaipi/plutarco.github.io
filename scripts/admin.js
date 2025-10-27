@@ -496,9 +496,38 @@ function editableField(row, label, columnName, value, type = "text") {
   const safeId = `val_${row}_${safeKey}`;
   const raw = (value === undefined || value === null || value === "") ? "" : String(value);
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  const display = raw === "" ? "-" : esc(raw);
   const colEsc = String(columnName).replace(/'/g, "\\'");
   const typeEsc = String(type).replace(/'/g, "\\'");
+
+  // Si es campo fecha, no usar contenteditable: almacenamos valor ISO en dataset.value y mostramos legible
+  if (type === "day" || type === "date") {
+    // intentar normalizar a ISO (YYYY-MM-DD) para prefilling en input[type=date]
+    let iso = "";
+    if (raw) {
+      const d = new Date(raw);
+      if (!isNaN(d.getTime())) {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        iso = `${yyyy}-${mm}-${dd}`;
+      } else {
+        // detectar dd/mm/yyyy
+        const m = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (m) iso = `${m[3]}-${m[2]}-${m[1]}`;
+      }
+    }
+    const display = iso ? esc(formatDateDisplay(iso)) : "-";
+    return `
+      <p>
+        <strong>${esc(label)}:</strong>
+        <span id="${safeId}" class="inline-view" data-value="${esc(iso)}">${display}</span>
+        <button class="buttom_edit" onclick="editarCampo(${row}, '${colEsc}', 'date', '${safeId}')">✏️</button>
+      </p>
+    `;
+  }
+
+  // comportamiento por defecto (texto editable inline)
+  const display = (raw === "") ? "-" : esc(raw);
 
   return `
     <p>
@@ -542,14 +571,25 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
   }
 
   const el = document.getElementById(elementId);
-  const oldValue = el ? el.textContent.trim() : "";
+  // obtener oldValue preferentemente desde dataset.value (usado por campos fecha)
+  let oldValue = "";
+  if (el) {
+    if (el.dataset && typeof el.dataset.value !== "undefined" && el.dataset.value !== "") {
+      oldValue = el.dataset.value;
+    } else {
+      oldValue = el.textContent.trim();
+      // si estaba '-' considerarlo vacío
+      if (oldValue === "-") oldValue = "";
+    }
+  }
 
   let nuevo = typeof nuevoValor !== "undefined" ? nuevoValor : null;
 
   if (nuevo === null) {
     // si no se pasó valor, usamos modal prompt ligero
+    const fieldType = (type === "date" || type === "day") ? "date" : (type === "number" ? "number" : "text");
     const res = await uiForm(`Editar ${columnName}`, [
-      { name: "value", label: columnName, value: oldValue === "-" ? "" : oldValue, type: type === "number" ? "number" : "text", required: false }
+      { name: "value", label: columnName, value: oldValue || "", type: fieldType, required: false }
     ]);
     if (!res) return; // canceló
     nuevo = res.value;
@@ -568,7 +608,16 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
       value: nuevo
     });
 
-    if (el) el.textContent = nuevo || "-";
+    // si el elemento tiene dataset.value (campo fecha) actualizar dataset y texto mostrado
+    if (el) {
+      if (type === "date" || type === "day") {
+        // nuevo puede venir en formato YYYY-MM-DD o en otra forma; guardar tal cual y mostrar legible
+        el.dataset.value = nuevo || "";
+        el.textContent = nuevo ? formatDateDisplay(nuevo) : "-";
+      } else {
+        el.textContent = nuevo || "-";
+      }
+    }
 
     if (currentOrders && currentOrders[row]) {
       currentOrders[row][columnName] = nuevo;
@@ -609,392 +658,17 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
     uiAlert("Error al guardar: " + (err.message || err), { type: "error" });
   }
 }
-async function UiFormProduct(buscando) {
-  return new Promise(res => {
-    const wrapper = document.createElement("div");
-    wrapper.className = "ui-form-product";
 
-    // --- Fila principal (cantidad + búsqueda) ---
-    const row = document.createElement("div");
-    row.className = "ui-form-row";
-
-    const qtyInput = createInput("number", "Cantidad", "ui-input qty-input", 1);
-    const searchInput = createInput("text", "Buscar código o producto...", "ui-input search-input", buscando || "");
-    row.appendChild(qtyInput);
-    row.appendChild(searchInput);
-
-    const suggestions = document.createElement("div");
-    suggestions.className = "ui-suggestions";
-
-    const details = document.createElement("div");
-    details.className = "ui-product-details";
-    details.style.display = "none";
-
-    wrapper.append(row, suggestions, details);
-    let selected = null;
-
-    // ===============================
-    // 🔹 SUBFUNCIONES
-    // ===============================
-
-    function createInput(type, placeholder, cls, value = "") {
-      const input = document.createElement("input");
-      input.type = type;
-      input.placeholder = placeholder;
-      input.className = cls;
-      if (value !== undefined) input.value = value;
-      return input;
-    }
-
-    function buscarProductos(q) {
-      q = q.toLowerCase().trim();
-      if (!q) {
-        suggestions.style.display = "none";
-        return;
-      }
-      const matches = Products.filter(p =>
-        p.Nombre.toLowerCase().includes(q) ||
-        p.Codigo.toLowerCase().includes(q)
-      ).slice(0, 6);
-      renderSuggestions(matches, q);
-    }
-
-    function renderSuggestions(list, query) {
-      suggestions.innerHTML = "";
-
-      if (list.length === 0 && query) {
-        // ➕ Opción de crear nuevo producto
-        const createNew = document.createElement("div");
-        createNew.className = "ui-suggestion-item new";
-        createNew.innerHTML = `➕ Crear producto <strong>"${query}"</strong>`;
-        createNew.onclick = () => crearNuevoProducto(query);
-        suggestions.appendChild(createNew);
-        suggestions.style.display = "block";
-        return;
-      }
-
-      list.forEach(prod => {
-        const item = document.createElement("div");
-        item.className = "ui-suggestion-item";
-        item.innerHTML = `<strong>${prod.Nombre}</strong><br><small>${prod.Codigo} — $${prod.Precio}</small>`;
-        item.onclick = () => {
-          selected = prod;
-          qtyInput.value = 1;
-          renderDetails(prod);
-          suggestions.style.display = "none";
-        };
-        suggestions.appendChild(item);
-      });
-      suggestions.style.display = "block";
-    }
-
-    async function crearNuevoProducto(query) {
-      const newProd = await uiForm("Nuevo producto", [
-        { name: "Codigo", label: "Código", value: query, required: true },
-        { name: "Nombre", label: "Nombre", value: query, required: true },
-        { name: "Precio", label: "Precio unitario", type: "number", value: "", required: true },
-      ]);
-      if (!newProd) return;
-
-      newProd.Precio = parseFloat(newProd.Precio) || 0;
-      Products.push(newProd);
-      selected = newProd;
-
-      renderDetails(newProd);
-      suggestions.style.display = "none";
-      uiNotify(`Producto "${newProd.Nombre}" creado`, "success");
-
-      // 🔹 Simular que el usuario apretó "Aceptar"
-      const unidades = parseInt(qtyInput.value) || 1;
-      const total = unidades * parseFloat(selected.Precio || 0);
-      uiModalClose();
-
-      res({
-        codigo: selected.Codigo,
-        nombre: selected.Nombre,
-        unidades,
-        total,
-        precioUnitario: selected.Precio
-      });
-    }
-
-
-
-    async function editarProductoExistente(prod) {
-      const editProd = await uiForm("Editar producto", [
-        { name: "Codigo", label: "Código", value: prod.Codigo, required: true },
-        { name: "Nombre", label: "Nombre", value: prod.Nombre, required: true },
-        { name: "Precio", label: "Precio unitario", type: "number", value: prod.Precio, required: true },
-      ]);
-      if (!editProd) return;
-
-      editProd.Precio = parseFloat(editProd.Precio) || 0;
-      Object.assign(prod, editProd);
-      selected = prod;
-      renderDetails(prod);
-      uiNotify("Producto actualizado", "info");
-    }
-
-    function renderDetails(prod) {
-      details.innerHTML = `
-        <p><strong>Código:</strong> ${prod.Codigo}</p>
-        <p><strong>Producto:</strong> ${prod.Nombre}</p>
-        <p><strong>Precio unitario:</strong> $${prod.Precio}</p>
-        <div style="margin-top:10px;">
-          <button class="btn-mini" id="edit-product">✏️ Editar antes de agregar</button>
-        </div>
-      `;
-      details.style.display = "block";
-
-      // Editar producto
-      details.querySelector("#edit-product").onclick = () => editarProductoExistente(prod);
-    }
-
-    // ===============================
-    // 🔹 EVENTOS
-    // ===============================
-
-    searchInput.oninput = e => buscarProductos(e.target.value);
-
-    if (buscando) {
-      selected = Products.find(p => p.Codigo === buscando) || null;
-      if (selected) renderDetails(selected);
-    }
-
-    // ===============================
-    // 🔹 MODAL PRINCIPAL
-    // ===============================
-
-    uiModalOpen({
-      title: "Agregar producto",
-      body: wrapper,
-      actions: [
-        { label: "Cancelar", class: "secondary", onClick: () => { uiModalClose(); res(null); } },
-        {
-          label: "Aceptar",
-          class: "primary",
-          onClick: () => {
-            if (!selected) {
-              uiNotify("Selecciona o crea un producto primero", "error");
-              return;
-            }
-            const unidades = parseInt(qtyInput.value) || 1;
-            const total = unidades * parseFloat(selected.Precio || 0);
-            uiModalClose();
-
-            // ✅ Retornar producto seleccionado (nuevo o existente)
-            res({
-              codigo: selected.Codigo,
-              nombre: selected.Nombre,
-              unidades,
-              total,
-              precioUnitario: selected.Precio
-            });
-          }
-        },
-      ]
-    });
-  });
-}
-
-
-
-async function agregarProducto(row) {
-  const form = await UiFormProduct();
-  if (!form) return;
-
-  const pedido = currentOrders[row];
-  const productos = parseProductos(pedido.Productos || "");
-
-  // Agregar el nuevo producto a la lista
-  productos.push(form);
-
-  // 🔹 Actualizar localmente el string de productos
-  pedido.Productos = productos.map(p => `${p.codigo}|${p.nombre}|${p.unidades}|${p.total}`).join(",");
-
-  // 🔹 Recalcular subtotal y total en memoria
-  const subtotal = productos.reduce((acc, p) => acc + parseFloat(p.total || 0), 0);
-  pedido.Subtotal = subtotal.toFixed(2);
-  pedido.total = (subtotal + (parseFloat(pedido.Envio) || 0)).toFixed(2);
-
-  // 🔹 Enviar los cambios al servidor (sin esperar recarga completa)
-  await postData({ action: "updateProductos", rowIndex: row, productos });
-
-  // 🔹 Actualizar visualmente el detalle sin cerrar
-  uiNotify("Producto agregado correctamente", "success");
-  verDetalle(row);
-}
-
-
-
-async function editarProducto(row, idx) {
-  const pedido = currentOrders[row];
-  const productos = parseProductos(pedido.Productos || "");
-  const p = productos[idx];
-
-  const form = await uiForm("Editar producto", [
-    { name: "codigo", label: "Código", value: p.codigo || "", required: true },
-    { name: "nombre", label: "Nombre", value: p.nombre || "", required: true },
-    { name: "unidades", label: "Cantidad", value: p.unidades || "", type: "number", required: true },
-    { name: "total", label: "Precio total", value: p.total || "", type: "number", required: true },
-  ]);
-  if (!form) return;
-
-  productos[idx] = { codigo: form.codigo, nombre: form.nombre, unidades: form.unidades, total: form.total };
-  await postData({ action: "updateProductos", rowIndex: row, productos });
-  uiNotify("Producto editado", "success");
-  await loadOrders();
-  verDetalle(row);
-}
-
-async function eliminarProducto(row, codigo) {
-  const ok = await uiConfirm("¿Eliminar este producto?");
-  if (!ok) return;
-  await postData({ action: "deleteProducto", rowIndex: row, codigo });
-  await loadOrders();
-  verDetalle(row);
-  uiNotify("Producto eliminado", "info");
-}
-
-
-
-
-// === CREAR NUEVO PEDIDO ===
-const newOrderBtn = document.getElementById("new-order-btn");
-if (newOrderBtn) newOrderBtn.onclick = crearNuevoPedido;
-
-async function crearNuevoPedido() {
-  const res = await uiForm("Nuevo pedido", [
-    { name: "nombre", label: "Nombre del cliente", value: "", required: true },
-    { name: "direccion", label: "Dirección de entrega", value: "", required: true },
-    { name: "telefono", label: "Teléfono", value: "", required: false },
-    { name: "mail", label: "Email", value: "", required: false },
-    { name: "comentario", label: "Comentario u observación", value: "", type: "textarea", required: false },
-  ]);
-  if (!res) return;
-
-  const nuevoPedido = {
-    action: "createOrder",
-    nombre: res.nombre,
-    direccion: res.direccion,
-    telefono: res.telefono,
-    mail: res.mail,
-    comentario: res.comentario
-  };
-
-  const r = await postData(nuevoPedido);
-
-  if (r.ok) {
-    await loadOrders();
-    uiNotify("✅ Pedido creado correctamente", "success");
-  } else {
-    uiAlert("❌ Error al crear el pedido", { type: "error" });
+// helper para mostrar fecha en formato legible (si el valor es válido)
+function formatDateDisplay(val) {
+  if (!val) return "-";
+  // Si ya viene en formato YYYY-MM-DD o ISO, crear Date; sino intentar parse
+  const d = new Date(val);
+  if (!isNaN(d.getTime())) {
+    return d.toLocaleDateString("es-AR");
   }
-}
-
-function exportExcel() {
-  if (!currentOrders || !currentOrders.length) {
-    uiNotify("No hay pedidos para exportar", "info");
-    return;
-  }
-  const csv = [Object.keys(currentOrders[0]).join(",")].concat(
-    currentOrders.map(o => Object.values(o).join(","))
-  ).join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "pedidos.csv";
-  a.click();
-}
-
-// ======= NUEVAS UTILIDADES PARA EVITAR DOBLE-ENVÍO / COLAS POR CELDA =======
-const inflightRequests = new Map(); // dedupe por payloadKey
-const cellQueues = new Map(); // serializar por celda (action|rowIndex|columnName)
-
-function makePayloadKey(payload) {
-  // Para peticiones generales: stringify completo
-  try { return JSON.stringify(payload); } catch (e) { return String(payload); }
-}
-
-function makeCellKey(payload) {
-  // Para operaciones por celda (si aplican) queremos serializar por celda
-  if (payload && typeof payload.rowIndex !== "undefined" && payload.columnName) {
-    return `${payload.action}|${payload.rowIndex}|${payload.columnName}`;
-  }
-  return null;
-}
-
-// Encola llamadas por celda: garantiza ejecución secuencial
-function enqueueByCell(payload, fn) {
-  const cellKey = makeCellKey(payload);
-  if (!cellKey) {
-    // no es una operación por celda -> ejecutar directamente con dedupe normal
-    return fn();
-  }
-  const prev = cellQueues.get(cellKey) || Promise.resolve();
-  const next = prev.then(() => fn()).catch(err => { throw err; });
-  cellQueues.set(cellKey, next.finally(() => {
-    // limpiar si es la misma promesa final
-    if (cellQueues.get(cellKey) === next) cellQueues.delete(cellKey);
-  }));
-  return next;
-}
-
-// ======= REEMPLAZO: postData con dedupe y serialización por celda =======
-async function postData(payload) {
-  // si ya hay una petición idéntica en vuelo, reutilizar su promesa
-  const payloadKey = makePayloadKey(payload);
-  if (inflightRequests.has(payloadKey)) {
-    return inflightRequests.get(payloadKey);
-  }
-
-  const doFetch = async () => {
-    const formData = new URLSearchParams();
-    formData.append('data', JSON.stringify(payload));
-    try {
-      const res = await fetch(WEBAPP_URL, { method: "POST", body: formData });
-      const text = await res.text();
-      try {
-        const json = JSON.parse(text);
-        return json;
-      } catch (e) {
-        console.error("Invalid JSON from server:", text);
-        return { ok: false, error: "Respuesta inválida del servidor", raw: text };
-      }
-    } catch (err) {
-      console.error("postData error", err);
-      return { ok: false, error: err.message || String(err) };
-    }
-  };
-
-  // Encolar por celda si aplica, y utilizar inflightRequests para dedupe exacto
-  const promise = enqueueByCell(payload, doFetch);
-  inflightRequests.set(payloadKey, promise);
-
-  // asegurarse de limpiar el inflight cuando termine
-  promise.finally(() => {
-    if (inflightRequests.get(payloadKey) === promise) inflightRequests.delete(payloadKey);
-  });
-
-  return promise;
-}
-
-// Restaurar comprobación de sesión: si ya está logueado cargar panel (productos + pedidos)
-// Se ejecuta en IIFE async para poder await loadProducts/loadOrders y evitar carreras.
-if (localStorage.getItem("logged")) {
-  (async () => {
-    if (loginContainer) loginContainer.classList.add("hidden");
-    if (panel) panel.classList.remove("hidden");
-    // cargar productos primero (si aplica) y luego pedidos
-    try {
-      await loadProducts();
-    } catch (e) {
-      console.warn("loadProducts failed on startup:", e);
-    }
-    try {
-      await loadOrders();
-    } catch (e) {
-      console.warn("loadOrders failed on startup:", e);
-    }
-  })();
+  // fallback: intentar reordenar dd/mm/yyyy a ISO si detectamos slashes
+  const m = String(val).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (m) return new Date(`${m[3]}-${m[2]}-${m[1]}`).toLocaleDateString("es-AR");
+  return String(val);
 }
