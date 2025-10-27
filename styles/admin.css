@@ -163,7 +163,7 @@ tbody tr:hover { background: #f0fdfb; }
   min-width: 280px;         /* opcional: asegura usabilidad en pantallas pequeñas */
   margin: 120px auto;
   background: var(--card);
-  padding: 30px;
+  padding: 90px;
   border-radius: 12px;
   box-shadow: 0 2px 15px rgba(0,0,0,0.05);
   text-align: center;
