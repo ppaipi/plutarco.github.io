@@ -967,3 +967,23 @@ async function postData(payload) {
 
   return promise;
 }
+
+// Restaurar comprobación de sesión: si ya está logueado cargar panel (productos + pedidos)
+// Se ejecuta en IIFE async para poder await loadProducts/loadOrders y evitar carreras.
+if (localStorage.getItem("logged")) {
+  (async () => {
+    if (loginContainer) loginContainer.classList.add("hidden");
+    if (panel) panel.classList.remove("hidden");
+    // cargar productos primero (si aplica) y luego pedidos
+    try {
+      await loadProducts();
+    } catch (e) {
+      console.warn("loadProducts failed on startup:", e);
+    }
+    try {
+      await loadOrders();
+    } catch (e) {
+      console.warn("loadOrders failed on startup:", e);
+    }
+  })();
+}
