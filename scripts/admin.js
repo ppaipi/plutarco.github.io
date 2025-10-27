@@ -434,6 +434,8 @@ detalle.innerHTML = `
         : "No especificada"
     }</p>
 
+     ${editableField(i, "🚚 Fecha de entrega", "Fecha de entrega", o["dia de entrega"], "day")}
+
     ${editableField(i, "🏷️ Nombre", "Nombre", o.Nombre, "text")}
     ${editableLinkField(i, "Email", "📧 Email", o.Email, o.Email ? "mailto:" + encodeURIComponent(o.Email) : "#")}
 

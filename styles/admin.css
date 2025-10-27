@@ -158,14 +158,18 @@ tbody tr:hover { background: #f0fdfb; }
 
 /* ===== LOGIN ===== */
 #login-container {
-  max-width: 320px;
+  width: 50%;               /* ocupa el 50% del ancho del contenedor (body) */
+  max-width: 600px;         /* opcional: evita que crezca demasiado en pantallas enormes */
+  min-width: 280px;         /* opcional: asegura usabilidad en pantallas pequeñas */
   margin: 120px auto;
   background: var(--card);
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 2px 15px rgba(0,0,0,0.05);
   text-align: center;
+  box-sizing: border-box;
 }
+
 
 #login-container input { width: 100%; margin-bottom: 12px; }
 #login-msg { color: red; font-size: 13px; margin-top: 4px; }
