@@ -191,7 +191,7 @@ tbody tr:hover { background: #f0fdfb; }
 #detalle-contenido {
   background: var(--card);
   width: 100%;
-  max-width: 1100px; /* 🔹 más ancho */
+  max-width: 1600px; /* 🔹 más ancho */
   max-height: 92vh;
   border-radius: 10px;
   position: relative;
