@@ -478,11 +478,6 @@ detalle.innerHTML = `
     <h3>🛍️ Pedido de ${o.Nombre}</h3>
 
     <p><strong>📦 Envío de Pedido:</strong> ${new Date(o["Hora de envio"]).toLocaleString("es-AR")}</p>
-    <p><strong>🚚 Fecha de entrega:</strong> ${
-      o["dia de entrega"]
-        ? new Date(o["dia de entrega"]).toLocaleDateString("es-AR")
-        : "No especificada"
-    }</p>
 
     ${editableField(i, "🚚 Fecha de entrega", "dia de entrega", o["dia de entrega"], "date")}
 
