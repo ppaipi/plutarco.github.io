@@ -50,20 +50,51 @@ function parsePrecio(str) {
 // ===== Helper: formateo seguro de fechas (evita ReferenceError) =====
 function formatDateDisplay(val) {
   if (!val) return "-";
-  // Intentar parsear como ISO / Date string
-  const d = new Date(val);
-  if (!isNaN(d.getTime())) {
+  const iso = String(val).trim();
+  // esperar formato YYYY-MM-DD preferido
+  const mIso = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (mIso) {
+    const y = parseInt(mIso[1], 10);
+    const mm = parseInt(mIso[2], 10);
+    const dd = parseInt(mIso[3], 10);
+    const d = new Date(y, mm - 1, dd); // crear fecha en tiempo local
     return d.toLocaleDateString("es-AR");
   }
-  // Intentar dd/mm/yyyy
+  // intentar dd/mm/yyyy => convertir a ISO y reutilizar
   const m = String(val).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (m) {
-    const iso = `${m[3]}-${m[2]}-${m[1]}`;
-    const d2 = new Date(iso);
-    if (!isNaN(d2.getTime())) return d2.toLocaleDateString("es-AR");
+    const iso2 = `${m[3]}-${m[2]}-${m[1]}`;
+    return formatDateDisplay(iso2);
   }
-  // Fallback: devolver el valor crudo
+  // intento fallback con Date (no recomendado para YYYY-MM-DD strings)
+  const d2 = new Date(val);
+  if (!isNaN(d2.getTime())) return d2.toLocaleDateString("es-AR");
   return String(val);
+}
+
+// ===== Helper: normalizar cualquier valor a ISO YYYY-MM-DD (preferir evitar new Date on YYYY-MM-DD) =====
+function parseToISO(val) {
+  if (!val) return "";
+  const s = String(val).trim();
+
+  // ya es ISO
+  const isoMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+
+  // formato dd/mm/yyyy
+  const dmy = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (dmy) return `${dmy[3]}-${dmy[2]}-${dmy[1]}`;
+
+  // intentar parsear con Date y extraer componentes en local (fallback)
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  return "";
 }
 
 
@@ -520,26 +551,13 @@ function editableField(row, label, columnName, value, type = "text") {
 
   // Si es campo fecha, no usar contenteditable: almacenamos valor ISO en dataset.value y mostramos legible
   if (type === "day" || type === "date") {
-    // intentar normalizar a ISO (YYYY-MM-DD) para prefilling en input[type=date]
-    let iso = "";
-    if (raw) {
-      const d = new Date(raw);
-      if (!isNaN(d.getTime())) {
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, "0");
-        const dd = String(d.getDate()).padStart(2, "0");
-        iso = `${yyyy}-${mm}-${dd}`;
-      } else {
-        // detectar dd/mm/yyyy
-        const m = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-        if (m) iso = `${m[3]}-${m[2]}-${m[1]}`;
-      }
-    }
+    // normalizar a ISO usando helper (evita crear Date con UTC)
+    const iso = parseToISO(raw);
     const display = iso ? esc(formatDateDisplay(iso)) : "-";
     return `
       <p>
         <strong>${esc(label)}:</strong>
-        <span id="${safeId}" class="inline-view" data-value="${esc(iso)}">${display}</span>
+        <span id="${safeId}" class="inline-view" data-value="${iso}">${display}</span>
         <button class="buttom_edit" onclick="editarCampo(${row}, '${colEsc}', 'date', '${safeId}')">✏️</button>
       </p>
     `;
@@ -630,9 +648,10 @@ async function editarCampo(row, columnName, type = "text", elementId = null, hre
     // si el elemento tiene dataset.value (campo fecha) actualizar dataset y texto mostrado
     if (el) {
       if (type === "date" || type === "day") {
-        // nuevo puede venir en formato YYYY-MM-DD o en otra forma; guardar tal cual y mostrar legible
-        el.dataset.value = nuevo || "";
-        el.textContent = nuevo ? formatDateDisplay(nuevo) : "-";
+        // normalizar nuevo a ISO y mostrar con formato local
+        const isoNuevo = parseToISO(nuevo);
+        el.dataset.value = isoNuevo;
+        el.textContent = isoNuevo ? formatDateDisplay(isoNuevo) : "-";
       } else {
         el.textContent = nuevo || "-";
       }
