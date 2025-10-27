@@ -47,6 +47,25 @@ function parsePrecio(str) {
   return parseFloat(limpio) || 0;
 }
 
+// ===== Helper: formateo seguro de fechas (evita ReferenceError) =====
+function formatDateDisplay(val) {
+  if (!val) return "-";
+  // Intentar parsear como ISO / Date string
+  const d = new Date(val);
+  if (!isNaN(d.getTime())) {
+    return d.toLocaleDateString("es-AR");
+  }
+  // Intentar dd/mm/yyyy
+  const m = String(val).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (m) {
+    const iso = `${m[3]}-${m[2]}-${m[1]}`;
+    const d2 = new Date(iso);
+    if (!isNaN(d2.getTime())) return d2.toLocaleDateString("es-AR");
+  }
+  // Fallback: devolver el valor crudo
+  return String(val);
+}
+
 
 // --- UI HELPERS: modal / confirm / prompt / form / toast ---
 // Se añaden aquí para evitar ReferenceError (uiForm no definido)
