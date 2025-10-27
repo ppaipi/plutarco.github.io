@@ -434,7 +434,7 @@ detalle.innerHTML = `
         : "No especificada"
     }</p>
 
-     ${editableField(i, "🚚 Fecha de entrega", "Fecha de entrega", o["dia de entrega"], "day")}
+    ${editableField(i, "🚚 Fecha de entrega", "Fecha de entrega", o["dia de entrega"], "day")}
 
     ${editableField(i, "🏷️ Nombre", "Nombre", o.Nombre, "text")}
     ${editableLinkField(i, "Email", "📧 Email", o.Email, o.Email ? "mailto:" + encodeURIComponent(o.Email) : "#")}
@@ -491,18 +491,26 @@ function cerrarDetalle() {
   overlay.classList.remove("active");
 }
 
-// editableField: ahora render inline-edit contenteditable con commitInlineEdit (blur/Enter)
-// Se usa el mismo formato de id que espera editarCampo: val_{row}_{col}
 function editableField(row, label, columnName, value, type = "text") {
   const safeKey = String(columnName).replace(/[^a-z0-9_]/gi, '_');
   const safeId = `val_${row}_${safeKey}`;
-  const display = (value === undefined || value === null || value === "") ? "-" : value;
+  const raw = (value === undefined || value === null || value === "") ? "" : String(value);
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const display = raw === "" ? "-" : esc(raw);
+  const colEsc = String(columnName).replace(/'/g, "\\'");
+  const typeEsc = String(type).replace(/'/g, "\\'");
 
   return `
     <p>
-      <strong>${label}:</strong>
-      <span id="${safeId}" class="inline-view">${display}</span>
-      <button class="buttom_edit" onclick="editarCampo(${row}, '${columnName}', '${type}', '${safeId}')">✏️</button>
+      <strong>${esc(label)}:</strong>
+      <span id="${safeId}" class="inline-view" contenteditable="true"
+            data-old="${esc(raw)}"
+            onfocus="this.dataset.old=this.textContent;"
+            onblur="commitInlineEdit(${row}, '${colEsc}', '${typeEsc}', this)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault(); this.blur();} else if(event.key==='Escape'){this.textContent=this.dataset.old||''; this.blur();}">
+        ${display}
+      </span>
+      <button class="buttom_edit" onclick="editarCampo(${row}, '${colEsc}', '${typeEsc}', '${safeId}')">✏️</button>
     </p>
   `;
 }
