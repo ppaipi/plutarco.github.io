@@ -66,7 +66,18 @@ function uiModalOpen({ title = "", body = "", actions = [] } = {}) {
     const btn = document.createElement("button");
     btn.className = `ui-btn ${a.class || ""}`.trim();
     btn.textContent = a.label;
-    btn.onclick = () => { if (typeof a.onClick === "function") a.onClick(); };
+    // proteger contra doble-click: deshabilitar mientras la acción (sincronica o async) se ejecuta
+    btn.onclick = async () => {
+      if (typeof a.onClick === "function") {
+        try {
+          btn.disabled = true;
+          // permitir que onClick sea sync o async
+          await Promise.resolve(a.onClick());
+        } finally {
+          btn.disabled = false;
+        }
+      }
+    };
     actionsEl.appendChild(btn);
   });
 
@@ -837,8 +848,6 @@ async function eliminarProducto(row, codigo) {
 
 
 
-
-
 // === CREAR NUEVO PEDIDO ===
 const newOrderBtn = document.getElementById("new-order-btn");
 if (newOrderBtn) newOrderBtn.onclick = crearNuevoPedido;
@@ -887,30 +896,74 @@ function exportExcel() {
   a.click();
 }
 
-async function postData(payload) {
-  const formData = new URLSearchParams();
-  formData.append('data', JSON.stringify(payload));
-  try {
-    const res = await fetch(WEBAPP_URL, { method: "POST", body: formData });
-    // try to parse JSON, but guard against invalid JSON
-    const text = await res.text();
-    try {
-      const json = JSON.parse(text);
-      return json;
-    } catch (e) {
-      console.error("Invalid JSON from server:", text);
-      return { ok: false, error: "Respuesta inválida del servidor", raw: text };
-    }
-  } catch (err) {
-    console.error("postData error", err);
-    return { ok: false, error: err.message || String(err) };
-  }
+// ======= NUEVAS UTILIDADES PARA EVITAR DOBLE-ENVÍO / COLAS POR CELDA =======
+const inflightRequests = new Map(); // dedupe por payloadKey
+const cellQueues = new Map(); // serializar por celda (action|rowIndex|columnName)
+
+function makePayloadKey(payload) {
+  // Para peticiones generales: stringify completo
+  try { return JSON.stringify(payload); } catch (e) { return String(payload); }
 }
 
+function makeCellKey(payload) {
+  // Para operaciones por celda (si aplican) queremos serializar por celda
+  if (payload && typeof payload.rowIndex !== "undefined" && payload.columnName) {
+    return `${payload.action}|${payload.rowIndex}|${payload.columnName}`;
+  }
+  return null;
+}
 
-if (localStorage.getItem("logged")) {
-  if (loginContainer) loginContainer.classList.add("hidden");
-  if (panel) panel.classList.remove("hidden");
-  loadOrders();
-  loadProducts();
+// Encola llamadas por celda: garantiza ejecución secuencial
+function enqueueByCell(payload, fn) {
+  const cellKey = makeCellKey(payload);
+  if (!cellKey) {
+    // no es una operación por celda -> ejecutar directamente con dedupe normal
+    return fn();
+  }
+  const prev = cellQueues.get(cellKey) || Promise.resolve();
+  const next = prev.then(() => fn()).catch(err => { throw err; });
+  cellQueues.set(cellKey, next.finally(() => {
+    // limpiar si es la misma promesa final
+    if (cellQueues.get(cellKey) === next) cellQueues.delete(cellKey);
+  }));
+  return next;
+}
+
+// ======= REEMPLAZO: postData con dedupe y serialización por celda =======
+async function postData(payload) {
+  // si ya hay una petición idéntica en vuelo, reutilizar su promesa
+  const payloadKey = makePayloadKey(payload);
+  if (inflightRequests.has(payloadKey)) {
+    return inflightRequests.get(payloadKey);
+  }
+
+  const doFetch = async () => {
+    const formData = new URLSearchParams();
+    formData.append('data', JSON.stringify(payload));
+    try {
+      const res = await fetch(WEBAPP_URL, { method: "POST", body: formData });
+      const text = await res.text();
+      try {
+        const json = JSON.parse(text);
+        return json;
+      } catch (e) {
+        console.error("Invalid JSON from server:", text);
+        return { ok: false, error: "Respuesta inválida del servidor", raw: text };
+      }
+    } catch (err) {
+      console.error("postData error", err);
+      return { ok: false, error: err.message || String(err) };
+    }
+  };
+
+  // Encolar por celda si aplica, y utilizar inflightRequests para dedupe exacto
+  const promise = enqueueByCell(payload, doFetch);
+  inflightRequests.set(payloadKey, promise);
+
+  // asegurarse de limpiar el inflight cuando termine
+  promise.finally(() => {
+    if (inflightRequests.get(payloadKey) === promise) inflightRequests.delete(payloadKey);
+  });
+
+  return promise;
 }
