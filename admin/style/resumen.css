@@ -27,7 +27,7 @@
 }
 
 .summary-table td {
-    padding: 16px 0; /* duplicado desde 8px */
+    padding: 16px 8px; /* duplicado desde 8px */
     border-bottom: 1px solid var(--border);
     font-size: 16px; /* mayor legibilidad */
 }
