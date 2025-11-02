@@ -361,9 +361,9 @@ function applyFiltersAndRender() {
   if (!isOrdersPage) return;
 
   const query = document.getElementById("search")?.value.toLowerCase() || "";
-  const status = filterStatusEl?.value || "all";
+  const status = document.getElementById("filter-status")?.value || "all";
   const entregado = filterEntregadoEl?.value || "all";
-  const month = filterMonthEl?.value || "all";
+  const sortOrder = sortOrderEl?.value || "desc"; // Fix: get value from element
 
   let filtered = currentOrders.map((o, idx) => ({ o, originalIndex: idx }))
     .filter(({ o }) => {
@@ -384,7 +384,7 @@ function applyFiltersAndRender() {
   filtered.sort((a, b) => {
     const ta = new Date(a.o["Hora de envio"]).getTime() || 0;
     const tb = new Date(b.o["Hora de envio"]).getTime() || 0;
-    return sortOrder === "asc" ? ta - tb : tb - ta;
+    return sortOrder === "asc" ? ta - tb : tb - ta;  // Now uses the correctly defined sortOrder
   });
 
   renderTable(filtered);
