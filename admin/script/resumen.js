@@ -30,7 +30,7 @@ function initializeMonthSelector() {
     // Add change listener
     selector.onchange = (e) => calculateSummary(e.target.value);
 }
-const formateadorAR = new Intl.NumberFormat('es-AR', {
+const formateadorAR.format = new Intl.NumberFormat('es-AR', {
   style: 'decimal',
   maximumFractionDigits: 0, // Puedes ajustar el número de decimales
   useGrouping: true // Asegura que se use el separador de miles
@@ -63,21 +63,21 @@ function calculateSummary(monthYear) {
     const finalBalance = totalIncome - totalExpenses;
 
     // Update UI
-    updateValue('total-subtotal', formateadorAR(subtotal));
-    updateValue('total-percentage', formateadorAR(percentageAmount));
-    updateValue('total-profit', formateadorAR(profit));
+    updateValue('total-subtotal', formateadorAR.format(subtotal));
+    updateValue('total-percentage', formateadorAR.format(percentageAmount));
+    updateValue('total-profit', formateadorAR.format(profit));
     
-    updateValue('delivery-charged', formateadorAR(deliveryCharged));
-    updateValue('delivery-costs', formateadorAR(deliveryCosts));
-    updateValue('delivery-difference', formateadorAR(deliveryDifference));
+    updateValue('delivery-charged', formateadorAR.format(deliveryCharged));
+    updateValue('delivery-costs', formateadorAR.format(deliveryCosts));
+    updateValue('delivery-difference', formateadorAR.format(deliveryDifference));
     
-    updateValue('payment-per-person', formateadorAR(paymentPerPerson));
-    updateValue('delivery-diff-per-person', formateadorAR(deliveryDiffPerPerson));
-    updateValue('total-per-person', formateadorAR(totalPerPerson));
+    updateValue('payment-per-person', formateadorAR.format(paymentPerPerson));
+    updateValue('delivery-diff-per-person', formateadorAR.format(deliveryDiffPerPerson));
+    updateValue('total-per-person', formateadorAR.format(totalPerPerson));
     
-    updateValue('total-income', formateadorAR(totalIncome));
-    updateValue('total-expenses', formateadorAR(totalExpenses));
-    updateValue('final-balance', formateadorAR(finalBalance));
+    updateValue('total-income', formateadorAR.format(totalIncome));
+    updateValue('total-expenses', formateadorAR.format(totalExpenses));
+    updateValue('final-balance', formateadorAR.format(finalBalance));
 }
 
 // Helper to update element with formatted value
