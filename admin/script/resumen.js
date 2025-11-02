@@ -30,7 +30,7 @@ function initializeMonthSelector() {
     // Add change listener
     selector.onchange = (e) => calculateSummary(e.target.value);
 }
-const formateadorAR.format = new Intl.NumberFormat('es-AR', {
+const formateadorAR = new Intl.NumberFormat('es-AR', {
   style: 'decimal',
   maximumFractionDigits: 0, // Puedes ajustar el número de decimales
   useGrouping: true // Asegura que se use el separador de miles
