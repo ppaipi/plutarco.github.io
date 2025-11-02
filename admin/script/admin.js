@@ -256,12 +256,14 @@ const filterEntregadoEl = document.getElementById("filter-entregado"); // "all"|
 const filterStatusEl = document.getElementById("filter-status"); // "all"|"TRUE"|"FALSE"
 const sortOrderEl = document.getElementById("sort-order"); // único selector siempre visible
 const searchBar = document.getElementById("searchBar"); // único selector siempre visible
+const filterMonthEl = document.getElementById("filter-month"); // nuevo filtro de mes
 
 
 if (searchBar) searchBar.onchange = applyFiltersAndRender;
 if (filterEntregadoEl) filterEntregadoEl.onchange = applyFiltersAndRender;
 if (filterStatusEl) filterStatusEl.onchange = applyFiltersAndRender;
 if (sortOrderEl) sortOrderEl.onchange = applyFiltersAndRender;
+if (filterMonthEl) filterMonthEl.onchange = applyFiltersAndRender; // enlazar nuevo filtro
 
 loginContainer.addEventListener("submit", function(event) {
   event.preventDefault()
@@ -315,10 +317,13 @@ async function loadOrders() {
   const res = await postData({ action: "getOrders" });
   if (!res.ok) { uiAlert("Error al cargar pedidos", { type: "error" }); return; }
   currentOrders = res.orders || [];
-  // Only render table if we're on the orders page
+  
+  // Only do UI updates if we're on orders page
   if (isOrdersPage) {
+    initializeMonthFilter();
     applyFiltersAndRender();
   }
+  
   return currentOrders; // Return orders for other pages to use
 }
 
@@ -331,23 +336,49 @@ function matchesFlagField(value, filter) {
   return String(value || "").toUpperCase() === filter;
 }
 
+// Add this function after loadOrders
+function initializeMonthFilter() {
+  if (!filterMonthEl) return;
+  
+  const months = [...new Set(currentOrders.map(order => {
+    const date = new Date(order["Hora de envio"]);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  }))].sort().reverse();
+
+  filterMonthEl.innerHTML = `
+    <option value="all">Todos los meses</option>
+    ${months.map(month => {
+      const [year, monthNum] = month.split('-');
+      const date = new Date(year, monthNum - 1, 1);
+      const monthName = date.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+      return `<option value="${month}">${monthName}</option>`;
+    }).join('')}
+  `;
+}
+
+// Update applyFiltersAndRender to include month filter
 function applyFiltersAndRender() {
-  // Skip if not on orders page
   if (!isOrdersPage) return;
 
-  const query = document.getElementById("search") ? document.getElementById("search").value.toLowerCase() : "";
-  const status = document.getElementById("filter-status") ? document.getElementById("filter-status").value : "all";
-  const entregado = filterEntregadoEl ? filterEntregadoEl.value : "all";
-
-  // usar selector global de orden siempre visible
-  const sortOrder = sortOrderEl ? sortOrderEl.value : 'desc';
+  const query = document.getElementById("search")?.value.toLowerCase() || "";
+  const status = filterStatusEl?.value || "all";
+  const entregado = filterEntregadoEl?.value || "all";
+  const month = filterMonthEl?.value || "all";
 
   let filtered = currentOrders.map((o, idx) => ({ o, originalIndex: idx }))
     .filter(({ o }) => {
       const matchesText = query === "" || Object.values(o).some(v => String(v).toLowerCase().includes(query));
       const matchesStatus = matchesFlagField(o["confirmado y pagado"], status);
       const matchesEntregado = matchesFlagField(o["entregado"], entregado);
-      return matchesText && matchesStatus && matchesEntregado;
+      
+      // Add month filtering
+      const matchesMonth = month === "all" || (() => {
+        const date = new Date(o["Hora de envio"]);
+        const orderMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        return orderMonth === month;
+      })();
+
+      return matchesText && matchesStatus && matchesEntregado && matchesMonth;
     });
 
   filtered.sort((a, b) => {
@@ -949,8 +980,8 @@ async function eliminarProducto(row, codigo) {
   verDetalle(row);
   uiNotify("Producto eliminado", "info");
 }
-function openResumen(){
-  window.open('resumen.html');
+function openResumen() {
+  location.href = 'resumen.html';
 }
 
 
