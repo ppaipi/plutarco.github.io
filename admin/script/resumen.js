@@ -63,28 +63,28 @@ function calculateSummary(monthYear) {
     const finalBalance = totalIncome - totalExpenses;
 
     // Update UI
-    updateValue('total-subtotal', formateadorAR.format(subtotal));
-    updateValue('total-percentage', formateadorAR.format(percentageAmount));
-    updateValue('total-profit', formateadorAR.format(profit));
+    updateValue('total-subtotal', subtotal);
+    updateValue('total-percentage', percentageAmount);
+    updateValue('total-profit', profit);
     
-    updateValue('delivery-charged', formateadorAR.format(deliveryCharged));
-    updateValue('delivery-costs', formateadorAR.format(deliveryCosts));
-    updateValue('delivery-difference', formateadorAR.format(deliveryDifference));
+    updateValue('delivery-charged', deliveryCharged);
+    updateValue('delivery-costs', deliveryCosts);
+    updateValue('delivery-difference', deliveryDifference);
     
-    updateValue('payment-per-person', formateadorAR.format(paymentPerPerson));
-    updateValue('delivery-diff-per-person', formateadorAR.format(deliveryDiffPerPerson));
-    updateValue('total-per-person', formateadorAR.format(totalPerPerson));
+    updateValue('payment-per-person', paymentPerPerson);
+    updateValue('delivery-diff-per-person', deliveryDiffPerPerson);
+    updateValue('total-per-person', totalPerPerson);
     
-    updateValue('total-income', formateadorAR.format(totalIncome));
-    updateValue('total-expenses', formateadorAR.format(totalExpenses));
-    updateValue('final-balance', formateadorAR.format(finalBalance));
+    updateValue('total-income', totalIncome);
+    updateValue('total-expenses', totalExpenses);
+    updateValue('final-balance', finalBalance);
 }
 
 // Helper to update element with formatted value
 function updateValue(id, value) {
     const el = document.getElementById(id);
     if (el) {
-        el.textContent = `$${value.toFixed(2)}`;
+        el.textContent = `$${formateadorAR.format(value)}`;
     }
 }
 
