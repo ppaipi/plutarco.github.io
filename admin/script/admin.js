@@ -8,6 +8,8 @@ const overlay = document.getElementById("overlay");
 const detalle = document.getElementById("detalle-contenido");
 const ordersTable = document.getElementById("orders-table");
 let Products = [];
+// Add this helper near the top with other constants
+const isOrdersPage = Boolean(document.getElementById('orders-table'));
 
 
 
@@ -313,7 +315,11 @@ async function loadOrders() {
   const res = await postData({ action: "getOrders" });
   if (!res.ok) { uiAlert("Error al cargar pedidos", { type: "error" }); return; }
   currentOrders = res.orders || [];
-  applyFiltersAndRender();
+  // Only render table if we're on the orders page
+  if (isOrdersPage) {
+    applyFiltersAndRender();
+  }
+  return currentOrders; // Return orders for other pages to use
 }
 
 // helper: normalizar y comparar flags (TRUE/FALSE/true/false/boolean)
@@ -326,6 +332,9 @@ function matchesFlagField(value, filter) {
 }
 
 function applyFiltersAndRender() {
+  // Skip if not on orders page
+  if (!isOrdersPage) return;
+
   const query = document.getElementById("search") ? document.getElementById("search").value.toLowerCase() : "";
   const status = document.getElementById("filter-status") ? document.getElementById("filter-status").value : "all";
   const entregado = filterEntregadoEl ? filterEntregadoEl.value : "all";
@@ -351,6 +360,9 @@ function applyFiltersAndRender() {
 }
 
 function renderTable(items) {
+  // Skip if not on orders page
+  if (!isOrdersPage) return;
+  
   // items: array de { o: orderObject, originalIndex: number }
   tableHead.innerHTML = `
     <tr>
