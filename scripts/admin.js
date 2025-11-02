@@ -8,7 +8,6 @@ const overlay = document.getElementById("overlay");
 const detalle = document.getElementById("detalle-contenido");
 const ordersTable = document.getElementById("orders-table");
 let Products = [];
-
 // Add this helper near the top with other constants
 const isOrdersPage = Boolean(document.getElementById('orders-table'));
 
