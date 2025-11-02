@@ -1,21 +1,21 @@
 .summary-container {
-    padding: 20px;
+    padding: 40px; /* duplicado desde 20px */
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); /* ligeramente mayor min-width */
+    gap: 40px; /* duplicado desde 20px */
 }
 
 .summary-card {
     background: var(--card);
     border-radius: var(--radius);
-    padding: 20px;
+    padding: 40px; /* duplicado desde 20px */
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 .summary-card h2 {
     color: var(--accent);
-    font-size: 18px;
-    margin: 0 0 15px;
+    font-size: 22px; /* mayor */
+    margin: 0 0 18px;
 }
 
 .summary-table {
@@ -24,31 +24,81 @@
 }
 
 .summary-table td {
-    padding: 8px 0;
+    padding: 16px 0; /* duplicado desde 8px */
     border-bottom: 1px solid var(--border);
+    font-size: 16px; /* mayor legibilidad */
 }
 
 .summary-table td:last-child {
     text-align: right;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 18px; /* más grande para el valor */
 }
 
 .highlight td {
     color: var(--accent);
-    font-size: 1.1em;
+    font-size: 1.2em;
 }
 
 #month-selector {
-    min-width: 200px;
-    padding: 8px 12px;
+    min-width: 220px;
+    padding: 12px 14px;
     border-radius: var(--radius);
     border: 1px solid var(--border);
     background: white;
-    font-size: 14px;
+    font-size: 15px;
 }
-.Verde {
-    color: green;
+
+/* estados de color para valores */
+.Verde { color: green; }
+.Rojo { color: red; }
+
+/* ====== RESPONSIVE: comportamiento en móviles ====== */
+@media (max-width: 768px) {
+  .summary-container {
+    grid-template-columns: 1fr; /* una columna */
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .summary-card {
+    padding: 20px;
+  }
+
+  /* Convertir cada fila de la tabla en flex para mostrar etiqueta/valor alineados */
+  .summary-table,
+  .summary-table tbody,
+  .summary-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .summary-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .summary-table td:first-child {
+    flex: 1 1 auto;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .summary-table td:last-child {
+    flex: 0 0 auto;
+    text-align: right;
+    font-weight: 700;
+    font-size: 16px;
+  }
 }
-.Rojo {
-    color: red;
+
+/* menor breakpoint para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .summary-card h2 { font-size: 18px; }
+  .summary-table td { font-size: 14px; padding: 8px 0; }
+  .summary-table td:last-child { font-size: 15px; }
+  #month-selector { min-width: 160px; padding: 10px; font-size: 14px; }
 }
