@@ -1,8 +1,11 @@
 .summary-container {
     padding: 40px; /* duplicado desde 20px */
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); /* ligeramente mayor min-width */
+    /* cambiar a 2 columnas máximo */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 450px), 1fr));
     gap: 40px; /* duplicado desde 20px */
+    max-width: 1200px; /* limitar ancho máximo del contenedor */
+    margin: 0 auto; /* centrar en pantalla */
 }
 
 .summary-card {
