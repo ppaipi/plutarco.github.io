@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen Mensual | Plutarco</title>
+    <link rel="stylesheet" href="/style/admin.css">
+    <link rel="stylesheet" href="/style/resumen.css">
+</head>
+<body>
+    <div id="login-container">
+        <h1>Panel Plutarco 🌵</h1>
+        <input type="text" id="user" placeholder="Usuario">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button type="submit" id="login-btn">Ingresar</button>
+        <p id="login-msg"></p>
+    </div>
+
+    <div id="panel" class="hidden">
+        <header>
+            <h1>📊 Resumen Mensual</h1>
+            <div class="controls">
+                <select id="month-selector">
+                    <!-- Se llenará dinámicamente -->
+                </select>
+                <button onclick="location.href='index.html'">Volver a Pedidos</button>
+                <button id="logout-btn" onclick="logout()">Salir</button>
+            </div>
+        </header>
+
+        <main class="summary-container">
+            <section class="summary-card">
+                <h2>Resumen General</h2>
+                <table class="summary-table">
+                    <tr>
+                        <td>SUBTOTAL</td>
+                        <td id="total-subtotal">$0</td>
+                    </tr>
+                    <tr>
+                        <td>PORCENTAJE (20%)</td>
+                        <td id="total-percentage">$0</td>
+                    </tr>
+                    <tr>
+                        <td>GANANCIA</td>
+                        <td id="total-profit">$0</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section class="summary-card">
+                <h2>Delivery</h2>
+                <table class="summary-table">
+                    <tr>
+                        <td>COBROS DELIVERY</td>
+                        <td id="delivery-charged">$0</td>
+                    </tr>
+                    <tr>
+                        <td>GASTOS DELIVERY</td>
+                        <td id="delivery-costs">$0</td>
+                    </tr>
+                    <tr>
+                        <td>DIFERENCIA DELIVERY</td>
+                        <td id="delivery-difference">$0</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section class="summary-card">
+                <h2>Pagos por Persona</h2>
+                <table class="summary-table">
+                    <tr>
+                        <td>PAGO c/u (10%)</td>
+                        <td id="payment-per-person">$0</td>
+                    </tr>
+                    <tr>
+                        <td>Diferencia delivery c/u</td>
+                        <td id="delivery-diff-per-person">$0</td>
+                    </tr>
+                    <tr>
+                        <td>Total c/u</td>
+                        <td id="total-per-person">$0</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section class="summary-card">
+                <h2>Balance Final</h2>
+                <table class="summary-table">
+                    <tr>
+                        <td>INGRESOS</td>
+                        <td id="total-income">$0</td>
+                    </tr>
+                    <tr>
+                        <td>EGRESOS</td>
+                        <td id="total-expenses">$0</td>
+                    </tr>
+                    <tr class="highlight">
+                        <td>SALDO</td>
+                        <td id="final-balance">$0</td>
+                    </tr>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <!-- UI Components -->
+    <div id="ui-modal" class="ui-modal hidden" role="dialog">
+        <div class="ui-backdrop"></div>
+        <div class="ui-dialog">
+            <header class="ui-dialog-header"><h3 id="ui-modal-title"></h3></header>
+            <div id="ui-modal-body" class="ui-dialog-body"></div>
+            <footer id="ui-modal-actions" class="ui-dialog-footer"></footer>
+        </div>
+    </div>
+    <div id="ui-toast-container" class="ui-toast-container"></div>
+
+    <script src="/script/admin.js"></script>
+    <script src="/script/resumen.js"></script>
+</body>
+</html>
