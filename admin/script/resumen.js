@@ -59,7 +59,7 @@ function calculateSummary(monthYear) {
     const totalPerPerson = paymentPerPerson + deliveryDiffPerPerson;
 
     const totalIncome = subtotal + deliveryCharged;
-    const totalExpenses = deliveryCosts + percentageAmount;
+    const totalExpenses = deliveryCosts/2 + percentageAmount;
     const finalBalance = totalIncome - totalExpenses;
 
     // Update UI
