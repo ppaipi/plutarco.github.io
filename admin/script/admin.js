@@ -1026,20 +1026,7 @@ async function crearNuevoPedido() {
   }
 }
 
-function exportExcel() {
-  if (!currentOrders || !currentOrders.length) {
-    uiNotify("No hay pedidos para exportar", "info");
-    return;
-  }
-  const csv = [Object.keys(currentOrders[0]).join(",")].concat(
-    currentOrders.map(o => Object.values(o).join(","))
-  ).join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "pedidos.csv";
-  a.click();
-}
+
 
 // ======= NUEVAS UTILIDADES PARA EVITAR DOBLE-ENVÍO / COLAS POR CELDA =======
 const inflightRequests = new Map(); // dedupe por payloadKey
