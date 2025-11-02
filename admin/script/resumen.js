@@ -30,7 +30,11 @@ function initializeMonthSelector() {
     // Add change listener
     selector.onchange = (e) => calculateSummary(e.target.value);
 }
-
+const formateadorAR = new Intl.NumberFormat('es-AR', {
+  style: 'decimal',
+  maximumFractionDigits: 0, // Puedes ajustar el número de decimales
+  useGrouping: true // Asegura que se use el separador de miles
+});
 // Calculate and display summary for selected month
 function calculateSummary(monthYear) {
     // Filter orders for selected month
@@ -52,28 +56,28 @@ function calculateSummary(monthYear) {
 
     const paymentPerPerson = (subtotal * PAYMENT_PER_PERSON_PERCENTAGE);
     const deliveryDiffPerPerson = deliveryDifference / PEOPLE_COUNT;
-    const totalPerPerson = paymentPerPerson - deliveryDiffPerPerson;
+    const totalPerPerson = paymentPerPerson + deliveryDiffPerPerson;
 
     const totalIncome = subtotal + deliveryCharged;
     const totalExpenses = deliveryCosts + percentageAmount;
     const finalBalance = totalIncome - totalExpenses;
 
     // Update UI
-    updateValue('total-subtotal', subtotal);
-    updateValue('total-percentage', percentageAmount);
-    updateValue('total-profit', profit);
+    updateValue('total-subtotal', formateadorAR(subtotal));
+    updateValue('total-percentage', formateadorAR(percentageAmount));
+    updateValue('total-profit', formateadorAR(profit));
     
-    updateValue('delivery-charged', deliveryCharged);
-    updateValue('delivery-costs', deliveryCosts);
-    updateValue('delivery-difference', deliveryDifference);
+    updateValue('delivery-charged', formateadorAR(deliveryCharged));
+    updateValue('delivery-costs', formateadorAR(deliveryCosts));
+    updateValue('delivery-difference', formateadorAR(deliveryDifference));
     
-    updateValue('payment-per-person', paymentPerPerson);
-    updateValue('delivery-diff-per-person', deliveryDiffPerPerson);
-    updateValue('total-per-person', totalPerPerson);
+    updateValue('payment-per-person', formateadorAR(paymentPerPerson));
+    updateValue('delivery-diff-per-person', formateadorAR(deliveryDiffPerPerson));
+    updateValue('total-per-person', formateadorAR(totalPerPerson));
     
-    updateValue('total-income', totalIncome);
-    updateValue('total-expenses', totalExpenses);
-    updateValue('final-balance', finalBalance);
+    updateValue('total-income', formateadorAR(totalIncome));
+    updateValue('total-expenses', formateadorAR(totalExpenses));
+    updateValue('final-balance', formateadorAR(finalBalance));
 }
 
 // Helper to update element with formatted value
