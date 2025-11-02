@@ -363,7 +363,8 @@ function applyFiltersAndRender() {
   const query = document.getElementById("search")?.value.toLowerCase() || "";
   const status = document.getElementById("filter-status")?.value || "all";
   const entregado = filterEntregadoEl?.value || "all";
-  const sortOrder = sortOrderEl?.value || "desc"; // Fix: get value from element
+  const sortOrder = sortOrderEl?.value || "desc";
+  const month = document.getElementById("filter-month")?.value || "all"; // Add this line
 
   let filtered = currentOrders.map((o, idx) => ({ o, originalIndex: idx }))
     .filter(({ o }) => {
@@ -371,7 +372,7 @@ function applyFiltersAndRender() {
       const matchesStatus = matchesFlagField(o["confirmado y pagado"], status);
       const matchesEntregado = matchesFlagField(o["entregado"], entregado);
       
-      // Add month filtering
+      // Fix month filtering
       const matchesMonth = month === "all" || (() => {
         const date = new Date(o["Hora de envio"]);
         const orderMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
