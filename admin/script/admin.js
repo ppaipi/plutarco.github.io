@@ -950,7 +950,7 @@ async function eliminarProducto(row, codigo) {
   uiNotify("Producto eliminado", "info");
 }
 function openResumen(){
-  window.open('resumen.html', '_blank');
+  window.open('resumen.html');
 }
 
 
