@@ -354,6 +354,11 @@ function initializeMonthFilter() {
       return `<option value="${month}">${monthName}</option>`;
     }).join('')}
   `;
+
+  // Select latest month by default if exists
+  if (months.length > 0) {
+    filterMonthEl.value = months[0]; // First month is latest since array is reversed
+  }
 }
 
 // Update applyFiltersAndRender to include month filter
