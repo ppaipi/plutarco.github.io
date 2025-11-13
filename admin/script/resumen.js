@@ -55,8 +55,7 @@ function calculateSummary(monthYear) {
     const deliveryDifference = deliveryCharged - deliveryCosts;
 
     const paymentPerPerson = (subtotal * PAYMENT_PER_PERSON_PERCENTAGE);
-    const deliveryDiffPerPerson = deliveryDifference / PEOPLE_COUNT;
-    const totalPerPerson = paymentPerPerson + deliveryDiffPerPerson;
+    const totalPerPerson = paymentPerPerson;
 
     const totalIncome = subtotal + deliveryCharged;
     const totalExpenses = deliveryCosts/2 + percentageAmount;
@@ -72,7 +71,6 @@ function calculateSummary(monthYear) {
     updateValue('delivery-difference', deliveryDifference);
     
     updateValue('payment-per-person', paymentPerPerson);
-    updateValue('delivery-diff-per-person', deliveryDiffPerPerson);
     updateValue('total-per-person', totalPerPerson);
     
     updateValue('total-income', totalIncome);
