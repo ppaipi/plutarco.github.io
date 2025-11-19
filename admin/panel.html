@@ -1,33 +1,59 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Panel Admin - Plutarco</title>
-  <link rel="stylesheet" href="style/panel.css">
-
-  <!-- Firebase -->
+  <meta charset="utf-8" />
+  <title>Admin Plutarco - Productos</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style/panel.css" />
+  <!-- Firebase compat (storage) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-
   <!-- XLSX parser -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
 </head>
 <body>
+  <header>
+    <h1>Panel Admin - Plutarco</h1>
+    <div class="top-controls">
+      <input id="excel-input" type="file" accept=".xlsx,.xls" />
+      <button id="btn-import-sample">Cargar ejemplo</button>
+      <button id="btn-save">Guardar cambios (Sheets)</button>
+      <button id="btn-download-hab">Descargar habilitados.json</button>
+      <button id="btn-trigger-sync">Forzar Sync a GitHub (opcional)</button>
+    </div>
+  </header>
 
-  <h1>Panel Administrador de Productos</h1>
+  <main>
+    <section class="search-bar">
+      <input id="search" placeholder="Buscar por código, nombre o marca..." />
+      <select id="page-size">
+        <option value="25">25</option>
+        <option value="50" selected>50</option>
+        <option value="100">100</option>
+      </select>
+    </section>
 
-  <section class="panel">
+    <section id="results"></section>
 
-    <h2>📤 Importar Excel</h2>
-    <input type="file" id="excel-input" accept=".xlsx,.xls">
+    <nav id="pager"></nav>
+  </main>
 
-    <h2>📦 Productos</h2>
-    <div id="product-list"></div>
-
-    <button id="save-btn">💾 Guardar cambios</button>
-
-  </section>
+  <template id="row-tpl">
+    <div class="product-row">
+      <img class="thumb" src="" alt="foto" />
+      <div class="meta">
+        <div class="codigo"></div>
+        <div class="nombre"></div>
+        <div class="proveedor"></div>
+      </div>
+      <div class="precio"></div>
+      <div class="controls">
+        <label><input type="checkbox" class="habilitado" /> Habilitado</label>
+        <input class="orden" type="number" />
+        <button class="btn-photo">Subir foto</button>
+      </div>
+    </div>
+  </template>
 
   <script src="script/panel.js"></script>
 </body>

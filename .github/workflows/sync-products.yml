@@ -1,0 +1,39 @@
+name: Sync Products from Google Sheets
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"   # cada 6 horas
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: |
+          npm init -y
+          npm install googleapis xlsx
+
+      - name: Run sync script
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          SHEET_ID: "https://script.google.com/macros/library/d/10I9imZNxxOSJMmDmL5yfE02q5Xq0t9mmNNxitCMqTg02u7p1GQHt_GJk/2"
+        run: |
+          node scripts/sync-products.js
+
+      - name: Commit changes
+        run: |
+          git config --global user.email "bot@github.com"
+          git config --global user.name "GitHub Action Bot"
+          git add .
+          git diff-index --quiet HEAD || git commit -m "Actualización automática de productos"
+          git push
