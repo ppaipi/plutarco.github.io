@@ -986,9 +986,7 @@ async function eliminarProducto(row, codigo) {
   verDetalle(row);
   uiNotify("Producto eliminado", "info");
 }
-function openResumen() {
-  location.href = 'resumen.html';
-}
+
 
 
 
