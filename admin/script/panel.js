@@ -247,7 +247,10 @@ function renderCardAbsolute(p, y, slot, globalIndex){
   el.dataset.index = String(globalIndex);
 
   el.innerHTML = `
-    <img class="thumb" src="${p.ImagenURL}" loading="lazy" onerror="this.src='/media/PRODUCTOS/placeholder.jpg'"/>
+    <img class="thumb"
+        data-src="${p.ImagenURL}"
+        src="/media/PRODUCTOS/placeholder.jpg"
+        onerror="this.src='/media/PRODUCTOS/placeholder.jpg'"/>
     <div class="meta">
       <div class="name">${escapeHtml(p.Nombre)}</div>
       <div class="desc">${escapeHtml(p.Descripcion || '')}</div>
