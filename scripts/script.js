@@ -34,7 +34,7 @@ let direccionValidaGoogle = false; // Variable global para saber si la direcció
 async function loadProducts() {
   try {
     // Cargar productos desde products.json
-    const res = await fetch('../media/products.json?cacheBust=' + Date.now());
+    const res = await fetch('/products.json?cacheBust=' + Date.now());
     const allProducts = await res.json();
 
     // Filtrar solo habilitados
