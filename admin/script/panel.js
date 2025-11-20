@@ -1,429 +1,266 @@
-// panel.js - Panel de Productos (completo)
-// Reemplazá WEBAPP_URL con la URL de tu Apps Script Web App (doGet/doPost desplegada).
+/* ================================
+   admin.js - Panel Admin Plutarco
+   Versión estable 2025
+================================ */
 
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbymVHpZITD-LgBBFSK1ThWucgVYURRLhztkfGo2tvGamiFhTL73nfK2BDrtSA9GKJQk/exec"; // <-- REEMPLAZAR
-
-// --- Firebase config (adaptado desde tu config) ---
-const firebaseConfig = {
+/* ------------ CONFIG FIREBASE ------------ */
+const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCGuA_RkvEUptmUHO4YOAzr9qRKtK1cNDQ",
   authDomain: "plutarcodelivery-cf6cb.firebaseapp.com",
   projectId: "plutarcodelivery-cf6cb",
-  storageBucket: "plutarcodelivery-cf6cb.appspot.com", // <- importante .appspot.com
+  storageBucket: "plutarcodelivery-cf6cb.appspot.com", // FIX IMPORTANTE
   messagingSenderId: "714627263776",
-  appId: "1:714627263776:web:3ee0e4fc657a6c12e37b45",
-  measurementId: "G-99MNS9JHQN"
+  appId: "1:714627263776:web:3ee0e4fc657a6c12e37b45"
 };
 
-// Carpeta dentro del bucket (ruta final: /productos/{codigo}.jpg)
-const FIREBASE_FOLDER = "productos";
+/* ------------ URL APPS SCRIPT ------------ */
+/* ⚠️ REEMPLAZAR CON TU WEB APP URL (termina en /exec) */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymVHpZITD-LgBBFSK1ThWucgVYURRLhztkfGo2tvGamiFhTL73nfK2BDrtSA9GKJQk/exec";
 
-// Inicializar Firebase v8 (panel.html debe cargar firebase-app.js y firebase-storage.js)
-if (!window.firebase || !firebase.apps || firebase.apps.length === 0) {
-  if (window.firebase && firebase.initializeApp) {
-    firebase.initializeApp(firebaseConfig);
-  } else {
-    console.warn("Firebase SDK no detectado - asegura los scripts de Firebase en panel.html");
-  }
-}
-const storage = (window.firebase && firebase.storage) ? firebase.storage() : null;
-
-// --- DOM references ---
-const productList = document.getElementById("product-list");
-const btnTienda = document.getElementById("btn-tienda");
-const btnTodos = document.getElementById("btn-todos");
-const btnSave = document.getElementById("btn-save");
-const btnNuevo = document.getElementById("btn-nuevo");
+/* ------------ INIT ------------ */
+firebase.initializeApp(FIREBASE_CONFIG);
+const storage = firebase.storage();
 
 let allProducts = [];
-let viewProducts = [];
-let renderIndex = 0;
-const PAGE_SIZE = 50; // cantidad de productos por página
-let showOnlyTienda = true;
+let currentPage = 1;
+let pageSize = 50;
 
-// --- Utilidades ---
-async function uploadImageForProduct(p, file) {
-  const path = `${FIREBASE_FOLDER}/${p.Codigo}.jpg`;
-  const ref = storage.ref().child(path);
-  const snap = await ref.put(file);
-  const url = await snap.ref.getDownloadURL();
-  p.ImagenURL = url;
-}
-
-const modal = document.getElementById("modal-habilitar");
-const buscarProd = document.getElementById("buscar-prod");
-const listaDeshab = document.getElementById("lista-deshabilitados");
-const seccionImagen = document.getElementById("seccion-imagen");
-const subirImagenNuevo = document.getElementById("subir-imagen-nuevo");
-const btnConfirmar = document.getElementById("btn-confirmar");
-
-let productoSeleccionado = null;
-
-function abrirModal() {
-  modal.style.display = "flex";
-  productoSeleccionado = null;
-  listaDeshab.innerHTML = "";
-  buscarProd.value = "";
-  seccionImagen.style.display = "none";
-  btnConfirmar.style.display = "none";
-
-  const deshab = allProducts.filter(p => !p.Habilitado);
-
-  mostrarLista(deshab);
-
-  buscarProd.oninput = () => {
-    const q = buscarProd.value.toLowerCase();
-    mostrarLista(deshab.filter(p =>
-      p.Nombre.toLowerCase().includes(q) ||
-      p.Codigo.toLowerCase().includes(q)
-    ));
-  };
-}
-
-function cerrarModal() {
-  modal.style.display = "none";
-}
-
-function mostrarLista(lista) {
-  listaDeshab.innerHTML = "";
-  lista.forEach(p => {
-    const row = document.createElement("div");
-    row.textContent = `${p.Codigo} - ${p.Nombre}`;
-    row.style.padding = "8px";
-    row.style.cursor = "pointer";
-    row.onclick = () => seleccionarProducto(p);
-    listaDeshab.appendChild(row);
-  });
-}
-
-function seleccionarProducto(p) {
-  productoSeleccionado = p;
-  seccionImagen.style.display = "block";
-  btnConfirmar.style.display = "block";
-}
-
-btnConfirmar.onclick = async () => {
-  if (!productoSeleccionado) return;
-
-  // habilitar
-  productoSeleccionado.Habilitado = true;
-
-  // subir imagen si hay
-  if (subirImagenNuevo.files[0]) {
-    await uploadImageForProduct(productoSeleccionado, subirImagenNuevo.files[0]);
-  }
-
-  await saveChanges();
-  cerrarModal();
-  applyView();
-};
-
-// reemplaza el botón original
-btnNuevo.onclick = abrirModal;
+/* ------------ HELPERS ------------ */
 
 function toBool(v) {
-  if (v === true || v === "true") return true;
-  if (v === 1 || v === "1") return true;
+  if (v === true || v === "true" || v === 1 || v === "1") return true;
   if (typeof v === "string") {
     const s = v.trim().toLowerCase();
-    return (s === "si" || s === "sí" || s === "yes");
+    return (s === "true" || s === "t" || s === "si" || s === "sí" || s === "yes");
   }
   return false;
 }
 
-function showToast(msg, ms = 2200) {
-  // console fallback; podés mejorar esto mostrando un elemento UI si querés
-  console.log("[TOAST]", msg);
+function debounce(fn, wait = 250) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), wait);
+  };
 }
 
-// Safe fetch JSON
-async function fetchJSON(url, opts = {}) {
-  const res = await fetch(url, opts);
-  if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(`HTTP ${res.status} ${res.statusText} - ${txt}`);
+function parsePrecio(v) {
+  if (v == null) return 0;
+  return Number(String(v).replace(/[^\d\.\,]/g,'').replace(',','.')) || 0;
+}
+
+/* ------------ TRAER CONFIGURACIÓN REMOTA (app_products en Sheets) ------------ */
+async function fetchRemoteConfigs() {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("TU_URL")) {
+    console.warn("APPS_SCRIPT_URL no configurado.");
+    return {};
   }
-  return res.json();
-}
-
-// --- Cargar productos desde Apps Script (doGet) ---
-async function loadProducts() {
-  productList.innerHTML = "<em>Cargando productos…</em>";
   try {
-    const data = await fetchJSON(WEBAPP_URL);
-    if (data.status !== "ok") throw new Error(data.message || "Respuesta inválida");
-    allProducts = (data.products || []).map(p => ({
-      Codigo: String(p.Codigo || "").trim(),
-      Nombre: p.Nombre || "",
-      Descripcion: p.Descripcion || "",
-      Categoria: p.Categoria || "",
-      SubCategoria: p.SubCategoria || "",
-      Precio: p.Precio || 0,
-      Proveedor: p.Proveedor || "",
-      Habilitado: toBool(p.Habilitado),
-      Orden: Number(p.Orden || 999999),
-      Ranking: Number(p.Ranking || 999999),
-      ImagenURL: p.ImagenURL || ""
-    }));
-    applyView();
+    const res = await fetch(APPS_SCRIPT_URL);
+    const data = await res.json();
+    if (data.status !== "ok" || !Array.isArray(data.products)) return {};
+
+    const map = {};
+    data.products.forEach(p => {
+      const code = (p.Codigo || "").toString().trim();
+      if (!code) return;
+
+      map[code] = {
+        Habilitado: toBool(p.Habilitado),
+        Orden: Number(p.Orden || 999999),
+        Ranking: Number(p.Ranking || 999999),
+        ImagenURL: p.ImagenURL || ""
+      };
+    });
+    return map;
   } catch (err) {
-    productList.innerHTML = `<div style="color:red">Error cargando productos: ${err.message}</div>`;
-    console.error(err);
+    console.warn("Error fetchRemoteConfigs:", err.message);
+    return {};
   }
 }
 
-// Aplicar vista (solo tienda o todos)
-function applyView() {
-  renderIndex = 0;
+/* ------------ IMPORTAR EXCEL ------------ */
+document.getElementById("excel-input").addEventListener("change", async e => {
+  const f = e.target.files[0];
+  if (!f) return;
 
-  const habilitados = allProducts.filter(p => p.Habilitado === true);
+  const reader = new FileReader();
+  reader.onload = async evt => {
+    const data = new Uint8Array(evt.target.result);
+    const wb = XLSX.read(data, { type: "array" });
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-  if (showOnlyTienda) {
-    viewProducts = habilitados;
-  } else {
-    viewProducts = [...allProducts];
-  }
+    /* MERGE remoto (habilitado, orden, ranking, imagen) */
+    const remoteMap = await fetchRemoteConfigs();
 
-  renderProducts();
+    allProducts = json.map(row => {
+      const codigo = (row["CODIGO BARRA"] || row["ID"] || "").toString().trim();
+      const cfg = remoteMap[codigo] || {};
+
+      return {
+        Codigo: codigo,
+        Nombre: row["DESCRIPCION LARGA"] || row["DESCRIPCION"] || "",
+        Descripcion: row["DESCRIPCION ADICIONAL"] || "",
+        Categoria: row["RUBRO"] || "",
+        SubCategoria: row["SUBRUBRO"] || "",
+        Precio: parsePrecio(row["PRECIO VENTA C/IVA"]),
+        Proveedor: row["PROVEEDOR"] || "",
+        Habilitado: (typeof cfg.Habilitado !== "undefined") ? cfg.Habilitado : false,
+        Orden: cfg.Orden || 999999,
+        Ranking: cfg.Ranking || 999999,
+        ImagenURL: (cfg.ImagenURL && String(cfg.ImagenURL).startsWith("http"))
+                    ? cfg.ImagenURL
+                    : ""  // placeholder se aplica en el render
+      };
+    });
+
+    currentPage = 1;
+    renderPage();
+  };
+  reader.readAsArrayBuffer(f);
+});
+
+/* ------------ EVENTOS DE BÚSQUEDA Y TAMAÑO PAGINA ------------ */
+document.getElementById("search").addEventListener("input",
+  debounce(() => { currentPage = 1; renderPage(); }, 200)
+);
+
+document.getElementById("page-size").addEventListener("change", e => {
+  pageSize = Number(e.target.value);
+  currentPage = 1;
+  renderPage();
+});
+
+/* ------------ RENDER PAGE (PAGINACIÓN) ------------ */
+function renderPage() {
+  const q = document.getElementById("search").value.trim().toLowerCase();
+
+  let filtered = allProducts.filter(p =>
+    p.Codigo.toLowerCase().includes(q) ||
+    p.Nombre.toLowerCase().includes(q) ||
+    p.Proveedor.toLowerCase().includes(q)
+  );
+
+  const total = filtered.length;
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+
+  if (currentPage > pages) currentPage = pages;
+
+  const start = (currentPage - 1) * pageSize;
+  const pageItems = filtered.slice(start, start + pageSize);
+
+  const cont = document.getElementById("results");
+  cont.innerHTML = "";
+  const tpl = document.getElementById("row-tpl");
+
+  pageItems.forEach(p => {
+    const node = tpl.content.cloneNode(true);
+    const row = node.querySelector(".product-row");
+
+    /* ---- Imagen segura ---- */
+    const imgEl = row.querySelector("img.thumb");
+    imgEl.loading = "lazy";
+    if (p.ImagenURL && p.ImagenURL.startsWith("http")) {
+      imgEl.src = p.ImagenURL;
+    } else {
+      imgEl.src = "/media/no-image.png";
+    }
+    imgEl.onerror = () => imgEl.src = "/media/no-image.png";
+
+    row.querySelector(".codigo").textContent = p.Codigo || "(sin código)";
+    row.querySelector(".nombre").textContent = p.Nombre || "";
+    row.querySelector(".proveedor").textContent = p.Proveedor || "";
+    row.querySelector(".precio").textContent = p.Precio ? `$${p.Precio}` : "";
+
+    /* ---- Habilitado ---- */
+    const habil = row.querySelector(".habilitado");
+    habil.checked = !!p.Habilitado;
+    habil.onchange = () => { p.Habilitado = habil.checked; };
+
+    /* ---- Orden ---- */
+    const ordenInput = row.querySelector(".orden");
+    ordenInput.value = p.Orden === 999999 ? "" : p.Orden;
+    ordenInput.onchange = () => {
+      p.Orden = Number(ordenInput.value) || 999999;
+    };
+
+    /* ---- Subir foto ---- */
+    const btnPhoto = row.querySelector(".btn-photo");
+    let fileInput = null;
+    btnPhoto.onclick = () => {
+      if (!fileInput) {
+        fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.accept = "image/*";
+        fileInput.onchange = async ev => {
+          const file = ev.target.files[0];
+          if (!file) return;
+
+          const name = `${p.Codigo}.jpg`;
+          const ref = storage.ref().child(`productos/${name}`);
+
+          try {
+            const snap = await ref.put(file);
+            const url = await snap.ref.getDownloadURL();
+            p.ImagenURL = url;
+            imgEl.src = url;
+            alert("Imagen subida correctamente");
+          } catch (err) {
+            console.error(err);
+            alert("Error al subir imagen: " + err.message);
+          }
+        };
+        btnPhoto.parentElement.appendChild(fileInput);
+      }
+      fileInput.click();
+    };
+
+    cont.appendChild(node);
+  });
+
+  /* ---- PAGINADOR ---- */
+  const pager = document.getElementById("pager");
+  pager.innerHTML = `Página ${currentPage} / ${pages} — ${total} resultados`;
+
+  const prev = document.createElement("button");
+  prev.textContent = "◀ Prev";
+  prev.disabled = currentPage === 1;
+  prev.onclick = () => { currentPage--; renderPage(); };
+
+  const next = document.createElement("button");
+  next.textContent = "Next ▶";
+  next.disabled = currentPage === pages;
+  next.onclick = () => { currentPage++; renderPage(); };
+
+  pager.appendChild(prev);
+  pager.appendChild(next);
+
+  /* ---- Estadísticas ---- */
+  const habCount = allProducts.filter(x => x.Habilitado).length;
+  document.getElementById("stats").textContent =
+    `${habCount} habilitados / ${allProducts.length} productos`;
 }
 
-
-
-
-// --- Render por categoría/subcategoria ---
-function renderProducts() {
-  productList.innerHTML = "";
-
-  if (!viewProducts || viewProducts.length === 0) {
-    productList.innerHTML = "<div style='padding:20px;color:#555'>No hay productos para mostrar.</div>";
+/* ------------ GUARDAR EN APPS SCRIPT ------------ */
+document.getElementById("btn-save").addEventListener("click", async () => {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("TU_URL")) {
+    alert("Configurá APPS_SCRIPT_URL correctamente (URL WebApp)");
     return;
   }
 
-  // Reset si estamos cambiando de vista
-  if (renderIndex === 0) {
-    productList.innerHTML = "";
-  }
-
-  // Calcular el rango visible
-  const slice = viewProducts.slice(0, renderIndex + PAGE_SIZE);
-
-  // Agrupar por categoría / subcategoría
-  const groups = {};
-  slice.forEach(p => {
-    const cat = p.Categoria && p.Categoria.trim() ? p.Categoria : "Sin categoría";
-    const sub = p.SubCategoria && p.SubCategoria.trim() ? p.SubCategoria : "General";
-
-    if (!groups[cat]) groups[cat] = {};
-    if (!groups[cat][sub]) groups[cat][sub] = [];
-
-    groups[cat][sub].push(p);
-  });
-
-  Object.keys(groups).sort().forEach(cat => {
-    const catDiv = document.createElement("div");
-    
-    const h2 = document.createElement("h2");
-    h2.textContent = cat;
-    catDiv.appendChild(h2);
-
-    Object.keys(groups[cat]).sort().forEach(sub => {
-      const h3 = document.createElement("h3");
-      h3.textContent = sub;
-      catDiv.appendChild(h3);
-
-      const list = document.createElement("div");
-      list.className = "sortable-list";
-
-      groups[cat][sub].forEach(p => {
-        list.appendChild(createProductRow(p));
-      });
-
-      new Sortable(list, {
-        animation: 150,
-        handle: ".drag",
-        onEnd: () => {
-          Array.from(list.children).forEach((el, idx) => {
-            const code = el.dataset.code;
-            const prod = allProducts.find(x => x.Codigo === code);
-            if (prod) prod.Orden = idx + 1;
-          });
-        }
-      });
-
-      catDiv.appendChild(list);
-    });
-
-    productList.appendChild(catDiv);
-  });
-
-  // Botón cargar más
-  if (slice.length < viewProducts.length) {
-    const btn = document.createElement("button");
-    btn.textContent = "Cargar más productos";
-    btn.style.margin = "20px auto";
-    btn.style.display = "block";
-    btn.style.padding = "12px 20px";
-    btn.style.background = "#3498db";
-    btn.style.color = "white";
-    btn.style.border = "none";
-    btn.style.borderRadius = "6px";
-    btn.style.cursor = "pointer";
-
-    btn.onclick = () => {
-      renderIndex += PAGE_SIZE; 
-      renderProducts();
-    };
-
-    productList.appendChild(btn);
-  }
-}
-
-
-
-// --- Crear fila de producto ---
-function createProductRow(p) {
-  const row = document.createElement("div");
-  row.className = "product-row";
-  row.dataset.code = p.Codigo;
-
-  thumb.loading = "lazy";
-
-  if (p.ImagenURL && p.ImagenURL.startsWith("http")) {
-      thumb.src = p.ImagenURL;
-  } else {
-      thumb.src = "/media/PRODUCTOS/placeholder.png";
-  }
-
-  thumb.onerror = () => {
-      thumb.src = "/media/PRODUCTOS/placeholder.png";
-  };
-
-  const info = document.createElement("div");
-  info.className = "info";
-  const name = document.createElement("div");
-  name.className = "name";
-  name.textContent = p.Nombre;
-  info.appendChild(name);
-  const code = document.createElement("div");
-  code.className = "code";
-  code.textContent = `${p.Codigo} — $${p.Precio}`;
-  info.appendChild(code);
-  row.appendChild(info);
-
-  const controls = document.createElement("div");
-  controls.className = "controls";
-
-  // Habilitado toggle
-  const habilLabel = document.createElement("label");
-  const habil = document.createElement("input");
-  habil.type = "checkbox";
-  habil.checked = !!p.Habilitado;
-  habil.onchange = (e) => { p.Habilitado = e.target.checked; };
-  habilLabel.appendChild(habil);
-  habilLabel.appendChild(document.createTextNode(" Habilitado"));
-  controls.appendChild(habilLabel);
-
-  // Ranking input
-  const rankWrapper = document.createElement("div");
-  rankWrapper.style.marginTop = "6px";
-  const rankLabel = document.createElement("span");
-  rankLabel.textContent = "Ranking: ";
-  const rank = document.createElement("input");
-  rank.type = "number";
-  rank.value = p.Ranking || 999999;
-  rank.style.width = "80px";
-  rank.onchange = (e) => { p.Ranking = Number(e.target.value || 999999); };
-  rankWrapper.appendChild(rankLabel);
-  rankWrapper.appendChild(rank);
-  controls.appendChild(rankWrapper);
-
-  // Upload image input (hidden)
-  const imgInput = document.createElement("input");
-  imgInput.type = "file";
-  imgInput.accept = "image/*";
-  imgInput.style.display = "none";
-  imgInput.onchange = async (evt) => {
-    const f = evt.target.files[0];
-    if (!f) return;
-    try {
-      if (!storage) throw new Error("Firebase storage no inicializado.");
-      const path = `${FIREBASE_FOLDER}/${p.Codigo}.jpg`;
-      const ref = storage.ref().child(path);
-      const snap = await ref.put(f);
-      const url = await snap.ref.getDownloadURL();
-      p.ImagenURL = url;
-      thumb.src = url;
-      showToast(`Imagen subida (${p.Codigo})`);
-    } catch (err) {
-      console.error(err);
-      alert("Error subiendo la imagen: " + err.message);
-    }
-  };
-
-  const btnImg = document.createElement("button");
-  btnImg.type = "button";
-  btnImg.textContent = "Subir imagen";
-  btnImg.onclick = () => imgInput.click();
-  controls.appendChild(btnImg);
-  controls.appendChild(imgInput);
-
-  // Drag handle
-  const drag = document.createElement("button");
-  drag.className = "drag";
-  drag.innerHTML = "☰";
-  drag.title = "Arrastrar para ordenar";
-  controls.appendChild(drag);
-
-  row.appendChild(controls);
-  return row;
-}
-
-// --- Guardar cambios en app_products via POST ---
-async function saveChanges() {
-  // Construir payload a partir de allProducts
-  const payload = allProducts.map(p => ({
-    Codigo: p.Codigo,
-    Nombre: p.Nombre,
-    Descripcion: p.Descripcion,
-    Categoria: p.Categoria,
-    SubCategoria: p.SubCategoria,
-    Precio: p.Precio,
-    Proveedor: p.Proveedor,
-    Habilitado: !!p.Habilitado,
-    Orden: Number(p.Orden || 999999),
-    Ranking: Number(p.Ranking || 999999),
-    ImagenURL: p.ImagenURL || ""
-  }));
-
+  const payload = { products: allProducts };
   try {
-    btnSave.disabled = true;
-    btnSave.textContent = "Guardando…";
-    const res = await fetch(WEBAPP_URL, {
+    const res = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ products: payload })
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (data.status === "saved") {
-      showToast(`Guardado (${data.count})`);
-      // recargar para asegurarnos que backend aplicó todo
-      await loadProducts();
-    } else {
-      throw new Error(data.message || "Error al guardar");
-    }
+    alert("Guardado en Sheets: " + JSON.stringify(data));
   } catch (err) {
-    alert("Error guardando cambios: " + err.message);
-    console.error(err);
-  } finally {
-    btnSave.disabled = false;
-    btnSave.textContent = "GUARDAR CAMBIOS";
+    alert("Error guardando: " + err.message);
   }
-}
+});
 
-// --- UI Buttons ---
-btnTienda.onclick = () => { showOnlyTienda = true; applyView(); };
-btnTodos.onclick = () => { showOnlyTienda = false; applyView(); };
-btnSave.onclick = () => saveChanges();
-btnNuevo.onclick = () => { alert("Crear nuevos productos está deshabilitado."); };
-
-// Inicializar carga
-loadProducts();
+/* FIN DEL ARCHIVO */
