@@ -41,6 +41,95 @@ const PAGE_SIZE = 50; // cantidad de productos por página
 let showOnlyTienda = true;
 
 // --- Utilidades ---
+async function uploadImageForProduct(p, file) {
+  const path = `${FIREBASE_FOLDER}/${p.Codigo}.jpg`;
+  const ref = storage.ref().child(path);
+  const snap = await ref.put(file);
+  const url = await snap.ref.getDownloadURL();
+  p.ImagenURL = url;
+}
+
+const modal = document.getElementById("modal-habilitar");
+const buscarProd = document.getElementById("buscar-prod");
+const listaDeshab = document.getElementById("lista-deshabilitados");
+const seccionImagen = document.getElementById("seccion-imagen");
+const subirImagenNuevo = document.getElementById("subir-imagen-nuevo");
+const btnConfirmar = document.getElementById("btn-confirmar");
+
+let productoSeleccionado = null;
+
+function abrirModal() {
+  modal.style.display = "flex";
+  productoSeleccionado = null;
+  listaDeshab.innerHTML = "";
+  buscarProd.value = "";
+  seccionImagen.style.display = "none";
+  btnConfirmar.style.display = "none";
+
+  const deshab = allProducts.filter(p => !p.Habilitado);
+
+  mostrarLista(deshab);
+
+  buscarProd.oninput = () => {
+    const q = buscarProd.value.toLowerCase();
+    mostrarLista(deshab.filter(p =>
+      p.Nombre.toLowerCase().includes(q) ||
+      p.Codigo.toLowerCase().includes(q)
+    ));
+  };
+}
+
+function cerrarModal() {
+  modal.style.display = "none";
+}
+
+function mostrarLista(lista) {
+  listaDeshab.innerHTML = "";
+  lista.forEach(p => {
+    const row = document.createElement("div");
+    row.textContent = `${p.Codigo} - ${p.Nombre}`;
+    row.style.padding = "8px";
+    row.style.cursor = "pointer";
+    row.onclick = () => seleccionarProducto(p);
+    listaDeshab.appendChild(row);
+  });
+}
+
+function seleccionarProducto(p) {
+  productoSeleccionado = p;
+  seccionImagen.style.display = "block";
+  btnConfirmar.style.display = "block";
+}
+
+btnConfirmar.onclick = async () => {
+  if (!productoSeleccionado) return;
+
+  // habilitar
+  productoSeleccionado.Habilitado = true;
+
+  // subir imagen si hay
+  if (subirImagenNuevo.files[0]) {
+    await uploadImageForProduct(productoSeleccionado, subirImagenNuevo.files[0]);
+  }
+
+  await saveChanges();
+  cerrarModal();
+  applyView();
+};
+
+// reemplaza el botón original
+btnNuevo.onclick = abrirModal;
+
+function toBool(v) {
+  if (v === true || v === "true") return true;
+  if (v === 1 || v === "1") return true;
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    return (s === "si" || s === "sí" || s === "yes");
+  }
+  return false;
+}
+
 function showToast(msg, ms = 2200) {
   // console fallback; podés mejorar esto mostrando un elemento UI si querés
   console.log("[TOAST]", msg);
@@ -70,7 +159,7 @@ async function loadProducts() {
       SubCategoria: p.SubCategoria || "",
       Precio: p.Precio || 0,
       Proveedor: p.Proveedor || "",
-      Habilitado: !!p.Habilitado,
+      Habilitado: toBool(p.Habilitado),
       Orden: Number(p.Orden || 999999),
       Ranking: Number(p.Ranking || 999999),
       ImagenURL: p.ImagenURL || ""
@@ -85,21 +174,18 @@ async function loadProducts() {
 // Aplicar vista (solo tienda o todos)
 function applyView() {
   renderIndex = 0;
-  // normalizar: obtener array de habilitados con todobool
+
   const habilitados = allProducts.filter(p => p.Habilitado === true);
+
   if (showOnlyTienda) {
-    if (habilitados.length > 0) {
-      viewProducts = habilitados;
-    } else {
-      // Por seguridad y para debug, en vez de mostrar todos sin aviso, muestra todos y avisa:
-      console.warn("No hay habilitados -> mostrando TODOS para evitar pantalla vacía");
-      viewProducts = [...allProducts];
-    }
+    viewProducts = habilitados;
   } else {
     viewProducts = [...allProducts];
   }
+
   renderProducts();
 }
+
 
 
 
@@ -199,11 +285,17 @@ function createProductRow(p) {
   row.className = "product-row";
   row.dataset.code = p.Codigo;
 
-  const thumb = document.createElement("img");
-  thumb.className = "thumb";
-  thumb.src = p.ImagenURL || `/media/PRODUCTOS/${p.Codigo}.jpg`;
-  thumb.onerror = () => { thumb.src = "/media/PRODUCTOS/placeholder.png"; };
-  row.appendChild(thumb);
+  thumb.loading = "lazy";
+
+  if (p.ImagenURL && p.ImagenURL.startsWith("http")) {
+      thumb.src = p.ImagenURL;
+  } else {
+      thumb.src = "/media/PRODUCTOS/placeholder.png";
+  }
+
+  thumb.onerror = () => {
+      thumb.src = "/media/PRODUCTOS/placeholder.png";
+  };
 
   const info = document.createElement("div");
   info.className = "info";
