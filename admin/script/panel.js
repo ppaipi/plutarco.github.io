@@ -1,7 +1,7 @@
 // panel.js - Panel de Productos (completo)
 // Reemplazá WEBAPP_URL con la URL de tu Apps Script Web App (doGet/doPost desplegada).
 
-const WEBAPP_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec"; // <-- REEMPLAZAR
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbymVHpZITD-LgBBFSK1ThWucgVYURRLhztkfGo2tvGamiFhTL73nfK2BDrtSA9GKJQk/exec"; // <-- REEMPLAZAR
 
 // --- Firebase config (adaptado desde tu config) ---
 const firebaseConfig = {
