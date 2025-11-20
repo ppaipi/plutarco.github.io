@@ -434,8 +434,8 @@ function renderFiltered(list) {
     node.querySelector('.proveedor').textContent = p.Proveedor || '';
     node.querySelector('.precio').textContent = p.Precio ? `$${p.Precio}` : '';
     const imgEl = node.querySelector('img.thumb');
-    imgEl.src = p.ImagenURL || '/media/no-image.png';
-    imgEl.onerror = () => imgEl.src = '/media/no-image.png';
+    imgEl.src = p.ImagenURL || '/media/placeholder.jpg';
+    imgEl.onerror = () => imgEl.src = '/media/placeholder.jpg';
     const habil = node.querySelector('.habilitado');
     habil.checked = !!p.Habilitado;
     habil.onchange = () => { p.Habilitado = !!habil.checked; markDirty(); updateStats(); };
