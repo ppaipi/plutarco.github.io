@@ -1,177 +1,184 @@
-/* ========== ESTILOS GENERALES ========== */
+/* ===== PANEL PLUTARCO ADMIN - ESTILO MODERNO ===== */
+
+:root {
+  --bg: #0f172a;
+  --bg-card: #1e293b;
+  --bg-hover: #334155;
+  --border: #475569;
+  --text: #e2e8f0;
+  --text-light: #94a3b8;
+  --accent: #38bdf8;
+  --accent-hover: #0ea5e9;
+  --radius: 10px;
+  --shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
 body {
-    margin: 0;
-    padding: 0;
-    background: #f4f4f4;
-    font-family: Arial, sans-serif;
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: var(--bg);
+  color: var(--text);
 }
 
+/* Header */
 header {
-    background: #222;
-    color: #fff;
-    font-size: 20px;
-    padding: 15px;
-    text-align: center;
+  background: var(--bg-card);
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
 }
 
-/* ========== TOOLBAR SUPERIOR ========== */
-.toolbar {
-    display: flex;
-    gap: 10px;
-    padding: 15px;
-    background: #fff;
-    border-bottom: 1px solid #ddd;
+/* Wrapper */
+.wrap {
+  max-width: 1300px;
+  margin: 20px auto;
+  padding: 0 14px;
 }
 
-.toolbar button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    background: #3498db;
-    color: white;
-    font-size: 15px;
+/* Toolbar */
+.topbar {
+  background: var(--bg-card);
+  padding: 14px;
+  border-radius: var(--radius);
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-.toolbar button:hover {
-    background: #2980b9;
+.topbar label {
+  font-size: 13px;
+  color: var(--text-light);
 }
 
-.btn-green {
-    background: #2ecc71 !important;
-}
-.btn-orange {
-    background: #e67e22 !important;
-}
-
-/* ========== IMPORTAR EXCEL ========== */
-.import-box {
-    background: #fff;
-    padding: 15px;
-    border-bottom: 1px solid #ddd;
+.topbar input {
+  width: 100%;
+  padding: 9px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #0f1b31;
+  color: var(--text);
 }
 
-/* ========== SUB CONTROLS ========== */
-.sub-controls {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px;
-    background: #fff;
-    border-bottom: 1px solid #ddd;
+button {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
 }
 
-#search {
-    width: 70%;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #bbb;
+.btn-primary {
+  background: var(--accent);
+  color: #0f172a;
 }
 
-.sub-controls select {
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #bbb;
+.btn-primary:hover {
+  background: var(--accent-hover);
 }
 
-/* ========== ESTADÍSTICAS ========== */
-.stats {
-    padding: 15px;
-    font-size: 15px;
-    color: #333;
+/* Filters */
+.controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
-/* ========== LISTA DE PRODUCTOS ========== */
-.product-row {
-    display: flex;
-    align-items: center;
-    background: #fff;
-    margin: 10px;
-    padding: 12px;
-    border-radius: 10px;
-    gap: 15px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+.controls input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #0f1b31;
+  color: var(--text);
+}
+
+select {
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #0f1b31;
+  color: var(--text);
+}
+
+/* Product list */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Product card */
+.card {
+  display: flex;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: 0.15s;
+}
+
+.card:hover {
+  background: var(--bg-hover);
 }
 
 .thumb {
-    width: 65px;
-    height: 65px;
-    border-radius: 8px;
-    object-fit: cover;
-    background: #ddd;
+  width: 90px;
+  height: 90px;
+  border-radius: var(--radius);
+  object-fit: cover;
+  background: #1e293b;
 }
 
-.info {
-    flex: 1;
+.meta {
+  flex: 1;
 }
 
-.name {
-    font-size: 16px;
-    font-weight: bold;
+.meta .name {
+  font-size: 17px;
+  font-weight: 600;
 }
 
-.small {
-    color: #777;
-    font-size: 13px;
+.meta .code {
+  margin-top: 6px;
+  color: var(--text-light);
+  font-size: 14px;
 }
 
-.price {
-    font-size: 16px;
-    margin-top: 4px;
-    font-weight: 600;
-    color: #2c3e50;
+/* Controls */
+.controls-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* ========== ACTIONS ========== */
-.actions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 6px;
-    min-width: 130px;
+input[type="number"] {
+  padding: 7px;
+  width: 80px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #0f1b31;
+  color: var(--text);
 }
 
-.actions .lbl {
-    font-size: 13px;
-    display: flex;
-    flex-direction: column;
+/* Pagination */
+.pagination {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
-
-.actions input[type="number"] {
-    width: 70px;
-    padding: 4px;
-    border-radius: 6px;
-    border: 1px solid #bbb;
+.pagination button {
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
-
-.btn-photo {
-    padding: 6px 10px;
-    border: none;
-    border-radius: 6px;
-    background: #9b59b6;
-    color: white;
-    cursor: pointer;
-}
-.btn-photo:hover {
-    background: #8e44ad;
-}
-
-/* ========== PAGINADOR ========== */
-.pager {
-    text-align: center;
-    padding: 15px;
-}
-
-.pager button {
-    padding: 8px 14px;
-    border: none;
-    background: #3498db;
-    color: white;
-    border-radius: 6px;
-    margin: 0 8px;
-    cursor: pointer;
-}
-
-.pager button:disabled {
-    background: #aaa;
-    cursor: not-allowed;
+.pagination button:hover {
+  background: var(--bg-hover);
 }
