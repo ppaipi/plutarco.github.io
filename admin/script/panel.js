@@ -177,8 +177,8 @@ function renderPage() {
     row.querySelector('.precio').textContent = p.Precio ? `$${p.Precio}` : '';
 
     const imgEl = row.querySelector('img.thumb');
-    imgEl.src = p.ImagenURL || '/media/no-image.png';
-    imgEl.onerror = () => imgEl.src = '/media/no-image.png';
+    imgEl.src = p.ImagenURL || '/media/placeholder.jpg';
+    imgEl.onerror = () => imgEl.src = '/media/placeholder.jpg';
 
     const habil = row.querySelector('.habilitado');
     habil.checked = !!p.Habilitado;
