@@ -1,74 +1,54 @@
-/* ============================
-      CONFIG
-=============================== */
+/** ===========================================
+    CONFIG
+=========================================== **/
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymVHpZITD-LgBBFSK1ThWucgVYURRLhztkfGo2tvGamiFhTL73nfK2BDrtSA9GKJQk/exec";
 
+firebase.initializeApp({
+  apiKey: "AIzaSyCGuA_RkvEUptmUHO4YOAzr9qRKtK1cNDQ",
+  authDomain: "plutarcodelivery-cf6cb.firebaseapp.com",
+  projectId: "plutarcodelivery-cf6cb",
+  storageBucket: "plutarcodelivery-cf6cb.firebasestorage.app",
+});
+const storage = firebase.storage();
 
-/* ============================
-      HELPERS
-=============================== */
-const parsePrecio = v => {
-  if (!v) return 0;
-  return Number(String(v).replace(/\./g,'').replace(',','.')) || 0;
-};
-
-let allProducts = [];
-let filtered = [];
-let currentPage = 1;
-let pageSize = 50;
+/** ===========================================
+    STATE
+=========================================== **/
+let allProducts = [];       // todos los productos del Excel
+let viewMode = "tienda";    // tienda | todos
+let dragInstance = null;
 
 
-/* ============================
-      FETCH PRODUCTS (GET)
-=============================== */
-async function fetchFromSheets() {
+/** ===========================================
+    FETCH PRODUCTS FROM SHEETS (GET)
+=========================================== **/
+async function loadProducts() {
   try {
     const res = await fetch(APPS_SCRIPT_URL);
     const data = await res.json();
 
-    if (!data.products) throw new Error("Products missing in response");
+    allProducts = data.products || [];
 
-    allProducts = data.products.map(p => ({
-      Codigo: p.Codigo || "",
-      Nombre: p.Nombre || "",
-      Descripcion: p.Descripcion || "",
-      Categoria: p.Categoria || "",
-      SubCategoria: p.SubCategoria || "",
-      Precio: parsePrecio(p.Precio),
-      Proveedor: p.Proveedor || "",
-      Habilitado: p.Habilitado ?? true,
-      Orden: p.Orden ?? 999999,
-      ImagenURL: p.ImagenURL || `/media/PRODUCTOS/${p.Codigo}.jpg`,
-    }));
-
-    applyFilterAndRender();
-
+    render();
   } catch (err) {
-    console.error(err);
-    alert("Error cargando productos: " + err.message);
+    alert("Error cargando: " + err.message);
   }
 }
 
 
-/* ============================
-      SAVE PRODUCTS (POST)
-=============================== */
+/** ===========================================
+    SAVE PRODUCTS CHANGES (POST)
+=========================================== **/
 async function saveToSheets() {
   try {
-    const payload = { products: allProducts };
-
     const res = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ products: allProducts })
     });
 
     const data = await res.json();
-
-    if (data.status === "saved")
-      alert(`Guardado correctamente (${data.count} productos)`);
-    else
-      alert("Error guardando: " + JSON.stringify(data));
+    alert("Guardado: " + JSON.stringify(data));
 
   } catch (err) {
     alert("Error guardando: " + err.message);
@@ -76,75 +56,170 @@ async function saveToSheets() {
 }
 
 
-/* ============================
-      RENDER
-=============================== */
-
-function applyFilterAndRender() {
-  const q = (document.getElementById("search").value || "").toLowerCase();
-
-  filtered = allProducts.filter(p =>
-    p.Codigo.toLowerCase().includes(q) ||
-    p.Nombre.toLowerCase().includes(q)
-  );
-
-  renderList();
-}
-
-function renderList() {
+/** ===========================================
+    RENDER PRODUCTS
+=========================================== **/
+function render() {
   const container = document.getElementById("product-list");
   container.innerHTML = "";
 
-  const start = (currentPage - 1) * pageSize;
-  const page = filtered.slice(start, start + pageSize);
+  // Filtrar dependiendo del modo
+  let products = viewMode === "tienda"
+    ? allProducts.filter(p => p.Habilitado)
+    : allProducts;
 
-  page.forEach(p => {
-    const row = document.createElement("div");
-    row.className = "row";
+  // Ordenar por ranking
+  products.sort((a, b) => (a.Orden || 999999) - (b.Orden || 999999));
 
-    row.innerHTML = `
-      <div class="code">${p.Codigo}</div>
-      <div class="name">${p.Nombre}</div>
-      <div class="price">$ ${p.Precio}</div>
-      <button class="btn-edit">Editar</button>
-    `;
+  // Agrupar por categoría → subcategoría
+  const cats = {};
+  for (const p of products) {
+    const cat = p.Categoria || "Sin categoría";
+    const sub = p.SubCategoria || "General";
 
-    container.appendChild(row);
+    if (!cats[cat]) cats[cat] = {};
+    if (!cats[cat][sub]) cats[cat][sub] = [];
+
+    cats[cat][sub].push(p);
+  }
+
+  // Render por categoría
+  for (const cat in cats) {
+    const catEl = document.createElement("h2");
+    catEl.textContent = cat;
+    container.appendChild(catEl);
+
+    for (const sub in cats[cat]) {
+      const subEl = document.createElement("h3");
+      subEl.textContent = sub;
+      container.appendChild(subEl);
+
+      const list = document.createElement("div");
+      list.className = "sortable-list";
+
+      cats[cat][sub].forEach(p => {
+        const row = document.createElement("div");
+        row.className = "product-row";
+        row.dataset.codigo = p.Codigo;
+
+        row.innerHTML = `
+          <img src="${p.ImagenURL}" class="thumb" />
+
+          <div class="info">
+            <div class="name">${p.Nombre}</div>
+            <div class="code">#${p.Codigo}</div>
+          </div>
+
+          <div class="controls">
+            <label>
+              <input type="checkbox" class="chk-hab" ${p.Habilitado ? "checked" : ""}>
+              Habilitado
+            </label>
+            <input type="number" class="orden" value="${p.Orden || ""}" />
+          </div>
+
+          <button class="drag">↕</button>
+        `;
+
+        // eventos
+        row.querySelector(".chk-hab").onchange = e => {
+          p.Habilitado = e.target.checked;
+        };
+
+        row.querySelector(".orden").onchange = e => {
+          p.Orden = Number(e.target.value) || 999999;
+        };
+
+        list.appendChild(row);
+      });
+
+      container.appendChild(list);
+
+      // Activar drag sobre esta lista
+      enableDrag(list);
+    }
+  }
+}
+
+
+/** ===========================================
+    DRAG & DROP (RANKING)
+=========================================== **/
+function enableDrag(listEl) {
+  if (dragInstance) dragInstance.destroy();
+
+  dragInstance = Sortable.create(listEl, {
+    animation: 150,
+    handle: ".drag",
+
+    onEnd: ev => {
+      const items = [...ev.from.querySelectorAll(".product-row")];
+
+      // reasignar ranking nuevo según el orden visible
+      items.forEach((row, i) => {
+        const code = row.dataset.codigo;
+        const prod = allProducts.find(p => p.Codigo === code);
+        prod.Orden = i + 1;
+      });
+
+      render(); // actualizar todo DOM
+    }
   });
 }
 
 
-/* ============================
-      ADD PRODUCT
-=============================== */
-function addProduct() {
-  const codigo = prompt("Código:");
-  const nombre = prompt("Nombre:");
+/** ===========================================
+    HABILITAR NUEVO PRODUCTO
+=========================================== **/
+async function enableNewProduct() {
+  const codigo = prompt("Código del producto del Excel:");
+  if (!codigo) return;
 
-  if (!codigo) return alert("Código obligatorio");
+  const prod = allProducts.find(p => p.Codigo === codigo);
+  if (!prod) return alert("Producto inexistente en el Excel");
 
-  allProducts.unshift({
-    Codigo: codigo,
-    Nombre: nombre || "",
-    Descripcion: "",
-    Categoria: "",
-    SubCategoria: "",
-    Precio: 0,
-    Proveedor: "",
-    Habilitado: true,
-    Orden: 999999,
-    ImagenURL: `/media/PRODUCTOS/${codigo}.jpg`
-  });
+  // pedir foto
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "image/*";
+  fileInput.click();
 
-  applyFilterAndRender();
+  fileInput.onchange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const ext = file.name.split(".").pop();
+    const ref = storage.ref().child(`productos/${codigo}.${ext}`);
+
+    try {
+      await ref.put(file);
+      const url = await ref.getDownloadURL();
+
+      prod.ImagenURL = url;
+      prod.Habilitado = true;
+      prod.Orden = 999999; // al final
+
+      alert("Producto habilitado. Guardando en Sheets...");
+      render();
+      saveToSheets();
+
+    } catch (err) {
+      alert("Error subiendo imagen: " + err.message);
+    }
+  };
 }
 
 
-/* ============================
-      INIT
-=============================== */
-document.getElementById("btn-fetch-products").onclick = fetchFromSheets;
+/** ===========================================
+    BUTTONS
+=========================================== **/
+document.getElementById("btn-tienda").onclick = () => { viewMode = "tienda"; render(); };
+document.getElementById("btn-todos").onclick = () => { viewMode = "todos"; render(); };
 document.getElementById("btn-save").onclick = saveToSheets;
-document.getElementById("btn-add").onclick = addProduct;
+document.getElementById("btn-nuevo").onclick = enableNewProduct;
 
-fetchFromSheets(); // carga inicial
+
+/** ===========================================
+    INIT
+=========================================== **/
+loadProducts();
