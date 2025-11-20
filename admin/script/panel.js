@@ -41,7 +41,10 @@ async function fetchFromSheets(){
   try{
     const res = await fetch(APPS_SCRIPT_URL + '?action=getProducts');
     if(!res.ok) throw new Error('Error fetching products: ' + res.status);
-    const data = await res.json();
+    const text = await res.text();
+    const match = text.match(/<pre>([\s\S]*?)<\/pre>/);
+    const raw = match ? match[1] : '[]';
+    const data = JSON.parse(raw);
     // normalize boolean strings
     allProducts = data.map(p => ({
       Codigo: (p.Codigo || p["CODIGO BARRA"] || "").toString().trim(),
@@ -242,20 +245,29 @@ document.getElementById('btn-add').addEventListener('click', ()=> {
 /* ---------- SAVE to Apps Script (doPost) ---------- */
 document.getElementById('btn-save').addEventListener('click', async ()=> {
   if(!APPS_SCRIPT_URL) return alert('Configura APPS_SCRIPT_URL en app.js');
+
   const payload = { products: allProducts };
+
   try {
     const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify(payload)
     });
-    const data = await res.json();
-    alert('Guardado en Sheets: ' + (data.status || JSON.stringify(data)));
+
+    const text = await res.text();
+    const match = text.match(/<pre>([\s\S]*?)<\/pre>/);
+    const raw = match ? match[1] : '{}';
+    const data = JSON.parse(raw);
+
+    alert('Guardado en Sheets: ' + data.status);
+
   } catch(err){
     console.error(err);
     alert('Error guardando: ' + err.message);
   }
 });
+
 
 /* ---------- Export helpers (local download) ---------- */
 document.getElementById('btn-export-hab').addEventListener('click', ()=> {
