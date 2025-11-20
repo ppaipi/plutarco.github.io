@@ -37,6 +37,15 @@ jobs:
         run: |
           git config --global user.email "bot@github.com"
           git config --global user.name "GitHub Action Bot"
-          git add products.json
-          git diff-index --quiet HEAD || git commit -m "Actualización automática de productos"
+
+          # Agregar solo products.json, ignorar todo lo demás
+          git add -f products.json
+
+          # Si no hay cambios, no hacer commit
+          if git diff-index --quiet HEAD -- products.json; then
+            echo "No hay cambios en products.json"
+            exit 0
+          fi
+
+          git commit -m "Actualización automática de productos"
           git push
