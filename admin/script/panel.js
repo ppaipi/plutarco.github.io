@@ -1,94 +1,106 @@
-// === panel.js para panel.html ===
+// panel.js - Panel de Productos (completo)
+// Reemplazá WEBAPP_URL con la URL de tu Apps Script Web App (doGet/doPost desplegada).
 
-// -------------- CONFIG: PONER TU WEBAPP URL y firebaseConfig --------------
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbymVHpZITD-LgBBFSK1ThWucgVYURRLhztkfGo2tvGamiFhTL73nfK2BDrtSA9GKJQk/exec"; // <-- pegá tu url del WebApp
-// firebaseConfig: reemplazá con la configuración que te da Firebase (apiKey, authDomain, etc.)
+const WEBAPP_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec"; // <-- REEMPLAZAR
+
+// --- Firebase config (adaptado desde tu config) ---
 const firebaseConfig = {
-  apiKey: "APIKEY",
-  authDomain: "PROJECT.firebaseapp.com",
+  apiKey: "AIzaSyCGuA_RkvEUptmUHO4YOAzr9qRKtK1cNDQ",
+  authDomain: "plutarcodelivery-cf6cb.firebaseapp.com",
   projectId: "plutarcodelivery-cf6cb",
-  storageBucket: "plutarcodelivery-cf6cb.appspot.com", // importante
-  messagingSenderId: "",
-  appId: ""
+  storageBucket: "plutarcodelivery-cf6cb.appspot.com", // <- importante .appspot.com
+  messagingSenderId: "714627263776",
+  appId: "1:714627263776:web:3ee0e4fc657a6c12e37b45",
+  measurementId: "G-99MNS9JHQN"
 };
-// Carpeta dentro del bucket donde guardaremos las imágenes
-const FIREBASE_FOLDER = "productos"; // => /productos/{codigo}.jpg
-// -------------------------------------------------------------------------
 
-// Inicializar Firebase (si no está ya)
-if (!window.firebase.apps || !window.firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
+// Carpeta dentro del bucket (ruta final: /productos/{codigo}.jpg)
+const FIREBASE_FOLDER = "productos";
+
+// Inicializar Firebase v8 (panel.html debe cargar firebase-app.js y firebase-storage.js)
+if (!window.firebase || !firebase.apps || firebase.apps.length === 0) {
+  if (window.firebase && firebase.initializeApp) {
+    firebase.initializeApp(firebaseConfig);
+  } else {
+    console.warn("Firebase SDK no detectado - asegura los scripts de Firebase en panel.html");
+  }
 }
-const storage = firebase.storage();
+const storage = (window.firebase && firebase.storage) ? firebase.storage() : null;
 
-// DOM
+// --- DOM references ---
 const productList = document.getElementById("product-list");
 const btnTienda = document.getElementById("btn-tienda");
 const btnTodos = document.getElementById("btn-todos");
 const btnSave = document.getElementById("btn-save");
 const btnNuevo = document.getElementById("btn-nuevo");
 
-let allProducts = []; // array original traído del backend
-let viewProducts = []; // productos en la vista (filtrados)
+let allProducts = [];
+let viewProducts = [];
 let showOnlyTienda = true;
 
-// --- Cargar productos desde el WebApp ---
-async function loadProducts() {
-  productList.innerHTML = "Cargando productos…";
-  try {
-    const res = await fetch(WEBAPP_URL);
-    const data = await res.json();
-    if (data.status !== "ok") throw new Error(data.message || "Error al leer API");
-    allProducts = data.products || [];
-    // Asegurarnos campos clave
-    allProducts = allProducts.map(p => {
-      return {
-        Codigo: String(p.Codigo || "").trim(),
-        Nombre: p.Nombre || "",
-        Descripcion: p.Descripcion || "",
-        Categoria: p.Categoria || "",
-        SubCategoria: p.SubCategoria || "",
-        Precio: p.Precio || 0,
-        Proveedor: p.Proveedor || "",
-        Habilitado: !!p.Habilitado,
-        Orden: Number(p.Orden || 999999),
-        Ranking: Number(p.Ranking || 999999),
-        ImagenURL: p.ImagenURL || ""
-      };
-    });
+// --- Utilidades ---
+function showToast(msg, ms = 2200) {
+  // console fallback; podés mejorar esto mostrando un elemento UI si querés
+  console.log("[TOAST]", msg);
+}
 
-    // Por defecto mostrar solo habilitados (si querés todos, clic en "TODOS LOS PRODUCTOS")
+// Safe fetch JSON
+async function fetchJSON(url, opts = {}) {
+  const res = await fetch(url, opts);
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`HTTP ${res.status} ${res.statusText} - ${txt}`);
+  }
+  return res.json();
+}
+
+// --- Cargar productos desde Apps Script (doGet) ---
+async function loadProducts() {
+  productList.innerHTML = "<em>Cargando productos…</em>";
+  try {
+    const data = await fetchJSON(WEBAPP_URL);
+    if (data.status !== "ok") throw new Error(data.message || "Respuesta inválida");
+    allProducts = (data.products || []).map(p => ({
+      Codigo: String(p.Codigo || "").trim(),
+      Nombre: p.Nombre || "",
+      Descripcion: p.Descripcion || "",
+      Categoria: p.Categoria || "",
+      SubCategoria: p.SubCategoria || "",
+      Precio: p.Precio || 0,
+      Proveedor: p.Proveedor || "",
+      Habilitado: !!p.Habilitado,
+      Orden: Number(p.Orden || 999999),
+      Ranking: Number(p.Ranking || 999999),
+      ImagenURL: p.ImagenURL || ""
+    }));
     applyView();
   } catch (err) {
-    productList.innerHTML = "Error cargando productos: " + err.message;
+    productList.innerHTML = `<div style="color:red">Error cargando productos: ${err.message}</div>`;
     console.error(err);
   }
 }
 
+// Aplicar vista (solo tienda o todos)
 function applyView() {
-  if (showOnlyTienda) {
-    viewProducts = allProducts.filter(p => p.Habilitado);
-  } else {
-    viewProducts = [...allProducts];
-  }
+  viewProducts = showOnlyTienda ? allProducts.filter(p => p.Habilitado) : [...allProducts];
   renderProducts();
 }
 
-// --- Renderizar listado por categorías y subcategoria ---
+// --- Render por categoría/subcategoria ---
 function renderProducts() {
-  // Agrupar por categoria -> subcategoria
+  productList.innerHTML = "";
   const groups = {};
+
   viewProducts.forEach(p => {
     const cat = p.Categoria || "Sin categoría";
     const sub = p.SubCategoria || "General";
-    groups[cat] = groups[cat] || {};
-    groups[cat][sub] = groups[cat][sub] || [];
+    if (!groups[cat]) groups[cat] = {};
+    if (!groups[cat][sub]) groups[cat][sub] = [];
     groups[cat][sub].push(p);
   });
 
-  // Render HTML
-  productList.innerHTML = "";
-  for (const cat of Object.keys(groups).sort()) {
+  // Ordenar categorías alfabéticamente
+  Object.keys(groups).sort().forEach(cat => {
     const catDiv = document.createElement("div");
     catDiv.className = "category-section";
 
@@ -97,8 +109,7 @@ function renderProducts() {
     title.textContent = cat;
     catDiv.appendChild(title);
 
-    const subcats = groups[cat];
-    for (const sub of Object.keys(subcats).sort()) {
+    Object.keys(groups[cat]).sort().forEach(sub => {
       const subTitle = document.createElement("h3");
       subTitle.className = "subcategory-title";
       subTitle.textContent = sub;
@@ -106,38 +117,39 @@ function renderProducts() {
 
       const list = document.createElement("div");
       list.className = "sortable-list";
-      // cada item fila
-      subcats[sub].sort((a,b) => (a.Orden||999999) - (b.Orden||999999)).forEach(p => {
+
+      // Ordenar por Orden y Ranking antes de renderizar
+      groups[cat][sub].sort((a,b) => {
+        if ((a.Orden||999999) !== (b.Orden||999999)) return (a.Orden||999999) - (b.Orden||999999);
+        return (a.Ranking||999999) - (b.Ranking||999999);
+      }).forEach(p => {
         const row = createProductRow(p);
         list.appendChild(row);
       });
 
-      // Hacer sortable por drag & drop
-      catDiv.appendChild(list);
+      // Hacer sortable con SortableJS
       new Sortable(list, {
         animation: 150,
         handle: ".drag",
-        onEnd: (evt) => {
-          // Recalcular orden según nueva posición en ese contenedor
+        onEnd: () => {
+          // Recalcular orden basado en posición dentro de ese contenedor
           const items = Array.from(list.children);
-          items.forEach((r, idx) => {
-            const code = r.dataset.code;
+          items.forEach((el, idx) => {
+            const code = el.dataset.code;
             const prod = allProducts.find(x => x.Codigo === code);
-            if (prod) {
-              prod.Orden = idx + 1; // orden base 1
-            }
+            if (prod) prod.Orden = idx + 1;
           });
-          // Re-render para reflejar cambios en otros lugares
-          renderProducts();
         }
       });
-    }
+
+      catDiv.appendChild(list);
+    });
 
     productList.appendChild(catDiv);
-  }
+  });
 }
 
-// --- Crear fila de producto para panel ---
+// --- Crear fila de producto ---
 function createProductRow(p) {
   const row = document.createElement("div");
   row.className = "product-row";
@@ -145,7 +157,7 @@ function createProductRow(p) {
 
   const thumb = document.createElement("img");
   thumb.className = "thumb";
-  thumb.src = p.ImagenURL || "/media/PRODUCTOS/" + p.Codigo + ".jpg";
+  thumb.src = p.ImagenURL || `/media/PRODUCTOS/${p.Codigo}.jpg`;
   thumb.onerror = () => { thumb.src = "/media/PRODUCTOS/placeholder.png"; };
   row.appendChild(thumb);
 
@@ -153,11 +165,11 @@ function createProductRow(p) {
   info.className = "info";
   const name = document.createElement("div");
   name.className = "name";
-  name.textContent = p.Nombre + "  ";
+  name.textContent = p.Nombre;
   info.appendChild(name);
   const code = document.createElement("div");
   code.className = "code";
-  code.textContent = p.Codigo + " — $" + p.Precio;
+  code.textContent = `${p.Codigo} — $${p.Precio}`;
   info.appendChild(code);
   row.appendChild(info);
 
@@ -169,27 +181,26 @@ function createProductRow(p) {
   const habil = document.createElement("input");
   habil.type = "checkbox";
   habil.checked = !!p.Habilitado;
-  habil.onchange = (e) => {
-    p.Habilitado = e.target.checked;
-  };
+  habil.onchange = (e) => { p.Habilitado = e.target.checked; };
   habilLabel.appendChild(habil);
   habilLabel.appendChild(document.createTextNode(" Habilitado"));
   controls.appendChild(habilLabel);
 
-  // Ranking (editable)
+  // Ranking input
+  const rankWrapper = document.createElement("div");
+  rankWrapper.style.marginTop = "6px";
+  const rankLabel = document.createElement("span");
+  rankLabel.textContent = "Ranking: ";
   const rank = document.createElement("input");
   rank.type = "number";
   rank.value = p.Ranking || 999999;
   rank.style.width = "80px";
-  rank.onchange = (e) => {
-    p.Ranking = Number(e.target.value || 999999);
-  };
-  const rankLabel = document.createElement("div");
-  rankLabel.appendChild(document.createTextNode("Ranking: "));
-  rankLabel.appendChild(rank);
-  controls.appendChild(rankLabel);
+  rank.onchange = (e) => { p.Ranking = Number(e.target.value || 999999); };
+  rankWrapper.appendChild(rankLabel);
+  rankWrapper.appendChild(rank);
+  controls.appendChild(rankWrapper);
 
-  // Botón subir imagen
+  // Upload image input (hidden)
   const imgInput = document.createElement("input");
   imgInput.type = "file";
   imgInput.accept = "image/*";
@@ -197,15 +208,15 @@ function createProductRow(p) {
   imgInput.onchange = async (evt) => {
     const f = evt.target.files[0];
     if (!f) return;
-    // subir a firebase
     try {
-      const uploadPath = `${FIREBASE_FOLDER}/${p.Codigo}.jpg`;
-      const storageRef = storage.ref().child(uploadPath);
-      const snap = await storageRef.put(f);
+      if (!storage) throw new Error("Firebase storage no inicializado.");
+      const path = `${FIREBASE_FOLDER}/${p.Codigo}.jpg`;
+      const ref = storage.ref().child(path);
+      const snap = await ref.put(f);
       const url = await snap.ref.getDownloadURL();
       p.ImagenURL = url;
       thumb.src = url;
-      showToast("Imagen subida: " + p.Codigo);
+      showToast(`Imagen subida (${p.Codigo})`);
     } catch (err) {
       console.error(err);
       alert("Error subiendo la imagen: " + err.message);
@@ -213,6 +224,7 @@ function createProductRow(p) {
   };
 
   const btnImg = document.createElement("button");
+  btnImg.type = "button";
   btnImg.textContent = "Subir imagen";
   btnImg.onclick = () => imgInput.click();
   controls.appendChild(btnImg);
@@ -229,9 +241,9 @@ function createProductRow(p) {
   return row;
 }
 
-// --- Guardar cambios: construir array y POST a WebApp ---
+// --- Guardar cambios en app_products via POST ---
 async function saveChanges() {
-  // Construir array completo basado en allProducts (NO modificamos Nombre/Precio desde panel)
+  // Construir payload a partir de allProducts
   const payload = allProducts.map(p => ({
     Codigo: p.Codigo,
     Nombre: p.Nombre,
@@ -256,14 +268,14 @@ async function saveChanges() {
     });
     const data = await res.json();
     if (data.status === "saved") {
-      showToast("Cambios guardados (" + data.count + ")");
-      // recargar desde backend para estar seguros
+      showToast(`Guardado (${data.count})`);
+      // recargar para asegurarnos que backend aplicó todo
       await loadProducts();
     } else {
-      throw new Error(data.message || "Error guardando");
+      throw new Error(data.message || "Error al guardar");
     }
   } catch (err) {
-    alert("Error al guardar: " + err.message);
+    alert("Error guardando cambios: " + err.message);
     console.error(err);
   } finally {
     btnSave.disabled = false;
@@ -271,25 +283,11 @@ async function saveChanges() {
   }
 }
 
-// --- UI buttons ---
-btnTienda.onclick = () => {
-  showOnlyTienda = true;
-  applyView();
-};
-btnTodos.onclick = () => {
-  showOnlyTienda = false;
-  applyView();
-};
+// --- UI Buttons ---
+btnTienda.onclick = () => { showOnlyTienda = true; applyView(); };
+btnTodos.onclick = () => { showOnlyTienda = false; applyView(); };
 btnSave.onclick = () => saveChanges();
-btnNuevo.onclick = () => {
-  alert("La creación de nuevos productos está deshabilitada (según tu configuración).");
-};
+btnNuevo.onclick = () => { alert("Crear nuevos productos está deshabilitado."); };
 
-// --- Toast simple ---
-function showToast(msg) {
-  console.log("TOAST:", msg);
-  // podés mejorar y mostrar en UI si querés
-}
-
-// Inicializar
+// Inicializar carga
 loadProducts();
