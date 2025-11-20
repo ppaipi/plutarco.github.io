@@ -248,11 +248,11 @@ function renderCardAbsolute(p, y, slot, globalIndex){
 
   el.innerHTML = `
     <img class="thumb"
-        data-src="${p.ImagenURL}"
-        src="${p.__loaded ? p.ImagenURL : '/media/PRODUCTOS/placeholder.jpg'}"
-        onload="this.dataset.loaded='1'; p.__loaded=true;"
-        onerror="this.src='/media/PRODUCTOS/placeholder.jpg'"/>
-    <div class="meta">
+      data-src="${p.ImagenURL}"
+      src="/media/PRODUCTOS/placeholder.jpg"
+      data-loaded="0"
+      onerror="this.src='/media/PRODUCTOS/placeholder.jpg'"/>
+
       <div class="name">${escapeHtml(p.Nombre)}</div>
       <div class="desc">${escapeHtml(p.Descripcion || '')}</div>
       <div class="code">${escapeHtml(p.Codigo)} • ${escapeHtml(p.Categoria || '')} / ${escapeHtml(p.SubCategoria||'')}</div>
@@ -553,7 +553,12 @@ document.getElementById("btn-load-more").addEventListener("click", () => {
 
 /* Event wiring */
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btn-load')?.addEventListener('click', boot);
+  document.getElementById('btn-load')?.addEventListener('click', () => {
+  PRODUCTS_URL = elProductsUrl.value.trim();
+  APPS_URL = elAppsUrl.value.trim();
+  boot();
+});
+
   document.getElementById('btn-save')?.addEventListener('click', saveToAppsScript);
   document.getElementById('search')?.addEventListener('input', () => updateSpacerAndRender());
   document.getElementById('only-enabled')?.addEventListener('change', () => updateSpacerAndRender());
