@@ -1399,7 +1399,6 @@ function toggleZoom(idImagen) {
 
 
 window.onload = () => {
-  loadRanking();
   loadProducts();
   cargarDiasEntrega();
   initAutocomplete();
