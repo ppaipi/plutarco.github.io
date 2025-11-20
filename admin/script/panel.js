@@ -518,18 +518,22 @@ function setupAuth() {
 /* Trigger GitHub workflow (via Apps Script endpoint) */
 async function triggerGithubWorkflow() {
   try {
-    // Prefer using an Apps Script endpoint that does the actual GitHub call with token stored server-side.
-    const triggerUrl = APPS_URL + '?triggerWorkflow=1'; // tu Apps Script debe chequear e.g. e.parameter.triggerWorkflow
-    const res = await fetch(triggerUrl, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'trigger', secret: '' }) });
-    if(!res.ok) throw new Error('Trigger error ' + res.status);
-    const j = await res.json();
-    if(j.status === 'ok') alert('Workflow disparado OK');
-    else alert('Trigger completo: ' + JSON.stringify(j));
+    const triggerUrl = APPS_URL + '?triggerWorkflow=1';
+
+    // No usamos await → evitamos timeout del navegador
+    fetch(triggerUrl, { 
+      method: 'POST',
+      headers:{ 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action:'trigger' })
+    }).catch(err => console.warn("Ignorar NetworkError del workflow:", err));
+
+    alert("Workflow enviado. Puede tardar unos segundos en ejecutarse.");
   } catch(err) {
     console.error(err);
     alert('Error disparando workflow: ' + (err.message||err));
   }
 }
+
 const lazyObserver = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
