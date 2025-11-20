@@ -4,14 +4,16 @@
 const FALLBACK_LOCAL_PATH = "/mnt/data/panel.js";
 const DEFAULT_PRODUCTS_URL = "/products.json";
 const DEFAULT_APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYuRooT4gimgVgM9QPP9HlsEacR0Ip2IHjZc5QgKeelAojQaaZdQLyG9viFvvLtjzu/exec";
-const FIREBASE_CONFIG = {
+const firebaseConfig = {
   apiKey: "AIzaSyCGuA_RkvEUptmUHO4YOAzr9qRKtK1cNDQ",
   authDomain: "plutarcodelivery-cf6cb.firebaseapp.com",
   projectId: "plutarcodelivery-cf6cb",
-  storageBucket: "plutarcodelivery-cf6cb.appspot.com",
+  storageBucket: "plutarcodelivery-cf6cb.appspot.com", // ← ✔ CORRECTO
   messagingSenderId: "714627263776",
-  appId: "1:714627263776:web:3ee0e4fc657a6c12e37b45"
+  appId: "1:714627263776:web:3ee0e4fc657a6c12e37b45",
+  measurementId: "G-99MNS9JHQN"
 };
+
 
 /* === INIT FIREBASE (app + storage + auth) === */
 if (window.firebase && firebase.initializeApp) {
