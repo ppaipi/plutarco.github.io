@@ -518,21 +518,21 @@ function setupAuth() {
 /* Trigger GitHub workflow (via Apps Script endpoint) */
 async function triggerGithubWorkflow() {
   try {
-    const triggerUrl = APPS_URL + '?triggerWorkflow=1';
+    const triggerUrl = APPS_URL; // sin parámetros
 
-    // No usamos await → evitamos timeout del navegador
-    fetch(triggerUrl, { 
-      method: 'POST',
-      headers:{ 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action:'trigger' })
-    }).catch(err => console.warn("Ignorar NetworkError del workflow:", err));
+    // Usamos GET con parámetros, porque Apps Script lo acepta
+    const url = triggerUrl + "?action=trigger";
 
-    alert("Workflow enviado. Puede tardar unos segundos en ejecutarse.");
-  } catch(err) {
+    // Enviamos sin esperar la respuesta
+    fetch(url, { method: "GET", mode: "no-cors" });
+
+    alert("Workflow enviado (modo no-cors). Se ejecutará en segundo plano.");
+  } catch (err) {
     console.error(err);
-    alert('Error disparando workflow: ' + (err.message||err));
+    alert("Error: " + err.message);
   }
 }
+
 
 const lazyObserver = new IntersectionObserver(entries => {
   entries.forEach(entry => {
