@@ -1,104 +1,151 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Admin - Plutarco</title>
+<meta charset="UTF-8" />
+<title>Panel de Productos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="style/panel.css" />
+<!-- SortableJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
-  <!-- Firebase storage (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
-  <!-- XLSX parser -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+    body {
+        background: #f4f4f4;
+        font-family: Arial, sans-serif;
+        margin: 0; padding: 0;
+    }
 
-  <!-- Sortable (drag & drop) -->
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    header {
+        background: #222;
+        padding: 15px;
+        color: #fff;
+        font-size: 20px;
+        text-align: center;
+    }
+
+    .toolbar {
+        display: flex;
+        gap: 10px;
+        padding: 15px;
+        background: #fff;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .toolbar button {
+        padding: 10px 18px;
+        border: none;
+        background: #3498db;
+        color: white;
+        font-size: 15px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .toolbar button:hover {
+        background: #2980b9;
+    }
+
+    #product-list {
+        padding: 20px;
+    }
+
+    h2 {
+        margin-top: 25px;
+        color: #333;
+        border-left: 5px solid #2ecc71;
+        padding-left: 10px;
+    }
+
+    h3 {
+        margin-top: 10px;
+        color: #555;
+        border-left: 5px solid #95a5a6;
+        padding-left: 10px;
+    }
+
+    .sortable-list {
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .product-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .product-row:last-child {
+        border-bottom: none;
+    }
+
+    .thumb {
+        width: 55px;
+        height: 55px;
+        border-radius: 6px;
+        object-fit: cover;
+        background: #ddd;
+    }
+
+    .info {
+        flex: 1;
+    }
+
+    .name {
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    .code {
+        font-size: 12px;
+        color: #777;
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        min-width: 140px;
+    }
+
+    .controls input[type="number"] {
+        width: 70px;
+        padding: 5px;
+    }
+
+    .drag {
+        cursor: grab;
+        font-size: 18px;
+        background: none;
+        border: none;
+    }
+</style>
+
 </head>
 <body>
-  <header class="topbar">
-    <h1>Panel Admin — Plutarco</h1>
 
-    <div class="controls">
-      <label class="file-btn">
-        Importar XLSX
-        <input id="file-xlsx" type="file" accept=".xlsx,.xls" />
-      </label>
+<header>Panel de Productos</header>
 
-      <button id="btn-fetch-products" title="Recargar desde Sheets">🔁 Recargar desde Sheets</button>
-      <button id="btn-save" title="Guardar cambios a Google Sheets">💾 Guardar (Sheets)</button>
-      <button id="btn-export-hab">📥 Descargar habilitados.json</button>
-      <button id="btn-export-ranking">📥 Descargar ranking.csv</button>
-      <label class="small">
-        Mostrar
-        <select id="page-size">
-          <option>25</option>
-          <option selected>50</option>
-          <option>100</option>
-        </select>
-        / página
-      </label>
-      <input id="search" placeholder="Buscar por código, nombre o proveedor..." />
-    </div>
-  </header>
+<div class="toolbar">
+    <button id="btn-tienda">PRODUCTOS DE LA TIENDA</button>
+    <button id="btn-todos">TODOS LOS PRODUCTOS</button>
+    <button id="btn-nuevo" style="background:#27ae60;">HABILITAR NUEVO PRODUCTO</button>
+    <button id="btn-save" style="background:#e67e22;">GUARDAR CAMBIOS</button>
+</div>
 
-  <main class="main">
-    <section class="left">
-      <div id="list-container">
-        <div id="product-list" class="product-list"></div>
-      </div>
+<div id="product-list">
+    Cargando productos…
+</div>
 
-      <div class="pager" id="pager"></div>
-    </section>
+<script src="script/panel.js"></script>
 
-    <aside class="right">
-      <h2>Previsualización</h2>
-      <div id="preview" class="preview">
-        <img id="preview-img" src="" alt="preview" />
-        <h3 id="preview-name"></h3>
-        <p id="preview-desc"></p>
-        <p class="price" id="preview-price"></p>
-        <p class="meta" id="preview-cat"></p>
-      </div>
-
-      <h3>Agregar producto</h3>
-      <div class="add-box">
-        <input id="add-codigo" placeholder="Código (obligatorio)" />
-        <input id="add-nombre" placeholder="Nombre" />
-        <input id="add-precio" placeholder="Precio" />
-        <input id="add-proveedor" placeholder="Proveedor" />
-        <button id="btn-add">➕ Agregar</button>
-      </div>
-
-      <hr/>
-      <div class="notes">
-        <p>Fotos se suben a Firebase: <code>productos/&lt;CODIGO&gt;.jpg</code></p>
-        <p>Al guardar, los productos se envían al Apps Script (Sheets).</p>
-      </div>
-    </aside>
-  </main>
-
-  <template id="row-tpl">
-    <div class="row">
-      <div class="thumb-wrap"><img class="thumb" src="" alt="img" /></div>
-      <div class="info">
-        <div class="code"></div>
-        <div class="name"></div>
-        <div class="prov"></div>
-      </div>
-      <div class="price-col"></div>
-      <div class="controls">
-        <label class="smalltoggle"><input type="checkbox" class="habilitado"/> H</label>
-        <input class="orden" type="number" placeholder="orden" />
-        <button class="btn-photo">📷</button>
-        <button class="btn-edit">✏️</button>
-        <button class="btn-delete">🗑️</button>
-      </div>
-    </div>
-  </template>
-
-  <script src="script/panel.js"></script>
 </body>
 </html>
