@@ -188,6 +188,6 @@ header h1{
   object-fit:cover;
   border-radius:10px;
 }
-#url-products, #url-appscript {
+.group{
     display: none;
 }
