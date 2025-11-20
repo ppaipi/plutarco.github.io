@@ -33,7 +33,7 @@ let direccionValidaGoogle = false; // Variable global para saber si la direcció
 
 async function loadProducts() {
   try {
-    const res = await fetch('../media/products.json?cache=' + Date.now());
+    const res = await fetch('/products.json?cache=' + Date.now());
     const data = await res.json();
 
     // 🔥 Filtrar habilitados
