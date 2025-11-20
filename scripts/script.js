@@ -2,6 +2,7 @@ let products = [];
 let allProducts = [];
 let enabledCodes = [];
 let rankingMap = {};
+productsMap = {};
 let cart = {};
 let filteredProducts = [];
 let currentFilter = 'Todas';
