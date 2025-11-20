@@ -26,7 +26,7 @@ jobs:
       - name: Run sync script
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-          SHEET_ID: "AKfycbweNzPe4gwxiH9tP4LyObsYbOlOqshemkYlDcpw9-IT6u17lXgfceElMcOIKQDNbhXE"
+          SHEET_ID: "1VzplC9RV-mi43ZgorbPC7UmLlZPI20XcdJjL2wtqris"
         run: |
           node scripts/sync-products.js
 
