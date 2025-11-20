@@ -2,7 +2,6 @@ let products = [];
 let allProducts = [];
 let enabledCodes = [];
 let rankingMap = {};
-productsMap = {};
 let cart = {};
 let filteredProducts = [];
 let currentFilter = 'Todas';
@@ -34,28 +33,24 @@ let direccionValidaGoogle = false; // Variable global para saber si la direcció
 
 async function loadProducts() {
   try {
-    const res = await fetch('/products.json?v=' + Date.now()); 
-    const data = await res.json();
+    // Cargar productos desde products.json
+    const res = await fetch('../media/products.json?cacheBust=' + Date.now());
+    const allProducts = await res.json();
 
-    products = data.filter(p => p.Habilitado !== false);
+    // Filtrar solo habilitados
+    const products = allProducts.filter(p => p.Habilitado);
+    const filteredProducts = [...products];
 
-    // Crear un diccionario por Código para lookup instantáneo
-    products.forEach(p => {
-      productsMap[p.Codigo] = p;
-    });
+    // Render
+    renderCategoryMenu();
+    renderProductsByCategory(filteredProducts);
 
-    // Ordenar por Ranking o Orden (lo que tengas)
-    products.sort((a, b) => {
-      const rankA = a.Ranking ?? a.Orden ?? 9999;
-      const rankB = b.Ranking ?? b.Orden ?? 9999;
-      return rankA - rankB;
-    });
-
-          
-    renderProductsByCategory();  
-
+    const header = document.querySelector('header');
+    if (header) {
+      header.scrollIntoView({ behavior: 'smooth' });
+    }
   } catch (err) {
-    console.error("ERROR cargando products.json:", err);
+    console.error("Error cargando productos:", err);
   }
 }
 
@@ -436,11 +431,12 @@ function renderProductsByCategory(productos) {
 
 
 function sortByRanking(a, b) {
-  const rankA = a.Ranking ?? a.Orden ?? 9999;
-  const rankB = b.Ranking ?? b.Orden ?? 9999;
-  return rankA - rankB;
-}
+  const rankA = rankingMap[a.Nombre] ?? Infinity; 
+  const rankB = rankingMap[b.Nombre] ?? Infinity;
 
+  if (rankA !== rankB) return rankA - rankB;  
+  return a.Nombre.localeCompare(b.Nombre, 'es'); 
+}
 
 
 function createVerMasCard(categoria) {
@@ -1401,6 +1397,7 @@ function toggleZoom(idImagen) {
 
 
 window.onload = () => {
+  loadRanking();
   loadProducts();
   cargarDiasEntrega();
   initAutocomplete();
