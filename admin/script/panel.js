@@ -1,195 +1,150 @@
-/* ================================
-   admin.js - Panel Admin Plutarco
-   Versión actualizada 2025-11
-   - Mejora: gestión robusta, toasts, bloqueo UI al guardar,
-     manejo de uploads a Firebase Storage, paginación y búsqueda.
-================================ */
+/* admin.js - Panel Admin Plutarco (final)
+   - Conecta con Apps Script (GET/POST) y Firebase Storage (subida de imágenes)
+   - Soporta import .xlsx, paginación, búsqueda, habilitar/orden, guardar en Sheets
+   - Tiene fallback local (path suministrado): /mnt/data/panel.js
+*/
 
-/* ------------ CONFIG FIREBASE & APPSCRIPT ------------ */
+/* ========== CONFIG ========== */
+// APPS SCRIPT WEB APP (tuya, la que confirmaste)
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYuRooT4gimgVgM9QPP9HlsEacR0Ip2IHjZc5QgKeelAojQaaZdQLyG9viFvvLtjzu/exec";
+
+// Firebase v8 config (ya validada)
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCGuA_RkvEUptmUHO4YOAzr9qRKtK1cNDQ",
   authDomain: "plutarcodelivery-cf6cb.firebaseapp.com",
   projectId: "plutarcodelivery-cf6cb",
-  storageBucket: "plutarcodelivery-cf6cb.appspot.com", // <-- correcto
+  storageBucket: "plutarcodelivery-cf6cb.appspot.com",
   messagingSenderId: "714627263776",
   appId: "1:714627263776:web:3ee0e4fc657a6c12e37b45"
 };
 
-// Tu WebApp URL (Google Apps Script)
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYuRooT4gimgVgM9QPP9HlsEacR0Ip2IHjZc5QgKeelAojQaaZdQLyG9viFvvLtjzu/exec";
+// LOCAL FALLBACK (archivo que subiste al entorno)
+// Devs: el entorno transformará este path a una URL servible cuando lo necesiten.
+const LOCAL_FALLBACK_PATH = "/mnt/data/panel.js";
 
-/* ------------ INIT FIREBASE (v8 compat) ------------ */
-// Asegurate de cargar firebase v8 en panel.html: 
-// <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-// <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-
+/* ========== INIT FIREBASE (v8) ========== */
 if (!window.firebase || !firebase.initializeApp) {
-  console.error('Firebase SDK v8 no está cargado. Asegurate de incluir firebase-app.js y firebase-storage.js');
+  console.error("Firebase v8 SDK missing. Include firebase-app.js and firebase-storage.js in panel.html");
 }
 try {
   firebase.initializeApp(FIREBASE_CONFIG);
 } catch (e) {
-  // si ya estaba inicializado, ok
-  console.warn('Firebase init warning', e && e.message);
+  // si ya estaba inicializado no problemas
+  console.warn("Firebase init:", e && e.message);
 }
 const storage = firebase.storage();
 
-/* ------------ STATE ------------ */
-let allProducts = [];
+/* ========== STATE ========== */
+let allProducts = [];      // array de productos
 let currentPage = 1;
 let pageSize = 50;
-let lastFetchTime = null;
 let isSaving = false;
 
-/* ------------ UTIL ------------ */
+/* ========== UTIL ========== */
 function toBool(v) {
   if (v === true || v === "true" || v === 1 || v === "1") return true;
   if (typeof v === "string") {
     const s = v.trim().toLowerCase();
-    return (s === "true" || s === "t" || s === "si" || s === "sí" || s === "yes" || s === "1");
+    return ["true","t","si","sí","yes","1"].includes(s);
   }
   return false;
 }
-
-function debounce(fn, wait = 250) {
+function debounce(fn, wait = 200) {
   let t;
-  return (...args) => {
-    clearTimeout(t);
-    t = setTimeout(() => fn(...args), wait);
-  };
+  return (...args) => { clearTimeout(t); t = setTimeout(()=>fn(...args), wait); };
 }
-
 function parsePrecio(v) {
   if (v == null) return 0;
   return Number(String(v).replace(/[^\d\.\,]/g,'').replace(',','.')) || 0;
 }
-
-function showToast(msg, type = 'info', timeout = 3000) {
-  // type: info|success|error
-  const id = 'admin-toast';
-  let el = document.getElementById(id);
-  if (el) el.remove();
-  el = document.createElement('div');
+function showToast(msg, type='info', timeout=3000) {
+  const id = 'panel-toast';
+  const existing = document.getElementById(id);
+  if (existing) existing.remove();
+  const el = document.createElement('div');
   el.id = id;
+  el.textContent = msg;
   el.style.position = 'fixed';
   el.style.right = '16px';
   el.style.bottom = '18px';
-  el.style.padding = '10px 14px';
+  el.style.padding = '10px 12px';
   el.style.borderRadius = '8px';
   el.style.color = '#fff';
   el.style.zIndex = 99999;
-  el.style.fontFamily = 'Inter, Arial, sans-serif';
-  el.style.boxShadow = '0 8px 28px rgba(0,0,0,0.18)';
-  el.style.background = (type === 'success') ? '#2e7d32' : (type === 'error' ? '#c62828' : '#333');
-  el.textContent = msg;
+  el.style.background = type==='error' ? '#c0392b' : type==='success' ? '#27ae60' : '#333';
   document.body.appendChild(el);
-  setTimeout(() => el && el.remove(), timeout);
+  setTimeout(()=>el.remove(), timeout);
 }
 
-/* ------------ FETCH REMOTE CONFIG (GET from Apps Script) ------------ */
-async function fetchRemoteConfigs() {
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('TU_URL')) {
-    console.warn('APPS_SCRIPT_URL no configurado');
-    return {};
-  }
+/* ========== FETCH DATA (GET) ========== */
+async function fetchProductsFromWebApp() {
   try {
-    const res = await fetch(APPS_SCRIPT_URL, { cache: 'no-cache' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const payload = await res.json();
-    if (payload.status !== 'ok' || !Array.isArray(payload.products)) {
-      console.warn('Payload inesperado de apps script', payload);
-      return {};
+    const res = await fetch(APPS_SCRIPT_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const json = await res.json();
+    if (json.status === 'ok' && Array.isArray(json.products)) {
+      return json.products.map(normalizeProductFromServer);
+    } else {
+      // fallback: try reading as direct array
+      if (Array.isArray(json)) return json.map(normalizeProductFromServer);
+      throw new Error('Payload inesperado');
     }
-    const map = {};
-    payload.products.forEach(p => {
-      const code = String(p.Codigo || '').trim();
-      if (!code) return;
-      map[code] = {
-        Habilitado: toBool(p.Habilitado),
-        Orden: Number(p.Orden || 999999),
-        Ranking: Number(p.Ranking || 999999),
-        ImagenURL: p.ImagenURL || ''
-      };
-    });
-    lastFetchTime = new Date();
-    return map;
   } catch (err) {
-    console.warn('fetchRemoteConfigs error', err);
-    return {};
+    console.warn('Fetch WebApp error:', err.message);
+    throw err;
   }
 }
 
-/* ------------ IMPORT EXCEL (input#excel-input) ------------ */
-const excelInput = document.getElementById('excel-input');
-if (excelInput) {
-  excelInput.addEventListener('change', async (e) => {
-    const f = e.target.files && e.target.files[0];
-    if (!f) return;
+async function fetchProductsFromLocalFallback() {
+  // intenta cargar un archivo JS o JSON local (el entorno lo convertirá a URL)
+  try {
+    const res = await fetch(LOCAL_FALLBACK_PATH, { cache: 'no-store' });
+    if (!res.ok) throw new Error('local fallback HTTP ' + res.status);
+    // el archivo puede ser JS con datos o un JSON - intentamos parsear
+    const text = await res.text();
+    // intentar extraer JSON si el archivo contiene export o var
+    const jsonMatch = text.match(/\{[\s\S]*\}[\s\S]*$/m);
     try {
-      showToast('Leyendo archivo Excel...', 'info', 2200);
-      const reader = new FileReader();
-      reader.onload = async evt => {
-        const data = new Uint8Array(evt.target.result);
-        const wb = XLSX.read(data, { type: 'array' });
-        const sheet = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-
-        const remote = await fetchRemoteConfigs();
-
-        // Mapear
-        allProducts = json.map(row => {
-          const codigo = String(row['CODIGO BARRA'] || row['ID'] || '').trim();
-          const cfg = remote[codigo] || {};
-          return {
-            Codigo: codigo,
-            Nombre: row['DESCRIPCION LARGA'] || row['DESCRIPCION'] || '',
-            Descripcion: row['DESCRIPCION ADICIONAL'] || '',
-            Categoria: row['RUBRO'] || '',
-            SubCategoria: row['SUBRUBRO'] || '',
-            Precio: parsePrecio(row['PRECIO VENTA C/IVA']),
-            Proveedor: row['PROVEEDOR'] || '',
-            Habilitado: (typeof cfg.Habilitado !== 'undefined') ? cfg.Habilitado : false,
-            Orden: cfg.Orden || 999999,
-            Ranking: cfg.Ranking || 999999,
-            ImagenURL: (cfg.ImagenURL && String(cfg.ImagenURL).startsWith('http')) ? cfg.ImagenURL : '',
-          };
-        });
-
-        currentPage = 1;
-        renderPage();
-        showToast('Excel procesado', 'success', 1500);
-      };
-      reader.readAsArrayBuffer(f);
-    } catch (err) {
-      console.error(err);
-      showToast('Error al leer Excel', 'error', 4000);
+      return JSON.parse(text);
+    } catch (e) {
+      // no es JSON puro; intentar evaluar solo por seguridad: buscar array en el texto
+      const arrMatch = text.match(/\[(?:[\s\S]*?)\]/m);
+      if (arrMatch) return JSON.parse(arrMatch[0]);
+      throw new Error('No JSON en fallback');
     }
-  });
+  } catch (err) {
+    console.warn('Local fallback error:', err.message);
+    return [];
+  }
 }
 
-/* ------------ SEARCH & PAGE SIZE HOOKS ------------ */
-const searchEl = document.getElementById('search');
-if (searchEl) {
-  searchEl.addEventListener('input', debounce(() => { currentPage = 1; renderPage(); }, 220));
-}
-const pageSizeEl = document.getElementById('page-size');
-if (pageSizeEl) {
-  pageSizeEl.addEventListener('change', e => { pageSize = Number(e.target.value) || 50; currentPage = 1; renderPage(); });
+function normalizeProductFromServer(p) {
+  return {
+    Codigo: String(p.Codigo || p.ID || p.code || '').trim(),
+    Nombre: p.Nombre || p.name || '',
+    Descripcion: p.Descripcion || p.description || '',
+    Categoria: p.Categoria || p.category || '',
+    SubCategoria: p.SubCategoria || p.subcategory || '',
+    Precio: Number(p.Precio || p.Price || 0) || 0,
+    Proveedor: p.Proveedor || p.proveedor || '',
+    Habilitado: toBool(p.Habilitado),
+    Orden: Number(p.Orden || 999999),
+    Ranking: Number(p.Ranking || 999999),
+    ImagenURL: p.ImagenURL || (p.ImagenURL === undefined ? `/media/PRODUCTOS/${p.Codigo}.jpg` : ''),
+    source: p.source || 'server'
+  };
 }
 
-/* ------------ RENDER (PAGINADO) ------------ */
+/* ========== RENDER / PAGINACIÓN ========== */
 function renderPage() {
   const q = (document.getElementById('search')?.value || '').trim().toLowerCase();
-
-  let filtered = allProducts.filter(p => {
-    // proteger si campos vacíos
+  const filtered = allProducts.filter(p => {
     const code = String(p.Codigo || '').toLowerCase();
-    const nombre = String(p.Nombre || '').toLowerCase();
+    const name = String(p.Nombre || '').toLowerCase();
     const prov = String(p.Proveedor || '').toLowerCase();
-    return code.includes(q) || nombre.includes(q) || prov.includes(q);
+    return code.includes(q) || name.includes(q) || prov.includes(q);
   });
 
-  // Orden natural por Orden, luego Nombre
   filtered.sort((a,b) => {
     const oa = Number(a.Orden || 999999);
     const ob = Number(b.Orden || 999999);
@@ -204,15 +159,10 @@ function renderPage() {
   const pageItems = filtered.slice(start, start + pageSize);
 
   const cont = document.getElementById('results');
-  if (!cont) {
-    console.error('#results no existe en el DOM');
-    return;
-  }
   cont.innerHTML = '';
-
   const tpl = document.getElementById('row-tpl');
   if (!tpl) {
-    cont.innerHTML = `<div style="color: #a00">Falta template #row-tpl en panel.html</div>`;
+    cont.textContent = 'Template #row-tpl no encontrado';
     return;
   }
 
@@ -220,29 +170,25 @@ function renderPage() {
     const node = tpl.content.cloneNode(true);
     const row = node.querySelector('.product-row');
 
-    // Thumb
-    const imgEl = row.querySelector('img.thumb');
-    imgEl.loading = 'lazy';
-    const src = (p.ImagenURL && String(p.ImagenURL).startsWith('http')) ? p.ImagenURL : '/media/no-image.png';
-    imgEl.src = src;
-    imgEl.onerror = () => imgEl.src = '/media/no-image.png';
-
+    // fill
     row.querySelector('.codigo').textContent = p.Codigo || '(sin código)';
     row.querySelector('.nombre').textContent = p.Nombre || '';
     row.querySelector('.proveedor').textContent = p.Proveedor || '';
     row.querySelector('.precio').textContent = p.Precio ? `$${p.Precio}` : '';
 
-    // Habilitado checkbox (editable)
+    const imgEl = row.querySelector('img.thumb');
+    imgEl.src = p.ImagenURL || '/media/no-image.png';
+    imgEl.onerror = () => imgEl.src = '/media/no-image.png';
+
     const habil = row.querySelector('.habilitado');
     habil.checked = !!p.Habilitado;
-    habil.onchange = () => { p.Habilitado = !!habil.checked; updateStats(); };
+    habil.onchange = () => { p.Habilitado = !!habil.checked; markDirty(); updateStats(); };
 
-    // Orden input (editable)
     const ordenInput = row.querySelector('.orden');
     ordenInput.value = (Number(p.Orden) === 999999) ? '' : String(p.Orden);
-    ordenInput.onchange = () => { p.Orden = Number(ordenInput.value) || 999999; };
+    ordenInput.onchange = () => { p.Orden = Number(ordenInput.value) || 999999; markDirty(); };
 
-    // Bot subir foto
+    // upload foto
     const btnPhoto = row.querySelector('.btn-photo');
     let fileInput = null;
     btnPhoto.onclick = () => {
@@ -253,8 +199,8 @@ function renderPage() {
         fileInput.onchange = async ev => {
           const file = ev.target.files[0];
           if (!file) return;
-          const ext = file.name.split('.').pop().toLowerCase();
-          const name = `${String(p.Codigo || 'no-code')}.${ext || 'jpg'}`;
+          const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+          const name = `${String(p.Codigo || 'no-code')}.${ext}`;
           const path = `productos/${name}`;
           try {
             showToast('Subiendo imagen...', 'info', 2500);
@@ -262,12 +208,12 @@ function renderPage() {
             const snap = await ref.put(file);
             const url = await snap.ref.getDownloadURL();
             p.ImagenURL = url;
-            // actualizar thumbnail inmediato
             imgEl.src = url;
+            markDirty();
             showToast('Imagen subida', 'success', 1800);
           } catch (err) {
             console.error('upload error', err);
-            showToast('Error subiendo imagen', 'error', 3500);
+            showToast('Error subiendo imagen', 'error', 4000);
           }
         };
         btnPhoto.parentElement.appendChild(fileInput);
@@ -278,7 +224,7 @@ function renderPage() {
     cont.appendChild(node);
   });
 
-  // Pager
+  // pager
   const pager = document.getElementById('pager');
   pager.innerHTML = `Página ${currentPage} / ${pages} — ${total} resultados`;
   const prev = document.createElement('button');
@@ -297,27 +243,77 @@ function renderPage() {
   updateStats();
 }
 
-/* ------------ ESTADÍSTICAS ------------ */
 function updateStats() {
   const habCount = allProducts.filter(x => toBool(x.Habilitado)).length;
-  document.getElementById('stats').textContent = `${habCount} habilitados / ${allProducts.length} productos`;
+  const stats = document.getElementById('stats');
+  if (stats) stats.textContent = `${habCount} habilitados / ${allProducts.length} productos`;
 }
 
-/* ------------ GUARDAR EN APPS SCRIPT (POST) ------------ */
-const saveBtn = document.getElementById('btn-save');
-if (saveBtn) {
-  saveBtn.addEventListener('click', async () => {
-    if (isSaving) return;
-    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('TU_URL')) { alert('Configura APPS_SCRIPT_URL'); return; }
-
+/* ========== IMPORT EXCEL ========== */
+const excelInput = document.getElementById('excel-input');
+if (excelInput) {
+  excelInput.addEventListener('change', async e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
     try {
-      isSaving = true;
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Guardando...';
-      showToast('Guardando en Sheets...', 'info', 2500);
+      showToast('Leyendo Excel...', 'info', 1400);
+      const reader = new FileReader();
+      reader.onload = async ev => {
+        const data = new Uint8Array(ev.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet, { defval: '' });
 
-      // Normalizar payload: mantener las keys que usa tu Apps Script
-      const payload = { products: allProducts.map(p => ({
+        // merge remoto: consulta el apps script (si disponible)
+        const remoteMap = {};
+        try {
+          const serverProducts = await fetchProductsFromWebApp();
+          serverProducts.forEach(x => { remoteMap[String(x.Codigo || '')] = x; });
+        } catch (err) {
+          console.warn('No se obtuvo remoteMap en import', err && err.message);
+        }
+
+        allProducts = json.map(row => {
+          const codigo = String(row['CODIGO BARRA'] || row['ID'] || '').trim();
+          const cfg = remoteMap[codigo] || {};
+          return {
+            Codigo: codigo,
+            Nombre: row['DESCRIPCION LARGA'] || row['DESCRIPCION'] || '',
+            Descripcion: row['DESCRIPCION ADICIONAL'] || '',
+            Categoria: row['RUBRO'] || '',
+            SubCategoria: row['SUBRUBRO'] || '',
+            Precio: parsePrecio(row['PRECIO VENTA C/IVA']),
+            Proveedor: row['PROVEEDOR'] || '',
+            Habilitado: (typeof cfg.Habilitado !== 'undefined') ? cfg.Habilitado : false,
+            Orden: cfg.Orden || 999999,
+            Ranking: cfg.Ranking || 999999,
+            ImagenURL: cfg.ImagenURL || ''
+          };
+        });
+
+        currentPage = 1;
+        renderPage();
+        showToast('Excel cargado', 'success', 1500);
+      };
+      reader.readAsArrayBuffer(f);
+    } catch (err) {
+      console.error(err);
+      showToast('Error leyendo Excel', 'error', 4000);
+    }
+  });
+}
+
+/* ========== GUARDAR (POST a Apps Script) ========== */
+document.getElementById('btn-save')?.addEventListener('click', async () => {
+  if (isSaving) return;
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('TU_URL')) { alert('Configura APPS_SCRIPT_URL'); return; }
+  try {
+    isSaving = true;
+    const btn = document.getElementById('btn-save');
+    if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+
+    const payload = {
+      products: allProducts.map(p => ({
         Codigo: p.Codigo,
         Habilitado: p.Habilitado,
         Orden: p.Orden,
@@ -329,55 +325,76 @@ if (saveBtn) {
         SubCategoria: p.SubCategoria || '',
         Precio: p.Precio || 0,
         Proveedor: p.Proveedor || ''
-      })) };
+      })),
+      timestamp: new Date().toISOString()
+    };
 
-      const res = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json().catch(() => ({}));
-      if (json.status === 'saved' || json.status === 'ok') {
-        showToast(`Guardado OK (${json.count || allProducts.length})`, 'success', 3000);
-      } else {
-        showToast('Guardado completado (ver respuesta)', 'success', 2800);
-        console.log('Respuesta apps script:', json);
-      }
-    } catch (err) {
-      console.error('save error', err);
-      showToast('Error al guardar: ' + (err.message || ''), 'error', 5000);
-      alert('Error guardando: ' + (err.message || err));
-    } finally {
-      isSaving = false;
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'GUARDAR CAMBIOS';
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json().catch(()=>({}));
+    if (json.status === 'saved' || json.status === 'ok') {
+      showToast(`Guardado OK (${json.count || payload.products.length})`, 'success', 3000);
+    } else {
+      console.log('Respuesta guardado', json);
+      showToast('Guardado completado (revisar respuesta)', 'success', 3000);
     }
-  });
+  } catch (err) {
+    console.error('save error', err);
+    showToast('Error guardando: ' + (err.message || ''), 'error', 6000);
+    alert('Error guardando: ' + (err.message || err));
+  } finally {
+    isSaving = false;
+    const btn = document.getElementById('btn-save');
+    if (btn) { btn.disabled = false; btn.textContent = 'GUARDAR CAMBIOS'; }
+  }
+});
+
+/* ========== BOOTSTRAP: cargar datos al inicio ========== */
+async function boot() {
+  try {
+    showToast('Cargando productos...', 'info', 1200);
+    try {
+      allProducts = await fetchProductsFromWebApp();
+    } catch (err) {
+      // intentar fallback local
+      const fallback = await fetchProductsFromLocalFallback();
+      if (Array.isArray(fallback) && fallback.length) {
+        allProducts = fallback.map(normalizeProductFromServer);
+        showToast('Cargado fallback local', 'info', 1300);
+      } else {
+        allProducts = [];
+        showToast('No se cargaron productos', 'error', 2200);
+      }
+    }
+    updateStats();
+    renderPage();
+  } catch (err) {
+    console.error('boot error', err);
+    showToast('Error inicial', 'error', 4000);
+  }
 }
 
-/* ------------ INIT: hook botones y auto-fetch (opcional) ------------ */
+/* ========== AUX: marcar dirty (para UX) ========== */
+function markDirty() {
+  const btn = document.getElementById('btn-save');
+  if (btn) btn.style.boxShadow = '0 0 0 4px rgba(0,123,255,0.12)';
+}
+
+/* ========== HOOKS UI ========== */
 document.addEventListener('DOMContentLoaded', () => {
-  // Botones superiores (si existen)
-  const btnTienda = document.getElementById('btn-tienda');
-  const btnTodos = document.getElementById('btn-todos');
-  const btnNuevo = document.getElementById('btn-nuevo');
-
-  if (btnTienda) btnTienda.onclick = () => {
-    // mostrar solo habilitados
+  document.getElementById('search')?.addEventListener('input', debounce(()=>{ currentPage = 1; renderPage(); }, 220));
+  document.getElementById('page-size')?.addEventListener('change', e => { pageSize = Number(e.target.value) || 50; currentPage = 1; renderPage(); });
+  document.getElementById('btn-tienda')?.addEventListener('click', () => {
     const enabled = allProducts.filter(p => toBool(p.Habilitado));
-    // reemplazamos la vista temporal para mostrar solo habilitados
-    // Nota: para simplicidad actualizamos allProductsDisplayed y renderizamos.
-    // Mantendremos allProducts intacto.
-    // Implementamos cambiando temporalmente pageSize y currentPage
-    // pero la forma más simple: actualizar DOM con lista filtrada
     renderFiltered(enabled);
-  };
-
-  if (btnTodos) btnTodos.onclick = () => { renderPage(); };
-
-  if (btnNuevo) btnNuevo.onclick = () => {
+  });
+  document.getElementById('btn-todos')?.addEventListener('click', () => renderPage());
+  document.getElementById('btn-nuevo')?.addEventListener('click', () => {
     const nombre = prompt('Nombre nuevo producto:');
     if (!nombre) return;
     const codigo = prompt('Código (SKU):');
@@ -398,80 +415,34 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     allProducts.unshift(nuevo);
     renderPage();
-    showToast('Producto creado (solo local). Pulsá GUARDAR para persistir.', 'info', 3500);
-  };
+    showToast('Producto creado localmente. Pulsá GUARDAR para persistir.', 'info', 3500);
+  });
 
-  // Auto fetch remote on load to pre-populate if sheet ya tiene datos
-  (async () => {
-    try {
-      const remoteMap = await fetchRemoteConfigs();
-      // Si hay remoteMap, y allProducts vacío -> fetch via GET (tu GET ya devuelve combined excel+config)
-      // Llamamos al endpoint para obtener products combinados (tu doGet).
-      if (APPS_SCRIPT_URL && Object.keys(remoteMap || {}).length >= 0) {
-        try {
-          const res = await fetch(APPS_SCRIPT_URL, { cache: 'no-cache' });
-          if (res.ok) {
-            const json = await res.json();
-            if (json.status === 'ok' && Array.isArray(json.products)) {
-              allProducts = json.products.map(p => ({
-                Codigo: p.Codigo || '',
-                Nombre: p.Nombre || '',
-                Descripcion: p.Descripcion || '',
-                Categoria: p.Categoria || '',
-                SubCategoria: p.SubCategoria || '',
-                Precio: p.Precio || 0,
-                Proveedor: p.Proveedor || '',
-                Habilitado: toBool(p.Habilitado),
-                Orden: Number(p.Orden || 999999),
-                Ranking: Number(p.Ranking || 999999),
-                ImagenURL: p.ImagenURL || (p.ImagenURL === undefined ? `/media/PRODUCTOS/${p.Codigo}.jpg` : '')
-              }));
-              renderPage();
-              showToast('Productos cargados desde Sheets', 'success', 1400);
-              return;
-            }
-          }
-        } catch (err) {
-          console.warn('No se pudo obtener lista desde Apps Script (GET)', err);
-        }
-      }
-    } catch (e) { console.warn(e); }
-
-    // si no cargó nada, dejamos vacío hasta que se importe Excel
-    renderPage();
-  })();
+  boot();
 });
 
-/* ------------ RENDER FILTERED (helper) ------------ */
+/* ========== helper renderFiltered ========== */
 function renderFiltered(list) {
-  // renderiza una lista simple (sin paginador) — usada por btn-tienda
   const cont = document.getElementById('results');
   cont.innerHTML = '';
   const tpl = document.getElementById('row-tpl');
   if (!tpl) return;
   list.forEach(p => {
     const node = tpl.content.cloneNode(true);
-    const row = node.querySelector('.product-row');
-
-    const imgEl = row.querySelector('img.thumb');
+    node.querySelector('.codigo').textContent = p.Codigo || '(sin código)';
+    node.querySelector('.nombre').textContent = p.Nombre || '';
+    node.querySelector('.proveedor').textContent = p.Proveedor || '';
+    node.querySelector('.precio').textContent = p.Precio ? `$${p.Precio}` : '';
+    const imgEl = node.querySelector('img.thumb');
     imgEl.src = p.ImagenURL || '/media/no-image.png';
     imgEl.onerror = () => imgEl.src = '/media/no-image.png';
-
-    row.querySelector('.codigo').textContent = p.Codigo || '(sin código)';
-    row.querySelector('.nombre').textContent = p.Nombre || '';
-    row.querySelector('.proveedor').textContent = p.Proveedor || '';
-    row.querySelector('.precio').textContent = p.Precio ? `$${p.Precio}` : '';
-
-    const habil = row.querySelector('.habilitado');
+    const habil = node.querySelector('.habilitado');
     habil.checked = !!p.Habilitado;
-    habil.onchange = () => { p.Habilitado = !!habil.checked; updateStats(); };
-
-    const ordenInput = row.querySelector('.orden');
-    ordenInput.value = (Number(p.Orden) === 999999) ? '' : String(p.Orden);
+    habil.onchange = () => { p.Habilitado = !!habil.checked; markDirty(); updateStats(); };
+    const ordenInput = node.querySelector('.orden');
+    ordenInput.value = (Number(p.Orden)===999999) ? '' : String(p.Orden);
     ordenInput.onchange = () => { p.Orden = Number(ordenInput.value) || 999999; };
-
-    // Upload button as before
-    const btnPhoto = row.querySelector('.btn-photo');
+    const btnPhoto = node.querySelector('.btn-photo');
     let fileInput = null;
     btnPhoto.onclick = () => {
       if (!fileInput) {
@@ -481,31 +452,25 @@ function renderFiltered(list) {
         fileInput.onchange = async ev => {
           const file = ev.target.files[0];
           if (!file) return;
-          const ext = file.name.split('.').pop().toLowerCase();
-          const name = `${String(p.Codigo || 'no-code')}.${ext || 'jpg'}`;
+          const ext = (file.name.split('.').pop()||'jpg').toLowerCase();
+          const name = `${String(p.Codigo||'no-code')}.${ext}`;
           const path = `productos/${name}`;
           try {
-            showToast('Subiendo imagen...', 'info', 2500);
+            showToast('Subiendo imagen...', 'info', 2000);
             const ref = storage.ref().child(path);
             const snap = await ref.put(file);
             const url = await snap.ref.getDownloadURL();
             p.ImagenURL = url;
-            row.querySelector('img.thumb').src = url;
-            showToast('Imagen subida', 'success', 1800);
-          } catch (err) {
-            console.error('upload error', err);
-            showToast('Error subiendo imagen', 'error', 3500);
-          }
+            node.querySelector('img.thumb').src = url;
+            markDirty();
+            showToast('Imagen subida', 'success', 1600);
+          } catch(err){ console.error(err); showToast('Error upload', 'error'); }
         };
         btnPhoto.parentElement.appendChild(fileInput);
       }
       fileInput.click();
     };
-
     cont.appendChild(node);
   });
-
   updateStats();
 }
-
-/* END OF FILE */
