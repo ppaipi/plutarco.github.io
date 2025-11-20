@@ -51,7 +51,7 @@ async function loadProducts() {
       return rankA - rankB;
     });
 
-    renderCategories();      
+          
     renderProductsByCategory();  
 
   } catch (err) {
