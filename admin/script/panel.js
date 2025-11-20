@@ -36,6 +36,8 @@ const btnNuevo = document.getElementById("btn-nuevo");
 
 let allProducts = [];
 let viewProducts = [];
+let renderIndex = 0;
+const PAGE_SIZE = 50; // cantidad de productos por página
 let showOnlyTienda = true;
 
 // --- Utilidades ---
@@ -82,22 +84,35 @@ async function loadProducts() {
 
 // Aplicar vista (solo tienda o todos)
 function applyView() {
-  viewProducts = showOnlyTienda ? allProducts.filter(p => p.Habilitado) : [...allProducts];
+  renderIndex = 0; // <<--- importante
+  viewProducts = showOnlyTienda ? 
+    allProducts.filter(p => p.Habilitado) : 
+    [...allProducts];
+
   renderProducts();
 }
 
+
 // --- Render por categoría/subcategoria ---
 function renderProducts() {
+  productList.innerHTML = "";
+
   if (!viewProducts || viewProducts.length === 0) {
     productList.innerHTML = "<div style='padding:20px;color:#555'>No hay productos para mostrar.</div>";
     return;
   }
 
-  productList.innerHTML = "";
+  // Reset si estamos cambiando de vista
+  if (renderIndex === 0) {
+    productList.innerHTML = "";
+  }
 
+  // Calcular el rango visible
+  const slice = viewProducts.slice(0, renderIndex + PAGE_SIZE);
+
+  // Agrupar por categoría / subcategoría
   const groups = {};
-
-  viewProducts.forEach(p => {
+  slice.forEach(p => {
     const cat = p.Categoria && p.Categoria.trim() ? p.Categoria : "Sin categoría";
     const sub = p.SubCategoria && p.SubCategoria.trim() ? p.SubCategoria : "General";
 
@@ -109,7 +124,7 @@ function renderProducts() {
 
   Object.keys(groups).sort().forEach(cat => {
     const catDiv = document.createElement("div");
-
+    
     const h2 = document.createElement("h2");
     h2.textContent = cat;
     catDiv.appendChild(h2);
@@ -122,9 +137,9 @@ function renderProducts() {
       const list = document.createElement("div");
       list.className = "sortable-list";
 
-      groups[cat][sub]
-        .sort((a,b) => (a.Orden||999999) - (b.Orden||999999))
-        .forEach(p => list.appendChild(createProductRow(p)));
+      groups[cat][sub].forEach(p => {
+        list.appendChild(createProductRow(p));
+      });
 
       new Sortable(list, {
         animation: 150,
@@ -143,7 +158,29 @@ function renderProducts() {
 
     productList.appendChild(catDiv);
   });
+
+  // Botón cargar más
+  if (slice.length < viewProducts.length) {
+    const btn = document.createElement("button");
+    btn.textContent = "Cargar más productos";
+    btn.style.margin = "20px auto";
+    btn.style.display = "block";
+    btn.style.padding = "12px 20px";
+    btn.style.background = "#3498db";
+    btn.style.color = "white";
+    btn.style.border = "none";
+    btn.style.borderRadius = "6px";
+    btn.style.cursor = "pointer";
+
+    btn.onclick = () => {
+      renderIndex += PAGE_SIZE; 
+      renderProducts();
+    };
+
+    productList.appendChild(btn);
+  }
 }
+
 
 
 // --- Crear fila de producto ---
