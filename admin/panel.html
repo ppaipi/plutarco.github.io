@@ -144,7 +144,23 @@
 <div id="product-list">
     Cargando productos…
 </div>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCGuA_RkvEUptmUHO4YOAzr9qRKtK1cNDQ",
+    authDomain: "plutarcodelivery-cf6cb.firebaseapp.com",
+    projectId: "plutarcodelivery-cf6cb",
+    storageBucket: "plutarcodelivery-cf6cb.appspot.com",  // ← CAMBIO IMPORTANTE
+    messagingSenderId: "714627263776",
+    appId: "1:714627263776:web:3ee0e4fc657a6c12e37b45",
+    measurementId: "G-99MNS9JHQN"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+</script>
 <script src="script/panel.js"></script>
 
 </body>
