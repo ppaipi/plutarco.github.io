@@ -84,13 +84,23 @@ async function loadProducts() {
 
 // Aplicar vista (solo tienda o todos)
 function applyView() {
-  renderIndex = 0; // <<--- importante
-  viewProducts = showOnlyTienda ? 
-    allProducts.filter(p => p.Habilitado) : 
-    [...allProducts];
-
+  renderIndex = 0;
+  // normalizar: obtener array de habilitados con todobool
+  const habilitados = allProducts.filter(p => p.Habilitado === true);
+  if (showOnlyTienda) {
+    if (habilitados.length > 0) {
+      viewProducts = habilitados;
+    } else {
+      // Por seguridad y para debug, en vez de mostrar todos sin aviso, muestra todos y avisa:
+      console.warn("No hay habilitados -> mostrando TODOS para evitar pantalla vacía");
+      viewProducts = [...allProducts];
+    }
+  } else {
+    viewProducts = [...allProducts];
+  }
   renderProducts();
 }
+
 
 
 // --- Render por categoría/subcategoria ---
