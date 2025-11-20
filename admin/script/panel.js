@@ -16,7 +16,7 @@ const FIREBASE_CONFIG = {
 };
 
 // Tu WebApp URL (Google Apps Script)
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymVHpZITD-LgBBFSK1ThWucgVYURRLhztkfGo2tvGamiFhTL73nfK2BDrtSA9GKJQk/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYuRooT4gimgVgM9QPP9HlsEacR0Ip2IHjZc5QgKeelAojQaaZdQLyG9viFvvLtjzu/exec";
 
 /* ------------ INIT FIREBASE (v8 compat) ------------ */
 // Asegurate de cargar firebase v8 en panel.html: 
