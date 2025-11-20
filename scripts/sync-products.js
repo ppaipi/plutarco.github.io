@@ -1,9 +1,11 @@
 // =======================
-//  SYNC PRODUCTOS
+//  SYNC PRODUCTOS COMPLETO
 // =======================
 
 const { google } = require("googleapis");
 const fs = require("fs");
+const path = require("path");
+const csv = require("csv-parser");
 
 // ----- AUTENTICACIÓN -----
 const auth = new google.auth.GoogleAuth({
@@ -15,21 +17,19 @@ const sheets = google.sheets({ version: "v4", auth });
 
 // ----- CONFIGURACIÓN -----
 const SPREADSHEET_ID = process.env.SHEET_ID;
-const PRODUCT_RANGE = "Hoja1!A1:Z20000"; // lee 20.000 filas
+const PRODUCT_RANGE = "Hoja1!A1:Z20000";
 
-console.log("Leyendo hoja de cálculo…");
+console.log("Leyendo Google Sheets…");
 
 // ---------------------------
 // HELPERS
 // ---------------------------
 
-// limpia HTML accidental (<b>, <i>, tags invisibles)
 function clean(value) {
   if (!value) return "";
   return String(value).replace(/<[^>]*>/g, "").trim();
 }
 
-// parsea precio europeo: 3.200,50
 function parsePrecio(valor) {
   if (!valor) return 0;
   const s = clean(valor).replace(/\./g, "").replace(",", ".");
@@ -37,8 +37,40 @@ function parsePrecio(valor) {
   return isNaN(n) ? 0 : n;
 }
 
+function loadHabilitados() {
+  const p = "media/Habilitados.json";
+  if (!fs.existsSync(p)) return [];
+  return JSON.parse(fs.readFileSync(p, "utf8"));
+}
+
+function loadRanking() {
+  return new Promise((resolve) => {
+    const file = "media/Ranking.csv";
+    if (!fs.existsSync(file)) return resolve({});
+
+    const rankingMap = {};
+    fs.createReadStream(file)
+      .pipe(csv({ separator: ";" }))
+      .on("data", (row) => {
+        const r = Number(row["Ranking"]);
+        const nombre = row["Producto"];
+        if (r && nombre) rankingMap[nombre.trim()] = r;
+      })
+      .on("end", () => resolve(rankingMap));
+  });
+}
+
+// ==========================
+//     PROCESO PRINCIPAL
+// ==========================
 (async () => {
   try {
+    const habilitados = loadHabilitados();
+    console.log("Habilitados:", habilitados.length);
+
+    const rankingByName = await loadRanking();
+    console.log("Ranking cargado:", Object.keys(rankingByName).length);
+
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: PRODUCT_RANGE,
@@ -51,25 +83,29 @@ function parsePrecio(valor) {
       return;
     }
 
-    const header = rows.shift().map(h => clean(h)); // limpiar headers
-    const json = rows.map((row) => {
-      const data = {};
-      header.forEach((h, i) => {
-        data[h] = clean(row[i]);  // limpiar HTML en cada celda
-      });
+    const header = rows.shift().map(h => clean(h));
 
-      // --- Mapeo robusto ---
+    const json = rows.map(row => {
+      const data = {};
+      header.forEach((h, i) => data[h] = clean(row[i]));
+
       const codigo =
         data["CODIGO BARRA"]?.trim() ||
         data["ID"]?.trim() ||
         "";
 
-      if (!codigo) return null; // ignorar filas vacías
+      if (!codigo) return null;
 
       const nombre =
         data["DESCRIPCION LARGA"] ||
         data["DESCRIPCION"] ||
         "";
+
+      const isHabilitado = habilitados.includes(codigo);
+
+      const ranking =
+        rankingByName[nombre.trim()] ??
+        999999;
 
       return {
         Codigo: codigo,
@@ -80,27 +116,16 @@ function parsePrecio(valor) {
         Precio: parsePrecio(data["PRECIO VENTA C/IVA"]),
         Proveedor: data["PROVEEDOR"] || "",
         ImagenURL: `/media/PRODUCTOS/${codigo}.jpg`,
-        Habilitado: false,
-        Orden: 999999
+        Habilitado: isHabilitado,
+        Ranking: ranking,
+        Orden: ranking // mismo valor
       };
-    }).filter(x => x !== null);
+    }).filter(Boolean);
 
-    // GUARDAR ARCHIVOS ========================
+    json.sort((a, b) => a.Ranking - b.Ranking);
 
     fs.writeFileSync("products.json", JSON.stringify(json, null, 2));
-    console.log("products.json actualizado! Productos:", json.length);
-
-    // habilitados.json SI YA EXISTE, NO SE SOBRESCRIBE
-    if (!fs.existsSync("media/Habilitados.json")) {
-      fs.writeFileSync("media/Habilitados.json", "[]");
-    }
-
-    // ranking.csv SI YA EXISTE, NO SE SOBRESCRIBE
-    if (!fs.existsSync("media/Ranking.csv")) {
-      fs.writeFileSync("media/Ranking.csv", "Ranking;Producto\n");
-    }
-
-    console.log("Listo!");
+    console.log("products.json generado con", json.length, "productos");
 
   } catch (err) {
     console.error("ERROR:", err);

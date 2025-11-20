@@ -21,12 +21,12 @@ console.log("Leyendo products.json / habilitados.json / ranking.csv...");
 
 const products = JSON.parse(fs.readFileSync("products.json", "utf8"));
 
-const habilitados = fs.existsSync("habilitados.json")
-  ? JSON.parse(fs.readFileSync("habilitados.json", "utf8"))
+const habilitados = fs.existsSync("media/Habilitados.json")
+  ? JSON.parse(fs.readFileSync("media/Habilitados.json", "utf8"))
   : [];
 
-const rankingCSV = fs.existsSync("ranking.csv")
-  ? fs.readFileSync("ranking.csv", "utf8")
+const rankingCSV = fs.existsSync("media/Ranking.csv")
+  ? fs.readFileSync("media/Ranking.csv", "utf8")
   : "";
 
 
