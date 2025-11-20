@@ -115,7 +115,7 @@ function createProductCard(prod) {
 
 div.innerHTML = `
   <img 
-    src="media/PRODUCTOS/${prod.Codigo}.jpg" 
+    src="${prod.ImagenURL}" 
     alt="${prod.Nombre}" 
     loading="lazy"
     style="object-fit: cover;"
@@ -431,12 +431,13 @@ function renderProductsByCategory(productos) {
 
 
 function sortByRanking(a, b) {
-  const rankA = rankingMap[a.Nombre] ?? Infinity; 
-  const rankB = rankingMap[b.Nombre] ?? Infinity;
+  const rankA = a.Ranking ?? Infinity; 
+  const rankB = b.Ranking ?? Infinity;
 
   if (rankA !== rankB) return rankA - rankB;  
   return a.Nombre.localeCompare(b.Nombre, 'es'); 
 }
+
 
 
 function createVerMasCard(categoria) {
@@ -615,7 +616,7 @@ function updateCart() {
       <div class="cart-item">
         <img 
           class="thumb"
-          src="media/PRODUCTOS/${producto.Codigo}.jpg" 
+          src="${producto.ImagenURL}" 
           alt="${producto.Nombre}" 
           onerror="this.onerror=null; this.src='media/PRODUCTOS/placeholder.jpg';"
           width="80" height="80"
@@ -1176,7 +1177,7 @@ function crearModalDescripcion(prod) {
   const img = document.createElement('img');
   img.className = 'modal-img';
   img.id = `modal-img-${prod.Codigo}`;
-  img.src = `media/PRODUCTOS/${prod.Codigo}.jpg`;
+  img.src = `${prod.ImagenURL}`;
   img.alt = prod.Nombre;
   img.onerror = function() {
     this.onerror = null;
