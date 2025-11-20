@@ -1,184 +1,94 @@
-/* ===== PANEL PLUTARCO ADMIN - ESTILO MODERNO ===== */
-
-:root {
-  --bg: #0f172a;
-  --bg-card: #1e293b;
-  --bg-hover: #334155;
-  --border: #475569;
-  --text: #e2e8f0;
-  --text-light: #94a3b8;
-  --accent: #38bdf8;
-  --accent-hover: #0ea5e9;
-  --radius: 10px;
-  --shadow: 0 4px 10px rgba(0,0,0,0.3);
+/* panel_admin.css - Estética moderna y legible (oscuro) */
+:root{
+  --bg:#0b1220;
+  --card:#0f1724;
+  --muted:#9aa6b2;
+  --accent:#06b6d4;
+  --accent-2:#0891b2;
+  --radius:12px;
+  --shadow:0 6px 18px rgba(2,6,23,0.6);
+  --glass: rgba(255,255,255,0.03);
 }
 
-body {
-  margin: 0;
-  font-family: "Inter", sans-serif;
-  background: var(--bg);
-  color: var(--text);
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;color:#e6eef6;background:var(--bg);-webkit-font-smoothing:antialiased}
+header{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.03);display:flex;align-items:center;gap:16px}
+header h1{margin:0;font-size:18px;color:var(--accent)}
+
+.wrap{max-width:1300px;margin:20px auto;padding:0 18px}
+
+/* Topbar */
+.topbar{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;margin-bottom:14px}
+.topbar .group{background:var(--card);padding:12px;border-radius:var(--radius);border:1px solid rgba(255,255,255,0.03)}
+.topbar label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.topbar input[type=text]{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:var(--glass);color:inherit}
+
+/* Controls */
+.controls{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.controls .search{flex:1}
+.controls input[type="text"]{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
+.controls select{padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
+.controls label{color:var(--muted);font-size:13px}
+
+/* Stats */
+.stats{margin-bottom:8px;color:var(--muted);font-size:13px}
+
+/* List container - fixed height so virtualization works */
+.list-viewport {
+  height: 720px;                 /* ajusta según espacio visible */
+  overflow: auto;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.03);
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+  padding:8px;
 }
 
-/* Header */
-header {
-  background: var(--bg-card);
-  padding: 18px 22px;
-  border-bottom: 1px solid var(--border);
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-/* Wrapper */
-.wrap {
-  max-width: 1300px;
-  margin: 20px auto;
-  padding: 0 14px;
-}
-
-/* Toolbar */
-.topbar {
-  background: var(--bg-card);
-  padding: 14px;
-  border-radius: var(--radius);
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.topbar label {
-  font-size: 13px;
-  color: var(--text-light);
-}
-
-.topbar input {
-  width: 100%;
-  padding: 9px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: #0f1b31;
-  color: var(--text);
-}
-
-button {
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  cursor: pointer;
-  border: none;
-  font-weight: 600;
-}
-
-.btn-primary {
-  background: var(--accent);
-  color: #0f172a;
-}
-
-.btn-primary:hover {
-  background: var(--accent-hover);
-}
-
-/* Filters */
-.controls {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.controls input[type="text"] {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: #0f1b31;
-  color: var(--text);
-}
-
-select {
-  padding: 10px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: #0f1b31;
-  color: var(--text);
-}
-
-/* Product list */
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+/* Inner spacer that creates full scroll height */
+.inner-spacer { position: relative; width:100%; }
 
 /* Product card */
 .card {
-  display: flex;
-  gap: 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 12px;
-  border-radius: var(--radius);
+  position: absolute;            /* positioned inside inner-spacer */
+  left: 8px;
+  right: 8px;
+  display:flex;
+  gap:14px;
+  padding:12px;
+  border-radius:10px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+  border:1px solid rgba(255,255,255,0.02);
+  align-items:center;
   box-shadow: var(--shadow);
-  transition: 0.15s;
+  transition:transform .12s ease, background .12s ease;
 }
 
-.card:hover {
-  background: var(--bg-hover);
-}
+.card:hover{transform:translateY(-4px);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))}
 
-.thumb {
-  width: 90px;
-  height: 90px;
-  border-radius: var(--radius);
-  object-fit: cover;
-  background: #1e293b;
-}
+.thumb { width:96px;height:84px;border-radius:8px;object-fit:cover;background:#071023;border:1px solid rgba(255,255,255,0.02) }
 
-.meta {
-  flex: 1;
-}
+.meta{flex:1;min-width:0}
+.meta .name{font-size:15px;font-weight:600;color:#eaf6fb}
+.meta .desc{font-size:13px;color:var(--muted);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta .code{font-size:12px;color:var(--muted);margin-top:6px}
 
-.meta .name {
-  font-size: 17px;
-  font-weight: 600;
-}
+/* right controls */
+.controls-right{display:flex;flex-direction:column;gap:8px;align-items:flex-end;min-width:170px}
+.controls-right label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.controls-right input[type=number]{width:100px;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
 
-.meta .code {
-  margin-top: 6px;
-  color: var(--text-light);
-  font-size: 14px;
-}
+/* small buttons */
+.btn { padding:8px 10px;border-radius:8px;border:none;cursor:pointer;font-weight:600 }
+.btn-ghost { background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--muted) }
+.btn-primary { background:var(--accent);color:#04202a }
 
-/* Controls */
-.controls-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+/* pagination footer */
+.footer { display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--muted) }
+.footer .pager { display:flex;gap:8px;align-items:center }
+.footer button { padding:8px 10px;border-radius:8px;border:none;cursor:pointer;background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.02) }
 
-input[type="number"] {
-  padding: 7px;
-  width: 80px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: #0f1b31;
-  color: var(--text);
-}
-
-/* Pagination */
-.pagination {
-  margin: 20px 0;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-.pagination button {
-  padding: 8px 12px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text);
-}
-.pagination button:hover {
-  background: var(--bg-hover);
+/* responsive */
+@media (max-width:900px){
+  .topbar{grid-template-columns:1fr;gap:8px}
+  .controls-right{min-width:120px}
+  .list-viewport{height:640px}
 }
