@@ -514,7 +514,7 @@ function setupAuth() {
     }
   });
 }
-
+ 
 /* Trigger GitHub workflow (via Apps Script endpoint) */
 async function triggerGithubWorkflow() {
   try {
