@@ -1,56 +1,100 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Admin Plutarco - Productos</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin - Plutarco</title>
+
   <link rel="stylesheet" href="style/panel.css" />
-  <!-- Firebase compat (storage) -->
+
+  <!-- Firebase storage (compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+
   <!-- XLSX parser -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- Sortable (drag & drop) -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Panel Admin - Plutarco</h1>
-    <div class="top-controls">
-      <input id="excel-input" type="file" accept=".xlsx,.xls" />
-      <button id="btn-import-sample">Cargar ejemplo</button>
-      <button id="btn-save">Guardar cambios (Sheets)</button>
-      <button id="btn-download-hab">Descargar habilitados.json</button>
-      <button id="btn-trigger-sync">Forzar Sync a GitHub (opcional)</button>
+  <header class="topbar">
+    <h1>Panel Admin — Plutarco</h1>
+
+    <div class="controls">
+      <label class="file-btn">
+        Importar XLSX
+        <input id="file-xlsx" type="file" accept=".xlsx,.xls" />
+      </label>
+
+      <button id="btn-fetch-products" title="Recargar desde Sheets">🔁 Recargar desde Sheets</button>
+      <button id="btn-save" title="Guardar cambios a Google Sheets">💾 Guardar (Sheets)</button>
+      <button id="btn-export-hab">📥 Descargar habilitados.json</button>
+      <button id="btn-export-ranking">📥 Descargar ranking.csv</button>
+      <label class="small">
+        Mostrar
+        <select id="page-size">
+          <option>25</option>
+          <option selected>50</option>
+          <option>100</option>
+        </select>
+        / página
+      </label>
+      <input id="search" placeholder="Buscar por código, nombre o proveedor..." />
     </div>
   </header>
 
-  <main>
-    <section class="search-bar">
-      <input id="search" placeholder="Buscar por código, nombre o marca..." />
-      <select id="page-size">
-        <option value="25">25</option>
-        <option value="50" selected>50</option>
-        <option value="100">100</option>
-      </select>
+  <main class="main">
+    <section class="left">
+      <div id="list-container">
+        <div id="product-list" class="product-list"></div>
+      </div>
+
+      <div class="pager" id="pager"></div>
     </section>
 
-    <section id="results"></section>
+    <aside class="right">
+      <h2>Previsualización</h2>
+      <div id="preview" class="preview">
+        <img id="preview-img" src="" alt="preview" />
+        <h3 id="preview-name"></h3>
+        <p id="preview-desc"></p>
+        <p class="price" id="preview-price"></p>
+        <p class="meta" id="preview-cat"></p>
+      </div>
 
-    <nav id="pager"></nav>
+      <h3>Agregar producto</h3>
+      <div class="add-box">
+        <input id="add-codigo" placeholder="Código (obligatorio)" />
+        <input id="add-nombre" placeholder="Nombre" />
+        <input id="add-precio" placeholder="Precio" />
+        <input id="add-proveedor" placeholder="Proveedor" />
+        <button id="btn-add">➕ Agregar</button>
+      </div>
+
+      <hr/>
+      <div class="notes">
+        <p>Fotos se suben a Firebase: <code>productos/&lt;CODIGO&gt;.jpg</code></p>
+        <p>Al guardar, los productos se envían al Apps Script (Sheets).</p>
+      </div>
+    </aside>
   </main>
 
   <template id="row-tpl">
-    <div class="product-row">
-      <img class="thumb" src="" alt="foto" />
-      <div class="meta">
-        <div class="codigo"></div>
-        <div class="nombre"></div>
-        <div class="proveedor"></div>
+    <div class="row">
+      <div class="thumb-wrap"><img class="thumb" src="" alt="img" /></div>
+      <div class="info">
+        <div class="code"></div>
+        <div class="name"></div>
+        <div class="prov"></div>
       </div>
-      <div class="precio"></div>
+      <div class="price-col"></div>
       <div class="controls">
-        <label><input type="checkbox" class="habilitado" /> Habilitado</label>
-        <input class="orden" type="number" />
-        <button class="btn-photo">Subir foto</button>
+        <label class="smalltoggle"><input type="checkbox" class="habilitado"/> H</label>
+        <input class="orden" type="number" placeholder="orden" />
+        <button class="btn-photo">📷</button>
+        <button class="btn-edit">✏️</button>
+        <button class="btn-delete">🗑️</button>
       </div>
     </div>
   </template>
