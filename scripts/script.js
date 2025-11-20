@@ -33,26 +33,28 @@ let direccionValidaGoogle = false; // Variable global para saber si la direcció
 
 async function loadProducts() {
   try {
-    const res = await fetch('/products.json?cache=' + Date.now());
+    const res = await fetch('/products.json?v=' + Date.now()); 
     const data = await res.json();
 
-    // 🔥 Filtrar habilitados
-    products = data.filter(p => p.Habilitado === true);
+    products = data.filter(p => p.Habilitado !== false);
 
-    // 🔥 Ordenar por ranking
-    products.sort((a, b) => {
-      const rA = a.Ranking || 999999;
-      const rB = b.Ranking || 999999;
-      return rA - rB;
+    // Crear un diccionario por Código para lookup instantáneo
+    products.forEach(p => {
+      productsMap[p.Codigo] = p;
     });
 
-    filteredProducts = [...products];
+    // Ordenar por Ranking o Orden (lo que tengas)
+    products.sort((a, b) => {
+      const rankA = a.Ranking ?? a.Orden ?? 9999;
+      const rankB = b.Ranking ?? b.Orden ?? 9999;
+      return rankA - rankB;
+    });
 
-    renderCategoryMenu();
-    renderProductsByCategory(filteredProducts);
+    renderCategories();      
+    renderProductsByCategory();  
 
   } catch (err) {
-    console.error("Error cargando products.json:", err);
+    console.error("ERROR cargando products.json:", err);
   }
 }
 
@@ -433,12 +435,11 @@ function renderProductsByCategory(productos) {
 
 
 function sortByRanking(a, b) {
-  const rankA = rankingMap[a.Nombre] ?? Infinity; 
-  const rankB = rankingMap[b.Nombre] ?? Infinity;
-
-  if (rankA !== rankB) return rankA - rankB;  
-  return a.Nombre.localeCompare(b.Nombre, 'es'); 
+  const rankA = a.Ranking ?? a.Orden ?? 9999;
+  const rankB = b.Ranking ?? b.Orden ?? 9999;
+  return rankA - rankB;
 }
+
 
 
 function createVerMasCard(categoria) {
