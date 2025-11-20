@@ -33,70 +33,29 @@ let direccionValidaGoogle = false; // Variable global para saber si la direcció
 
 async function loadProducts() {
   try {
-    const res = await fetch('../media/articulos.xlsx?cacheBust=' + Date.now());
-    const data = await res.arrayBuffer();
+    const res = await fetch('../media/products.json?cache=' + Date.now());
+    const data = await res.json();
 
-    // Leer el Excel
-    const workbook = XLSX.read(data, { type: 'array' });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
+    // 🔥 Filtrar habilitados
+    products = data.filter(p => p.Habilitado === true);
 
-    // Convertir la hoja a JSON
-    const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+    // 🔥 Ordenar por ranking
+    products.sort((a, b) => {
+      const rA = a.Ranking || 999999;
+      const rB = b.Ranking || 999999;
+      return rA - rB;
+    });
 
-    // Mapear a tu formato
-    allProducts = jsonData.map(row => ({
-      Codigo: (row["CODIGO BARRA"] || "").toString().trim(),
-      Nombre: row["DESCRIPCION LARGA"] || "",
-      Descripcion: row["DESCRIPCION ADICIONAL"] || "",
-      Categoria: row["RUBRO"] || "",
-      SubCategoria: row["SUBRUBRO"] || "",
-      Precio: parsePrecio(row["PRECIO VENTA C/IVA"]),
-      Proveedor: row["PROVEEDOR"] || "",
-    }));
-
-    // Filtrar solo habilitados
-    const resCodes = await fetch('../media/Habilitados.json?cacheBust=' + Date.now());
-    enabledCodes = await resCodes.json();
-    products = allProducts.filter(p => enabledCodes.includes(p.Codigo));
     filteredProducts = [...products];
 
-    // Render
     renderCategoryMenu();
     renderProductsByCategory(filteredProducts);
 
-    const header = document.querySelector('header');
-    if (header) {
-      header.scrollIntoView({ behavior: 'smooth' });
-    }
   } catch (err) {
-    console.error("Error cargando productos:", err);
+    console.error("Error cargando products.json:", err);
   }
 }
-function parsePrecio(str) {
-  if (!str) return 0;
-  // Quitar puntos de miles y reemplazar coma decimal por punto
-  const limpio = str.replace(/\./g, '').replace(',', '.');
-  return parseFloat(limpio) || 0;
-}
 
-async function loadRanking() {
-  const res = await fetch('../media/Ranking.csv?cacheBust=' + Date.now());
-  const csvText = await res.text();
-  const rows = csvText.trim().split('\n').slice(1); // saco encabezado
-
-  rows.forEach(row => {
-    const cols = row.split(';'); // <-- separador correcto
-    if (cols.length < 2) return;
-
-    const rank = parseInt(cols[0]?.trim(), 10); // columna 1 = Ranking
-    const producto = cols[1]?.trim();           // columna 2 = Producto
-
-    if (producto && !isNaN(rank)) {
-      rankingMap[producto] = rank;
-    }
-  });
-}
 
 function cerrarModalDescripcion() {
   const modal = document.getElementById('modal-descripcion');
