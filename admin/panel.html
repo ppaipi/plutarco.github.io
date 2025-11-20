@@ -1,109 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Panel de Productos – Plutarco</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Panel Admin (mix) - Plutarco</title>
 
-<!-- Firebase v8 -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+  <link rel="stylesheet" href="style/panel.css">
 
-<!-- XLSX (para importar Excel) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Firebase v8 (para subir imágenes) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
-<!-- Estilos -->
-<link rel="stylesheet" href="style/panel.css">
+  <!-- XLSX solo si querés importar Excel localmente (opcional) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
+  <header>
+    <h1>Panel Admin — Plutarco (Modo mixto)</h1>
+  </header>
 
-<header>Panel de Productos</header>
+  <main class="wrap">
+    <section class="topbar">
+      <div>
+        <label>Products JSON URL</label>
+        <input id="url-products" value="/products.json" />
+      </div>
+      <div>
+        <label>Apps Script URL (API)</label>
+        <input id="url-appscript" value="https://script.google.com/macros/s/AKfycbzYuRooT4gimgVgM9QPP9HlsEacR0Ip2IHjZc5QgKeelAojQaaZdQLyG9viFvvLtjzu/exec" />
+      </div>
+      <div class="actions">
+        <button id="btn-load">Cargar</button>
+        <button id="btn-save" class="btn-primary">Guardar cambios</button>
+      </div>
+    </section>
 
-<!-- ===========================
-     BARRA SUPERIOR
-=========================== -->
-<div class="toolbar">
-    <button id="btn-tienda">PRODUCTOS DE LA TIENDA</button>
-    <button id="btn-todos">TODOS LOS PRODUCTOS</button>
-    <button id="btn-nuevo" class="btn-green">AGREGAR NUEVO</button>
-    <button id="btn-save" class="btn-orange">GUARDAR CAMBIOS</button>
-</div>
-
-<!-- ===========================
-     IMPORTAR EXCEL
-=========================== -->
-<div class="import-box">
-    <label>Cargar Excel de productos:</label>
-    <input type="file" id="excel-input" accept=".xls,.xlsx,.csv">
-</div>
-
-<!-- ===========================
-     CONTROLES SECUNDARIOS
-=========================== -->
-<div class="sub-controls">
-    <input type="text" id="search" placeholder="Buscar por código, nombre o proveedor...">
-    
-    <div>
-        <label for="page-size">Productos por página:</label>
-        <select id="page-size">
-            <option value="25">25</option>
-            <option value="50" selected>50</option>
-            <option value="100">100</option>
+    <section class="controls">
+      <input id="search" placeholder="Buscar (código / nombre / proveedor)..." />
+      <label><input id="only-enabled" type="checkbox" /> Mostrar solo habilitados</label>
+      <label>Ordenar por:
+        <select id="sort-by">
+          <option value="orden">Orden</option>
+          <option value="nombre">Nombre</option>
+          <option value="precio">Precio</option>
         </select>
-    </div>
-</div>
+      </label>
+    </section>
 
-<!-- ===========================
-     ESTADÍSTICAS
-=========================== -->
-<div id="stats" class="stats">0 habilitados / 0 productos</div>
+    <section id="stats" class="stats">Cargando...</section>
 
-<!-- ===========================
-     RESULTADOS
-=========================== -->
-<div id="results"></div>
+    <section id="results" class="list"></section>
 
-<!-- PAGINADOR -->
-<div id="pager" class="pager"></div>
+    <section id="preview" class="preview" hidden>
+      <h2>Previsualización</h2>
+      <div id="preview-area" class="preview-area"></div>
+      <button id="close-preview">Cerrar</button>
+    </section>
+  </main>
 
-<!-- ===========================
-     TEMPLATE (fila de producto)
-=========================== -->
-<template id="row-tpl">
-    <div class="product-row">
-
-        <img class="thumb" src="/media/PRODUCTOS/placeholder.jpg" alt="img">
-
-        <div class="info">
-            <div class="name">
-                <span class="nombre"></span>
-            </div>
-            <div class="small">
-                <span class="codigo"></span> • <span class="proveedor"></span>
-            </div>
-            <div class="price precio"></div>
-        </div>
-
-        <div class="actions">
-
-            <label class="lbl">
-                Habilitado
-                <input type="checkbox" class="habilitado">
-            </label>
-
-            <label class="lbl">
-                Orden
-                <input type="number" class="orden" min="1" step="1">
-            </label>
-
-            <button class="btn-photo">FOTO</button>
-        </div>
-
-    </div>
-</template>
-
-<!-- JS -->
-<script src="script/panel.js"></script>
-
+  <script src="script/panel.js"></script>
 </body>
 </html>
