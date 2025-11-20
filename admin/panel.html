@@ -1,177 +1,158 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<title>Panel de Productos</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Panel de Productos - Plutarco</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- SortableJS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-
+<!-- Estilo rápido minimalista -->
 <style>
     body {
-        background: #f4f4f4;
         font-family: Arial, sans-serif;
-        margin: 0; padding: 0;
+        margin: 20px;
+        background: #fafafa;
     }
 
-    header {
-        background: #222;
-        padding: 15px;
-        color: #fff;
-        font-size: 20px;
-        text-align: center;
+    h1 {
+        margin-top: 0;
+        font-size: 26px;
     }
 
-    .toolbar {
+    .top-bar {
         display: flex;
-        gap: 10px;
-        padding: 15px;
-        background: #fff;
-        border-bottom: 1px solid #ccc;
-    }
-
-    .toolbar button {
-        padding: 10px 18px;
-        border: none;
-        background: #3498db;
-        color: white;
-        font-size: 15px;
-        border-radius: 6px;
-        cursor: pointer;
-    }
-
-    .toolbar button:hover {
-        background: #2980b9;
-    }
-
-    #product-list {
-        padding: 20px;
-    }
-
-    h2 {
-        margin-top: 25px;
-        color: #333;
-        border-left: 5px solid #2ecc71;
-        padding-left: 10px;
-    }
-
-    h3 {
-        margin-top: 10px;
-        color: #555;
-        border-left: 5px solid #95a5a6;
-        padding-left: 10px;
-    }
-
-    .sortable-list {
-        background: white;
-        padding: 10px;
-        border-radius: 8px;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: center;
         margin-bottom: 20px;
     }
 
+    .top-bar input,
+    .top-bar select,
+    .top-bar button {
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    #results {
+        margin-top: 10px;
+    }
+
     .product-row {
-        display: flex;
+        display: grid;
+        grid-template-columns: 60px 120px 1fr 120px 80px 80px 120px;
+        gap: 10px;
         align-items: center;
-        gap: 15px;
         padding: 10px;
-        border-bottom: 1px solid #eee;
+        background: white;
+        border-bottom: 1px solid #ddd;
     }
 
-    .product-row:last-child {
-        border-bottom: none;
-    }
-
-    .thumb {
-        width: 55px;
-        height: 55px;
-        border-radius: 6px;
+    .product-row img.thumb {
+        width: 60px;
+        height: 60px;
         object-fit: cover;
-        background: #ddd;
+        border-radius: 4px;
+        background: #eee;
     }
 
-    .info {
-        flex: 1;
-    }
-
-    .name {
+    #pager {
+        margin: 20px 0;
         font-size: 15px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    #stats {
+        margin-top: 15px;
         font-weight: bold;
     }
 
-    .code {
-        font-size: 12px;
-        color: #777;
-    }
-
-    .controls {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 4px;
-        min-width: 140px;
-    }
-
-    .controls input[type="number"] {
-        width: 70px;
-        padding: 5px;
-    }
-
-    .drag {
-        cursor: grab;
-        font-size: 18px;
-        background: none;
-        border: none;
+    .btn-photo {
+        padding: 5px 8px;
+        font-size: 13px;
     }
 </style>
-
 </head>
+
 <body>
 
-<header>Panel de Productos</header>
+<h1>Panel de Productos – Plutarco</h1>
 
-<div class="toolbar">
-    <button id="btn-tienda">PRODUCTOS DE LA TIENDA</button>
-    <button id="btn-todos">TODOS LOS PRODUCTOS</button>
-    <button id="btn-nuevo" style="background:#27ae60;">HABILITAR NUEVO PRODUCTO</button>
-    <button id="btn-save" style="background:#e67e22;">GUARDAR CAMBIOS</button>
+<!-- Barra superior -->
+<div class="top-bar">
+
+    <label>
+        Cargar Excel:
+        <input type="file" id="excel-input" accept=".xlsx,.xls">
+    </label>
+
+    <input type="text" id="search" placeholder="Buscar por nombre, código o proveedor">
+
+    <select id="page-size">
+        <option value="20">20 por página</option>
+        <option value="50" selected>50 por página</option>
+        <option value="100">100 por página</option>
+    </select>
+
+    <button id="btn-import-sample">Test (mostrar página)</button>
+
+    <button id="btn-save" style="background:#27ae60;color:white;">
+        Guardar Cambios
+    </button>
+
 </div>
 
-<div id="product-list">
-    Cargando productos…
-</div>
-<div id="modal-habilitar" 
-     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-            background:rgba(0,0,0,0.6); justify-content:center; align-items:center;">
-  
-  <div style="background:#fff; padding:20px; width:90%; max-width:500px; border-radius:8px;">
-    <h3>Habilitar producto</h3>
 
-    <input id="buscar-prod" type="text" placeholder="Buscar por nombre o código..."
-           style="width:100%; padding:10px; margin-bottom:10px;">
+<!-- Resultados -->
+<div id="results"></div>
 
-    <div id="lista-deshabilitados"
-         style="max-height:300px; overflow-y:auto; border:1px solid #ccc; padding:10px;">
+<!-- Paginador -->
+<div id="pager"></div>
+
+<!-- Estadísticas -->
+<div id="stats"></div>
+
+
+<!-- Template para un producto -->
+<template id="row-tpl">
+    <div class="product-row">
+
+        <img class="thumb" src="/media/no-image.png" loading="lazy">
+
+        <div class="codigo"></div>
+        <div class="nombre"></div>
+        <div class="proveedor"></div>
+        <div class="precio"></div>
+
+        <!-- Habilitado -->
+        <div>
+            <input type="checkbox" class="habilitado">
+        </div>
+
+        <!-- Orden -->
+        <div>
+            <input type="number" class="orden" min="0" style="width:80px;">
+        </div>
+
+        <!-- Subir imagen -->
+        <div>
+            <button class="btn-photo">Subir Foto</button>
+        </div>
+
     </div>
+</template>
 
-    <div id="seccion-imagen" style="display:none; margin-top:10px;">
-        <p>Subir imagen del producto:</p>
-        <input id="subir-imagen-nuevo" type="file" accept="image/*">
-    </div>
 
-    <button id="btn-confirmar" style="display:none; margin-top:10px;">Confirmar</button>
+<!-- Firebase COMPAT (versión recomendada para tu uso) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
-    <br><br>
-    <button onclick="cerrarModal()">Cerrar</button>
-  </div>
+<!-- XLSX para leer Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-</div>
-
-<script src="script/panel.js"></script>
+<!-- Carga el panel -->
+<script src="panel.js"></script>
 
 </body>
 </html>
