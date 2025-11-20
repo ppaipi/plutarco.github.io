@@ -1,7 +1,7 @@
 // === panel.js para panel.html ===
 
 // -------------- CONFIG: PONER TU WEBAPP URL y firebaseConfig --------------
-const WEBAPP_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec"; // <-- pegá tu url del WebApp
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbymVHpZITD-LgBBFSK1ThWucgVYURRLhztkfGo2tvGamiFhTL73nfK2BDrtSA9GKJQk/exec"; // <-- pegá tu url del WebApp
 // firebaseConfig: reemplazá con la configuración que te da Firebase (apiKey, authDomain, etc.)
 const firebaseConfig = {
   apiKey: "APIKEY",
