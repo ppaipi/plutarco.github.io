@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm init -y
-          npm install googleapis
+          npm install googleapis csv-parser
 
       - name: Run sync script
         env:
