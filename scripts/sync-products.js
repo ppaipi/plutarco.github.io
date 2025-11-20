@@ -1,80 +1,53 @@
-// =======================
-//  SYNC PRODUCTOS
-// =======================
+// scripts/sync-products.js
+const fs = require('fs');
+const { google } = require('googleapis');
 
-const { google } = require("googleapis");
-const fs = require("fs");
+async function main() {
+  const sheetId = process.env.SHEET_ID;
+  const credentials = JSON.parse(process.env.GCP_SA_KEY);
 
-// ----- AUTENTICACIÓN -----
-const auth = new google.auth.GoogleAuth({
-  credentials: JSON.parse(process.env.GCP_SA_KEY),
-  scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-});
+  const auth = new google.auth.JWT(
+    credentials.client_email,
+    null,
+    credentials.private_key,
+    ['https://www.googleapis.com/auth/spreadsheets.readonly']
+  );
 
-const sheets = google.sheets({ version: "v4", auth });
+  const sheets = google.sheets({ version: 'v4', auth });
 
-// ----- CONFIGURACIÓN -----
-const SPREADSHEET_ID = process.env.SHEET_ID;
-const PRODUCT_RANGE = "Hoja1!A1:Z20000"; // lee 20.000 filas
+  // LEER HOJA1 COMPLETA
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: sheetId,
+    range: 'Hoja1!A1:Z20000'
+  });
 
-console.log("Leyendo hoja de cálculo…");
+  const rows = res.data.values;
+  if (!rows || rows.length === 0) {
+    console.log("⚠ No hay datos en Sheets");
+    fs.writeFileSync('products.json', '[]');
+    return;
+  }
 
-// PARSEADOR DE PRECIOS
-function parsePrecio(valor) {
-  if (!valor) return 0;
-  return Number(String(valor).replace(".", "").replace(",", "."));
+  const headers = rows[0];
+  const data = rows.slice(1);
+
+  const index = (name) => headers.indexOf(name);
+
+  const list = data.map(r => ({
+    Codigo: r[index("CODIGO BARRA")] || "",
+    Nombre: r[index("DESCRIPCION LARGA")] || "",
+    Descripcion: r[index("DESCRIPCION ADICIONAL")] || "",
+    Categoria: r[index("RUBRO")] || "",
+    SubCategoria: r[index("SUBRUBRO")] || "",
+    Precio: parseFloat((r[index("PRECIO VENTA C/IVA")] || "0").replace(",", ".")) || 0,
+    Proveedor: r[index("PROVEEDOR")] || "",
+    Habilitado: true,
+    Orden: 999999,
+    ImagenURL: `/media/PRODUCTOS/${(r[index("CODIGO BARRA")] || "").trim()}.jpg`
+  }));
+
+  fs.writeFileSync('products.json', JSON.stringify(list, null, 2));
+  console.log("✔ products.json actualizado correctamente");
 }
 
-(async () => {
-  try {
-    const res = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: PRODUCT_RANGE,
-    });
-
-    const rows = res.data.values;
-    if (!rows || rows.length === 0) {
-      console.error("No existe data en la hoja");
-      return;
-    }
-
-    const header = rows.shift();
-    const json = rows.map((row) => {
-      const data = {};
-      header.forEach((h, i) => {
-        data[h] = row[i];
-      });
-
-      return {
-        Codigo: (data["CODIGO BARRA"] || "").toString().trim(),
-        Nombre: data["DESCRIPCION LARGA"] || "",
-        Descripcion: data["DESCRIPCION ADICIONAL"] || "",
-        Categoria: data["RUBRO"] || "",
-        SubCategoria: data["SUBRUBRO"] || "",
-        Precio: parsePrecio(data["PRECIO VENTA C/IVA"]),
-        Proveedor: data["PROVEEDOR"] || "",
-      };
-    });
-
-    // GUARDAR ARCHIVOS ========================
-
-    fs.writeFileSync("products.json", JSON.stringify(json, null, 2));
-    console.log("products.json actualizado!");
-
-    // habilitados.json SI YA EXISTE, NO SE SOBRESCRIBE
-    if (!fs.existsSync("habilitados.json")) {
-      fs.writeFileSync("habilitados.json", "[]");
-    }
-
-    // ranking.csv SI YA EXISTE, NO SE SOBRESCRIBE
-    if (!fs.existsSync("ranking.csv")) {
-      fs.writeFileSync("ranking.csv", "Ranking;Producto\n");
-    }
-
-    console.log("Listo!");
-
-  } catch (err) {
-    console.error("ERROR:", err);
-    process.exit(1);
-  }
-})();
+main().catch(e => console.error(e));

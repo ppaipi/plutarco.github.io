@@ -13,41 +13,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # --- Clonar el repo ---
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      # --- NodeJS ---
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      # --- Instalar las dependencias del proyecto ---
       - name: Install dependencies
         run: |
-          npm install
+          npm init -y
+          npm install googleapis
 
-      # --- Ejecutar el script que lee Google Sheets ---
-      - name: Run sync script (reads Sheets and generates JSON)
+      - name: Run sync script
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
           SHEET_ID: "1VzplC9RV-mi43ZgorbPC7UmLlZPI20XcdJjL2wtqris"
         run: |
           node scripts/sync-products.js
 
-      # --- Enviar productos procesados al Google Apps Script ---
-      - name: Send data to Google Apps Script
-        env:
-          WEBAPP_URL: ${{ secrets.WEBAPP_URL }}
-        run: |
-          node scripts/push-to-appscript.js
-
-      # --- Comitear cambios al repositorio SOLO si hay cambios ---
       - name: Commit changes
         run: |
           git config --global user.email "bot@github.com"
           git config --global user.name "GitHub Action Bot"
-          git add .
+          git add products.json
           git diff-index --quiet HEAD || git commit -m "Actualización automática de productos"
           git push
