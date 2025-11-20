@@ -249,7 +249,8 @@ function renderCardAbsolute(p, y, slot, globalIndex){
   el.innerHTML = `
     <img class="thumb"
         data-src="${p.ImagenURL}"
-        src="/media/PRODUCTOS/placeholder.jpg"
+        src="${p.__loaded ? p.ImagenURL : '/media/PRODUCTOS/placeholder.jpg'}"
+        onload="this.dataset.loaded='1'; p.__loaded=true;"
         onerror="this.src='/media/PRODUCTOS/placeholder.jpg'"/>
     <div class="meta">
       <div class="name">${escapeHtml(p.Nombre)}</div>
@@ -539,10 +540,12 @@ const lazyObserver = new IntersectionObserver(entries => {
 });
 
 function observeLazyImages() {
-  document.querySelectorAll("img[data-src]").forEach(img => {
+  resultsRoot.querySelectorAll("img[data-src]:not([data-lazy])").forEach(img => {
+    img.dataset.lazy = "1";
     lazyObserver.observe(img);
   });
 }
+
 document.getElementById("btn-load-more").addEventListener("click", () => {
   renderLimit += batchSize;
   updateSpacerAndRender();
