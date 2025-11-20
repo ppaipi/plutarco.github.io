@@ -91,13 +91,13 @@ function parsePrecio(valor) {
     console.log("products.json actualizado! Productos:", json.length);
 
     // habilitados.json SI YA EXISTE, NO SE SOBRESCRIBE
-    if (!fs.existsSync("habilitados.json")) {
-      fs.writeFileSync("habilitados.json", "[]");
+    if (!fs.existsSync("media/Habilitados.json")) {
+      fs.writeFileSync("media/Habilitados.json", "[]");
     }
 
     // ranking.csv SI YA EXISTE, NO SE SOBRESCRIBE
-    if (!fs.existsSync("ranking.csv")) {
-      fs.writeFileSync("ranking.csv", "Ranking;Producto\n");
+    if (!fs.existsSync("media/Ranking.csv")) {
+      fs.writeFileSync("media/Ranking.csv", "Ranking;Producto\n");
     }
 
     console.log("Listo!");
