@@ -88,53 +88,49 @@ function applyView() {
 
 // --- Render por categoría/subcategoria ---
 function renderProducts() {
+  if (!viewProducts || viewProducts.length === 0) {
+    productList.innerHTML = "<div style='padding:20px;color:#555'>No hay productos para mostrar.</div>";
+    return;
+  }
+
   productList.innerHTML = "";
+
   const groups = {};
 
   viewProducts.forEach(p => {
-    const cat = p.Categoria || "Sin categoría";
-    const sub = p.SubCategoria || "General";
+    const cat = p.Categoria && p.Categoria.trim() ? p.Categoria : "Sin categoría";
+    const sub = p.SubCategoria && p.SubCategoria.trim() ? p.SubCategoria : "General";
+
     if (!groups[cat]) groups[cat] = {};
     if (!groups[cat][sub]) groups[cat][sub] = [];
+
     groups[cat][sub].push(p);
   });
 
-  // Ordenar categorías alfabéticamente
   Object.keys(groups).sort().forEach(cat => {
     const catDiv = document.createElement("div");
-    catDiv.className = "category-section";
 
-    const title = document.createElement("h2");
-    title.className = "category-title";
-    title.textContent = cat;
-    catDiv.appendChild(title);
+    const h2 = document.createElement("h2");
+    h2.textContent = cat;
+    catDiv.appendChild(h2);
 
     Object.keys(groups[cat]).sort().forEach(sub => {
-      const subTitle = document.createElement("h3");
-      subTitle.className = "subcategory-title";
-      subTitle.textContent = sub;
-      catDiv.appendChild(subTitle);
+      const h3 = document.createElement("h3");
+      h3.textContent = sub;
+      catDiv.appendChild(h3);
 
       const list = document.createElement("div");
       list.className = "sortable-list";
 
-      // Ordenar por Orden y Ranking antes de renderizar
-      groups[cat][sub].sort((a,b) => {
-        if ((a.Orden||999999) !== (b.Orden||999999)) return (a.Orden||999999) - (b.Orden||999999);
-        return (a.Ranking||999999) - (b.Ranking||999999);
-      }).forEach(p => {
-        const row = createProductRow(p);
-        list.appendChild(row);
-      });
+      groups[cat][sub]
+        .sort((a,b) => (a.Orden||999999) - (b.Orden||999999))
+        .forEach(p => list.appendChild(createProductRow(p)));
 
-      // Hacer sortable con SortableJS
       new Sortable(list, {
         animation: 150,
         handle: ".drag",
         onEnd: () => {
-          // Recalcular orden basado en posición dentro de ese contenedor
-          const items = Array.from(list.children);
-          items.forEach((el, idx) => {
+          Array.from(list.children).forEach((el, idx) => {
             const code = el.dataset.code;
             const prod = allProducts.find(x => x.Codigo === code);
             if (prod) prod.Orden = idx + 1;
@@ -148,6 +144,7 @@ function renderProducts() {
     productList.appendChild(catDiv);
   });
 }
+
 
 // --- Crear fila de producto ---
 function createProductRow(p) {
