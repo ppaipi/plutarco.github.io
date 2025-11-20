@@ -99,6 +99,9 @@
       <div class="inner-spacer"></div>
       <div id="results" class="inner-list"></div>
     </div>
+    <div style="text-align:center; margin-top:12px;">
+    <button id="btn-load-more" class="btn">Cargar 50 más</button>
+    </div>
 
   </main>
 
@@ -106,7 +109,7 @@
   <div id="image-modal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-flex">
-        <img id="modal-img-preview" class="modal-img">
+        <img id="modal-img-preview" class="modal-img" loading="lazy" alt="Vista previa de imagen">
         <div class="modal-side">
           <input id="modal-file-input" type="file" accept="image/*">
           <div id="modal-info"></div>

@@ -13,6 +13,9 @@ const firebaseConfig = {
   appId: "1:714627263776:web:3ee0e4fc657a6c12e37b45",
   measurementId: "G-99MNS9JHQN"
 };
+let batchSize = 50;
+let renderLimit = 50;
+
 
 
 /* === INIT FIREBASE (app + storage + auth) === */
@@ -36,7 +39,17 @@ const BUFFER = 20;
 /* DOM helpers */
 const $ = s => document.querySelector(s);
 const create = (t, a={}) => { const e = document.createElement(t); Object.entries(a).forEach(([k,v])=>e.setAttribute(k,v)); return e; };
-const toBool = v => (v===true||v==='true'||v===1||v==='1');
+function toBool(v) {
+  if (v === true) return true;
+  if (v === false) return false;
+  if (typeof v === "number") return v > 0;
+  if (v === null || v === undefined) return false;
+
+  v = String(v).trim().toLowerCase();
+
+  return ["1", "true", "sí", "si", "enabled", "habilitado", "activo"].includes(v);
+}
+
 
 const elProductsUrl = document.getElementById('url-products');
 const elAppsUrl = document.getElementById('url-appscript');
@@ -176,31 +189,53 @@ function filteredIndices(){
 }
 
 /* RENDER / VIRTUAL */
-function updateSpacerAndRender(){
-  const indices = filteredIndices();
-  const total = indices.length;
+function updateSpacerAndRender() {
+
+  // 1) Aplicar el límite (batchSize / loadMore)
+  const limited = filteredIndices().slice(0, renderLimit);
+  const total = limited.length;
+
+  // 2) Altura del spacer
   innerSpacer.style.height = (total * ITEM_HEIGHT) + 'px';
 
+  // 3) Calcular ventana visible
   const scrollTop = viewport.scrollTop;
   const vpHeight = viewport.clientHeight;
-  const firstVisible = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER);
-  const visibleCount = Math.ceil(vpHeight / ITEM_HEIGHT) + BUFFER*2;
-  const lastVisible = Math.min(total-1, firstVisible + visibleCount - 1);
+
+  const firstVisible = Math.max(
+    0,
+    Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER
+  );
+
+  const visibleCount = Math.ceil(vpHeight / ITEM_HEIGHT) + BUFFER * 2;
+
+  const lastVisible = Math.min(
+    total - 1,
+    firstVisible + visibleCount - 1
+  );
 
   visibleStart = firstVisible;
   visibleEnd = lastVisible;
 
+  // 4) Render de las tarjetas visibles
   resultsRoot.innerHTML = '';
-  for(let slot = visibleStart; slot <= visibleEnd; slot++){
-    const globalIndex = indices[slot];
+
+  for (let slot = visibleStart; slot <= visibleEnd; slot++) {
+    const globalIndex = limited[slot];
     const y = slot * ITEM_HEIGHT;
     const p = merged[globalIndex];
     const node = renderCardAbsolute(p, y, slot, globalIndex);
     resultsRoot.appendChild(node);
   }
 
-  elStats.textContent = `${total} items — mostrando ${Math.max(0, visibleEnd - visibleStart + 1)}`;
+  // 5) Stats
+  elStats.textContent =
+    `${total} items — mostrando ${Math.max(0, visibleEnd - visibleStart + 1)}`;
+
+  // 6) Lazy loading de imágenes (nueva parte)
+  observeLazyImages();
 }
+
 
 /* Render single card (absolute) with drag handlers */
 function renderCardAbsolute(p, y, slot, globalIndex){
@@ -212,7 +247,7 @@ function renderCardAbsolute(p, y, slot, globalIndex){
   el.dataset.index = String(globalIndex);
 
   el.innerHTML = `
-    <img class="thumb" src="${p.ImagenURL}" onerror="this.src='/media/PRODUCTOS/placeholder.jpg'"/>
+    <img class="thumb" src="${p.ImagenURL}" loading="lazy" onerror="this.src='/media/PRODUCTOS/placeholder.jpg'"/>
     <div class="meta">
       <div class="name">${escapeHtml(p.Nombre)}</div>
       <div class="desc">${escapeHtml(p.Descripcion || '')}</div>
@@ -490,6 +525,25 @@ async function triggerGithubWorkflow() {
     alert('Error disparando workflow: ' + (err.message||err));
   }
 }
+const lazyObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const img = entry.target;
+      img.src = img.dataset.src;
+      lazyObserver.unobserve(img);
+    }
+  });
+});
+
+function observeLazyImages() {
+  document.querySelectorAll("img[data-src]").forEach(img => {
+    lazyObserver.observe(img);
+  });
+}
+document.getElementById("btn-load-more").addEventListener("click", () => {
+  renderLimit += batchSize;
+  updateSpacerAndRender();
+});
 
 /* Event wiring */
 document.addEventListener('DOMContentLoaded', () => {
