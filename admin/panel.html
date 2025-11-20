@@ -43,16 +43,12 @@
 <body>
   <header>
     <h1>Panel Admin — Plutarco</h1>
-    <div class="header-right">
-      <button id="btn-github-sync" class="btn">🔁 Forzar Sync</button>
-      <button id="btn-auth" class="btn">Iniciar sesión</button>
-      <span id="admin-user"></span>
-    </div>
   </header>
 
   <main class="wrap">
 
     <!-- TOPBAR -->
+
     <section class="topbar">
       <div class="group">
         <label>Products JSON URL</label>
@@ -72,6 +68,11 @@
 
     <!-- CONTROLES -->
     <section class="controls">
+    <div class="header-right">
+      <button id="btn-github-sync" class="btn">🔁 Forzar Sync</button>
+      <button id="btn-auth" class="btn">Iniciar sesión</button>
+      <span id="admin-user"></span>
+    </div>
       <input id="search" type="text" placeholder="Buscar…">
       <label><input id="only-enabled" type="checkbox"> Solo habilitados</label>
 
