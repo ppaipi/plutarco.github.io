@@ -92,3 +92,18 @@ header h1{margin:0;font-size:18px;color:var(--accent)}
   .controls-right{min-width:120px}
   .list-viewport{height:640px}
 }
+.admin-card { position:absolute; left:0; right:0; display:flex; gap:12px; padding:8px; align-items:center; border-bottom:1px solid #eee; background:#fff; }
+.admin-card.drag-over { outline:2px dashed #1e88e5; transform: translateY(0); }
+.admin-card.dragging { opacity:0.6; }
+.controls-right { margin-left:auto; display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+.btn-ghost { background:transparent; border:1px solid #ddd; padding:6px 8px; border-radius:6px; cursor:pointer; }
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:10000; }
+.modal-overlay .modal-content { max-width:760px; width:95%; padding:18px; background:#fff; border-radius:10px; }
+#modal-img-preview { width:220px; height:220px; object-fit:cover; border-radius:8px; border:1px solid #ddd; }
+/* resumen.css - Estilos para el resumen administrativo */
+.summary-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* tres columnas */
+    gap: 20px;
+    padding: 20px;
+}

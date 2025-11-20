@@ -2,8 +2,11 @@ name: Sync Products from Google Sheets
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [manual-sync-from-panel]
   schedule:
     - cron: "0 */6 * * *"
+
 
 permissions:
   contents: write

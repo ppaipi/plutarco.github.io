@@ -3,60 +3,168 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Panel Admin (mix) - Plutarco</title>
+  <title>Panel Admin — Plutarco</title>
 
   <link rel="stylesheet" href="style/panel.css">
 
-  <!-- Firebase v8 (para subir imágenes) -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-  <!-- XLSX solo si querés importar Excel localmente (opcional) -->
+  <!-- XLSX (opcional) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    /* Algunos estilos mínimos */
+    .modal-overlay {
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.5);
+      align-items:center;
+      justify-content:center;
+      z-index:2000;
+    }
+    .modal-content {
+      background:white;
+      padding:18px;
+      border-radius:10px;
+      max-width:760px;
+      width:90%;
+    }
+    .modal-img {
+      width:220px;
+      height:220px;
+      object-fit:cover;
+      border-radius:8px;
+      border:1px solid #ddd;
+    }
+    .list-viewport {
+      height: calc(100vh - 250px);
+      overflow-y: auto;
+      position: relative;
+      border: 1px solid #ddd;
+      margin-top: 12px;
+    }
+    .inner-list {
+      position: absolute;
+      left: 0;
+      right: 0;
+    }
+    .admin-card {
+      position: absolute;
+      left:0;
+      right:0;
+      display:flex;
+      gap:12px;
+      padding:8px;
+      align-items:center;
+      border-bottom:1px solid #eee;
+      background:#fff;
+    }
+    .admin-card.drag-over {
+      outline:2px dashed #1e88e5;
+    }
+    .admin-card.dragging {
+      opacity:0.6;
+    }
+    .thumb {
+      width:90px;
+      height:90px;
+      object-fit:cover;
+      border-radius:6px;
+      border:1px solid #ccc;
+    }
+    .btn {
+      cursor:pointer;
+      padding:6px 8px;
+      border-radius:5px;
+      border:1px solid #ccc;
+      background:white;
+    }
+    .btn-primary {
+      background:#007bff;
+      color:white;
+      border-color:#0063d1;
+    }
+  </style>
 </head>
+
 <body>
   <header>
-    <h1>Panel Admin — Plutarco (Modo mixto)</h1>
+    <h1>Panel Admin — Plutarco</h1>
   </header>
 
   <main class="wrap">
+
     <section class="topbar">
       <div>
         <label>Products JSON URL</label>
         <input id="url-products" value="/products.json" />
       </div>
       <div>
-        <label>Apps Script URL (API)</label>
+        <label>Apps Script URL</label>
         <input id="url-appscript" value="https://script.google.com/macros/s/AKfycbzYuRooT4gimgVgM9QPP9HlsEacR0Ip2IHjZc5QgKeelAojQaaZdQLyG9viFvvLtjzu/exec" />
       </div>
-      <div class="actions">
-        <button id="btn-load">Cargar</button>
-        <button id="btn-save" class="btn-primary">Guardar cambios</button>
+
+      <div>
+        <button id="btn-load" class="btn">Cargar</button>
+        <button id="btn-save" class="btn btn-primary">Guardar cambios</button>
+      </div>
+
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button id="btn-github-sync" class="btn">🔁 Forzar Sync GitHub</button>
+        <button id="btn-auth" class="btn">Iniciar sesión</button>
+        <span id="admin-user"></span>
       </div>
     </section>
 
     <section class="controls">
-      <input id="search" placeholder="Buscar (código / nombre / proveedor)..." />
-      <label><input id="only-enabled" type="checkbox" /> Mostrar solo habilitados</label>
-      <label>Ordenar por:
+      <input id="search" placeholder="Buscar..."/>
+      <label><input id="only-enabled" type="checkbox"/> Solo habilitados</label>
+
+      <label>Ordenar:
         <select id="sort-by">
           <option value="orden">Orden</option>
           <option value="nombre">Nombre</option>
           <option value="precio">Precio</option>
         </select>
       </label>
+
+      <label>Categoría:
+        <select id="filter-category"><option value="">(Todas)</option></select>
+      </label>
+
+      <label>Subcategoría:
+        <select id="filter-subcategory"><option value="">(Todas)</option></select>
+      </label>
+
     </section>
 
     <section id="stats" class="stats">Cargando...</section>
 
-    <section id="results" class="list"></section>
+    <div class="list-viewport">
+      <div class="inner-spacer"></div>
+      <div id="results" class="inner-list"></div>
+    </div>
 
-    <section id="preview" class="preview" hidden>
-      <h2>Previsualización</h2>
-      <div id="preview-area" class="preview-area"></div>
-      <button id="close-preview">Cerrar</button>
-    </section>
   </main>
+
+  <!-- MODAL DE IMAGEN -->
+  <div id="image-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display:flex; gap:16px;">
+        <img id="modal-img-preview" class="modal-img"/>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <input id="modal-file-input" type="file" accept="image/*"/>
+          <div id="modal-info"></div>
+          <button id="modal-upload-btn" class="btn btn-primary">Subir y reemplazar</button>
+          <button id="modal-close-btn" class="btn">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="script/panel.js"></script>
 </body>
