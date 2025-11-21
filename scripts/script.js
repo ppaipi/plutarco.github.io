@@ -298,7 +298,15 @@ function scrollToElementoVerMas(clase, intentos = 10) {
 
 function renderProductsByCategory(productos) {
   const container = document.getElementById('product-list');
+  if (!container) {
+    console.error('El contenedor de productos no se encontró.');
+    return;
+  }
+
   container.innerHTML = '';
+
+  // Asegúrate de definir "categorias" aquí
+  let categorias = [];
 
   if (currentFilter !== 'Todas') {
     const catFiltered = currentFilter.replace(/\s+/g, '-');
@@ -311,17 +319,22 @@ function renderProductsByCategory(productos) {
       filteredProducts = [...products];
       renderCategoryMenu();
       renderProductsByCategory(filteredProducts);
-      if (indiceCategoria) {
-        scrollToElementoVerMas(indiceCategoria);
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     };
     container.appendChild(backBtn);
   }
 
-  let categorias = [...new Set(productos.map(p => p.Categoria))];
+  // Verifica que "productos" no esté vacío
+  if (productos && productos.length > 0) {
+    // Asigna valores a "categorias"
+    categorias = [...new Set(productos.map(p => p.Categoria))];
+  }
 
+  // Verifica si 'categorias' está vacío
+  if (categorias.length === 0) {
+    console.warn('No se encontraron categorías.');
+    return;
+  }
 
   categorias.sort((a, b) => {
     const indexA = ordenCategorias.indexOf(a);
