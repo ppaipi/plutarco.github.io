@@ -244,7 +244,6 @@ function renderCategoryMenu() {
   highlightSelected("Todas");
 
   let categorias = [...new Set(products.map(p => p.Categoria))];
-  console.log("Categorías encontradas:", categorias);
 
   // Reordenar según el array
   categorias.sort((a, b) => {
