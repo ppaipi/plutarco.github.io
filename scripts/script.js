@@ -35,11 +35,11 @@ async function loadProducts() {
   try {
     // Cargar productos desde products.json
     const res = await fetch('/products.json?cacheBust=' + Date.now());
-    const allProducts = await res.json();
+    allProducts = await res.json();
 
     // Filtrar solo habilitados
-    const products = allProducts.filter(p => p.Habilitado);
-    const filteredProducts = [...products];
+    products = allProducts.filter(p => p.Habilitado);
+    filteredProducts = [...products];
 
     // Render
     renderCategoryMenu();
