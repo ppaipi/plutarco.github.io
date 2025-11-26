@@ -33,12 +33,32 @@ let direccionValidaGoogle = false; // Variable global para saber si la direcció
 
 async function loadProducts() {
   try {
-    // Cargar productos desde products.json
-    const res = await fetch('/products.json?cacheBust=' + Date.now());
-    allProducts = await res.json();
+    const res = await fetch('../media/articulos.xlsx?cacheBust=' + Date.now());
+    const data = await res.arrayBuffer();
+
+    // Leer el Excel
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+
+    // Convertir la hoja a JSON
+    const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+    // Mapear a tu formato
+    allProducts = jsonData.map(row => ({
+      Codigo: (row["CODIGO BARRA"] || "").toString().trim(),
+      Nombre: row["DESCRIPCION LARGA"] || "",
+      Descripcion: row["DESCRIPCION ADICIONAL"] || "",
+      Categoria: row["RUBRO"] || "",
+      SubCategoria: row["SUBRUBRO"] || "",
+      Precio: parsePrecio(row["PRECIO VENTA C/IVA"]),
+      Proveedor: row["PROVEEDOR"] || "",
+    }));
 
     // Filtrar solo habilitados
-    products = allProducts.filter(p => p.Habilitado);
+    const resCodes = await fetch('../media/Habilitados.json?cacheBust=' + Date.now());
+    enabledCodes = await resCodes.json();
+    products = allProducts.filter(p => enabledCodes.includes(p.Codigo));
     filteredProducts = [...products];
 
     // Render
@@ -53,6 +73,31 @@ async function loadProducts() {
     console.error("Error cargando productos:", err);
   }
 }
+function parsePrecio(str) {
+  if (!str) return 0;
+  // Quitar puntos de miles y reemplazar coma decimal por punto
+  const limpio = str.replace(/\./g, '').replace(',', '.');
+  return parseFloat(limpio) || 0;
+}
+
+async function loadRanking() {
+  const res = await fetch('../media/Ranking.csv?cacheBust=' + Date.now());
+  const csvText = await res.text();
+  const rows = csvText.trim().split('\n').slice(1); // saco encabezado
+
+  rows.forEach(row => {
+    const cols = row.split(';'); // <-- separador correcto
+    if (cols.length < 2) return;
+
+    const rank = parseInt(cols[0]?.trim(), 10); // columna 1 = Ranking
+    const producto = cols[1]?.trim();           // columna 2 = Producto
+
+    if (producto && !isNaN(rank)) {
+      rankingMap[producto] = rank;
+    }
+  });
+}
+
 
 
 function cerrarModalDescripcion() {
