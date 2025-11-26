@@ -489,13 +489,12 @@ function renderProductsByCategory(productos) {
 
 
 function sortByRanking(a, b) {
-  const rankA = a.Ranking ?? Infinity; 
-  const rankB = b.Ranking ?? Infinity;
+  const rankA = rankingMap[a.Nombre] ?? Infinity; 
+  const rankB = rankingMap[b.Nombre] ?? Infinity;
 
   if (rankA !== rankB) return rankA - rankB;  
   return a.Nombre.localeCompare(b.Nombre, 'es'); 
 }
-
 
 
 function createVerMasCard(categoria) {
