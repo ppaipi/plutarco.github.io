@@ -477,14 +477,13 @@ function renderProductsByCategory(productos) {
 
 
 function sortByRanking(a, b) {
-  const rankA = rankingMap[a.Nombre] ?? Infinity; 
-  const rankB = rankingMap[b.Nombre] ?? Infinity;
-  
-  console.log(`Comparando: ${a.Nombre} (rank: ${rankA}) vs ${b.Nombre} (rank: ${rankB})`);
-  
+  const rankA = rankingMap[a.Codigo] ?? Infinity; 
+  const rankB = rankingMap[b.Codigo] ?? Infinity;
+
   if (rankA !== rankB) return rankA - rankB;  
-  return a.Nombre.localeCompare(b.Nombre, 'es'); 
+  return a.Nombre.localeCompare(b.Nombre, 'es'); // Mantén esto si necesitas mantener orden alfabético
 }
+
 
 
 
