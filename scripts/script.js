@@ -160,7 +160,7 @@ function createProductCard(prod) {
 
 div.innerHTML = `
   <img 
-    src="${prod.ImagenURL}" 
+    src="media/PRODUCTOS/${prod.Codigo}.jpg" 
     alt="${prod.Nombre}" 
     loading="lazy"
     style="object-fit: cover;"
@@ -674,7 +674,7 @@ function updateCart() {
       <div class="cart-item">
         <img 
           class="thumb"
-          src="${producto.ImagenURL}" 
+          src="media/PRODUCTOS/${prod.Codigo}.jpg" 
           alt="${producto.Nombre}" 
           onerror="this.onerror=null; this.src='media/PRODUCTOS/placeholder.jpg';"
           width="80" height="80"
@@ -1235,7 +1235,7 @@ function crearModalDescripcion(prod) {
   const img = document.createElement('img');
   img.className = 'modal-img';
   img.id = `modal-img-${prod.Codigo}`;
-  img.src = `${prod.ImagenURL}`;
+  img.src = `media/PRODUCTOS/${prod.Codigo}.jpg`;
   img.alt = prod.Nombre;
   img.onerror = function() {
     this.onerror = null;
