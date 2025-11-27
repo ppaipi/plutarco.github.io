@@ -35160,7 +35160,7 @@
     "Precio": 14000,
     "Proveedor": "Plutarco",
     "ImagenURL": "/media/PRODUCTOS/PLUT0011.jpg",
-    "Habilitado": false,
+    "Habilitado": true,
     "Ranking": 999999,
     "Orden": 999999
   },
