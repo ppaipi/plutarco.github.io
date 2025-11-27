@@ -86,7 +86,7 @@ async function loadRanking() {
   const rows = csvText.trim().split('\n').slice(1); // saco encabezado
 
   rows.forEach(row => {
-    const cols = row.split(';'); // <-- separador correcto
+    const cols = row.split(';'); 
     if (cols.length < 2) return;
 
     const rank = parseInt(cols[0]?.trim(), 10); // columna 1 = Ranking
@@ -1447,6 +1447,7 @@ function toggleZoom(idImagen) {
 
 window.onload = () => {
   loadProducts();
+  loadRanking();
   cargarDiasEntrega();
   initAutocomplete();
 
